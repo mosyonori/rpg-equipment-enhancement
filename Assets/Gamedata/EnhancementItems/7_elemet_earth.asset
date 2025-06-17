@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 292857e487e476e46a0df359720c34d9, type: 3}
+  m_Name: 7_elemet_earth
+  m_EditorClassIdentifier: 
+  itemId: 7
+  itemName: "\u571F\u306E\u30C8\u30D1\u30FC\u30BA"
+  description: "\u571F\u5C5E\u6027\u653B\u6483\u3092\u5F37\u5316\u51FA\u6765\u308B\u5B9D\u77F3"
+  icon: {fileID: 0}
+  itemType: 1
+  successRate: 0.7
+  greatSuccessRate: 0.1
+  bonus:
+    enhancementValue: 1
+    attackPower: 2
+    defensePower: 0
+    elementalAttack: 0
+    hp: 0
+    criticalRate: 0
+    fireAttack: 0
+    waterAttack: 0
+    windAttack: 0
+    earthAttack: 25
+    durabilityReduction: 3
+  rarity: 3
+  enhanceEffectPrefab: {fileID: 0}
+  enhanceSound: {fileID: 0}

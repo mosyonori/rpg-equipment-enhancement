@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5b3a169a0c737242b4ca04eec3309f8, type: 3}
+  m_Name: 2_protect_durability
+  m_EditorClassIdentifier: 
+  materialId: 2
+  materialName: "\u5F37\u5316\u8010\u4E45\u4FDD\u8B77\u30C1\u30B1\u30C3\u30C8"
+  description: "\u4F7F\u7528\u3059\u308B\u3068\u5931\u6557\u3057\u305F\u3068\u304D\u306E\u5F37\u5316\u8010\u4E45\u6E1B\u5C11\u3092\u7121\u52B9\u5316\u3059\u308B"
+  icon: {fileID: 1246015092, guid: 48c52d8b5f6b88b4c8816cbe7048aa5e, type: 3}
+  supportType: 6
+  materialType: protection
+  successRateModifier: 0
+  bonus:
+    bonusAttackPower: 0
+    bonusDefensePower: 0
+    bonusElementalAttack: 0
+    bonusHP: 0
+    bonusCriticalRate: 0
+    durabilityProtection: 0
+  preventFailurePenalty: 1
+  guaranteeSuccess: 0

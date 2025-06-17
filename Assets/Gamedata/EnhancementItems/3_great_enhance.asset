@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 292857e487e476e46a0df359720c34d9, type: 3}
+  m_Name: 3_great_enhance
+  m_EditorClassIdentifier: 
+  itemId: 3
+  itemName: "\u6700\u9AD8\u7D1A\u5F37\u5316\u77F3"
+  description: "\u6700\u9AD8\u54C1\u8CEA\u306E\u5F37\u5316\u77F3\u3002\u88C5\u5099\u3092\u3088\u308A\u52B9\u7387\u826F\u304F\u5F37\u5316\u51FA\u6765\u308B\u3002"
+  icon: {fileID: -2109838158, guid: 393f12a42b2bfee459a287a7c9abb62a, type: 3}
+  itemType: 0
+  successRate: 0.8
+  greatSuccessRate: 0.1
+  bonus:
+    enhancementValue: 3
+    attackPower: 45
+    defensePower: 0
+    elementalAttack: 0
+    hp: 0
+    criticalRate: 5
+    fireAttack: 0
+    waterAttack: 0
+    windAttack: 0
+    earthAttack: 0
+    durabilityReduction: 7
+  rarity: 3
+  enhanceEffectPrefab: {fileID: 0}
+  enhanceSound: {fileID: 0}
