@@ -8,24 +8,25 @@ public class ItemSelectionUI : MonoBehaviour
 {
     [Header("Selection Panel")]
     public GameObject selectionPanel;
-    public Transform contentParent; // ContentPanelを指す
-    public Transform dynamicContentParent; // ★新規追加: DynamicContentPanelを指す
+    public Transform contentParent; // ContentPanel を指定
+    public Transform dynamicContentParent; // 動的コンテンツ用（必要に応じて）
     public Button closeButton;
 
     [Header("Item Button Prefab")]
     public GameObject itemButtonPrefab;
 
     [Header("None Selection Button")]
-    public Button noneSelectionButton; // ★追加: あらかじめ作成した「選択なし」ボタン
+    public Button noneSelectionButton; // 「選択なし」ボタン
 
     [Header("Selection Type")]
     public SelectionType currentSelectionType;
 
-    // ★重要: イベント定義（EquipmentUpgradeManager.csで使用）
+    // イベント定義（EquipmentUpgradeManager.cs で使用）
     public System.Action<string, string> OnItemSelected;
     public System.Action OnSelectionCancelled;
 
     private List<GameObject> instantiatedButtons = new List<GameObject>();
+    private int currentEquipmentIndex = -1; // 現在選択中の装備インデックス
 
     public enum SelectionType
     {
@@ -36,122 +37,63 @@ public class ItemSelectionUI : MonoBehaviour
 
     void Start()
     {
-        if (closeButton != null)
-            closeButton.onClick.AddListener(CloseSelectionPanel);
+        SetupUI();
+    }
 
-        // ★「選択なし」ボタンのイベント設定
+    private void SetupUI()
+    {
+        closeButton?.onClick.AddListener(CloseSelectionPanel);
+
+        // 「選択なし」ボタンのイベント設定
         if (noneSelectionButton != null)
         {
             noneSelectionButton.onClick.AddListener(() => {
-                Debug.Log("「選択なし」ボタンがクリックされました");
                 OnItemSelected?.Invoke("", "support_none");
                 CloseSelectionPanel();
             });
-
-            // 初期状態では非表示
-            noneSelectionButton.gameObject.SetActive(false);
-            Debug.Log("「選択なし」ボタンのイベント設定完了");
-        }
-        else
-        {
-            Debug.LogWarning("NoneSelectionButton が設定されていません");
+            noneSelectionButton.gameObject.SetActive(false); // 初期状態では非表示
         }
 
-        if (selectionPanel != null)
-        {
-            selectionPanel.SetActive(false);
-        }
-
-        Debug.Log("ItemSelectionUI初期化完了");
+        selectionPanel?.SetActive(false);
     }
+
+    #region 選択UI表示メソッド
 
     public void ShowEquipmentSelection()
     {
-        Debug.Log("装備選択画面を表示");
         currentSelectionType = SelectionType.Equipment;
         ShowSelectionPanel();
-
-        // ★「選択なし」ボタンを非表示
-        if (noneSelectionButton != null)
-        {
-            noneSelectionButton.gameObject.SetActive(false);
-        }
-
+        SetActive(noneSelectionButton?.gameObject, false);
         PopulateEquipmentList();
     }
 
     public void ShowEnhancementItemSelection()
     {
-        Debug.Log("強化アイテム選択画面を表示");
         currentSelectionType = SelectionType.EnhancementItem;
         ShowSelectionPanel();
-
-        // ★「選択なし」ボタンを非表示
-        if (noneSelectionButton != null)
-        {
-            noneSelectionButton.gameObject.SetActive(false);
-        }
-
+        SetActive(noneSelectionButton?.gameObject, false);
         PopulateEnhancementItemList();
     }
 
     public void ShowSupportMaterialSelection()
     {
-        Debug.Log("補助材料選択画面を表示");
         currentSelectionType = SelectionType.SupportMaterial;
         ShowSelectionPanel();
-
-        // ★「選択なし」ボタンを表示 - 詳細デバッグ
-        if (noneSelectionButton != null)
-        {
-            Debug.Log($"NoneSelectionButton found: {noneSelectionButton.name}");
-            Debug.Log($"NoneSelectionButton current active state: {noneSelectionButton.gameObject.activeInHierarchy}");
-
-            noneSelectionButton.gameObject.SetActive(true);
-
-            Debug.Log($"NoneSelectionButton after SetActive(true): {noneSelectionButton.gameObject.activeInHierarchy}");
-            Debug.Log($"NoneSelectionButton parent: {noneSelectionButton.transform.parent?.name}");
-            Debug.Log($"NoneSelectionButton position: {noneSelectionButton.transform.position}");
-            Debug.Log($"NoneSelectionButton rect: {noneSelectionButton.GetComponent<RectTransform>().rect}");
-
-            // 親オブジェクトのアクティブ状態も確認
-            Transform current = noneSelectionButton.transform;
-            while (current != null)
-            {
-                Debug.Log($"Parent check: {current.name} - Active: {current.gameObject.activeSelf}");
-                current = current.parent;
-            }
-
-            Debug.Log("「選択なし」ボタンを表示しました");
-        }
-        else
-        {
-            Debug.LogError("NoneSelectionButton が null です！Inspectorで設定を確認してください");
-        }
-
+        SetActive(noneSelectionButton?.gameObject, true);
         PopulateSupportMaterialList();
     }
 
     private void ShowSelectionPanel()
     {
-        if (selectionPanel != null)
-        {
-            selectionPanel.SetActive(true);
-        }
+        selectionPanel?.SetActive(true);
         ClearItemList();
     }
 
     public void CloseSelectionPanel()
     {
-        Debug.Log("選択画面を閉じます");
-
-        if (selectionPanel != null)
-        {
-            selectionPanel.SetActive(false);
-        }
-
+        selectionPanel?.SetActive(false);
         ClearItemList();
-        OnSelectionCancelled?.Invoke(); // ★イベント呼び出し
+        OnSelectionCancelled?.Invoke();
     }
 
     private void ClearItemList()
@@ -164,16 +106,15 @@ public class ItemSelectionUI : MonoBehaviour
         instantiatedButtons.Clear();
     }
 
+    #endregion
+
+    #region アイテムリスト生成
+
     private void PopulateEquipmentList()
     {
-        if (DataManager.Instance == null || DataManager.Instance.currentUserData == null)
-        {
-            Debug.LogError("DataManagerまたはユーザーデータが見つかりません");
-            return;
-        }
+        if (DataManager.Instance?.currentUserData == null) return;
 
         var equipmentList = DataManager.Instance.GetAllUserEquipments();
-
         for (int i = 0; i < equipmentList.Count; i++)
         {
             var userEquipment = equipmentList[i];
@@ -187,123 +128,81 @@ public class ItemSelectionUI : MonoBehaviour
 
     private void PopulateEnhancementItemList()
     {
-        if (DataManager.Instance == null)
-        {
-            Debug.LogError("DataManager が見つかりません");
-            return;
-        }
+        if (DataManager.Instance == null) return;
 
-        // 強化アイテムマスターデータを全て取得して、所持数をチェック
+        // 現在選択中の装備を取得（属性制限チェック用）
+        UserEquipment currentEquipment = GetCurrentSelectedEquipment();
+
+        // 強化アイテムマスターデータを全て取得して、所持数と属性制限をチェック
         foreach (var itemData in DataManager.Instance.enhancementItemDatabase)
         {
             int quantity = DataManager.Instance.GetItemQuantity(itemData.itemId);
             if (quantity > 0)
             {
-                CreateEnhancementItemButton(itemData, quantity);
+                // 属性制限チェック（ボタンの有効/無効のみ）
+                bool canUse = currentEquipment == null || itemData.CanUseOnEquipment(currentEquipment);
+
+                CreateEnhancementItemButton(itemData, quantity, canUse);
             }
         }
     }
 
     private void PopulateSupportMaterialList()
     {
-        Debug.Log("補助材料リスト作成開始");
-
-        // ★動的な「選択なし」ボタン作成は不要（あらかじめUIに配置済み）
-
-        if (DataManager.Instance == null)
-        {
-            Debug.LogError("DataManager が見つかりません");
-            return;
-        }
+        if (DataManager.Instance == null) return;
 
         // 補助アイテムマスターデータを全て取得して、所持数をチェック
-        int materialCount = 0;
         foreach (var itemData in DataManager.Instance.supportMaterialDatabase)
         {
             int quantity = DataManager.Instance.GetItemQuantity(itemData.materialId);
-            Debug.Log($"補助材料チェック: {itemData.materialName} (ID:{itemData.materialId}) 所持数:{quantity}");
-
             if (quantity > 0)
             {
                 CreateSupportMaterialButton(itemData, quantity);
-                materialCount++;
             }
         }
-
-        Debug.Log($"補助材料リスト作成完了: あらかじめ配置済み「選択なし」+ {materialCount}個の材料");
     }
 
-    private void CreateNoneSupportMaterialButton()
+    /// <summary>
+    /// 現在選択中の装備を取得（EquipmentUpgradeManagerから）
+    /// </summary>
+    private UserEquipment GetCurrentSelectedEquipment()
     {
-        Debug.Log("「選択なし」ボタン作成開始");
+        var upgradeManager = FindFirstObjectByType<EquipmentUpgradeManager>();
+        if (upgradeManager == null) return null;
 
-        if (itemButtonPrefab == null || contentParent == null)
+        // リフレクションを使用してprivateフィールドにアクセス
+        var field = typeof(EquipmentUpgradeManager).GetField("currentEquipmentIndex",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        if (field != null)
         {
-            Debug.LogError("ItemButtonPrefabまたはContentParentが設定されていません");
-            return;
-        }
-
-        GameObject buttonObj = Instantiate(itemButtonPrefab, contentParent);
-
-        Button button = buttonObj.GetComponent<Button>();
-        if (button != null)
-        {
-            button.onClick.AddListener(() => {
-                Debug.Log("「選択なし」ボタンがクリックされました");
-                OnItemSelected?.Invoke("", "support_none"); // ★イベント呼び出し
-                CloseSelectionPanel();
-            });
-            Debug.Log("「選択なし」ボタンのクリックイベント設定完了");
-        }
-        else
-        {
-            Debug.LogError("「選択なし」ボタンにButtonコンポーネントが見つかりません");
-        }
-
-        // 背景色を変更して区別しやすくする
-        Image buttonImage = buttonObj.GetComponent<Image>();
-        if (buttonImage != null)
-        {
-            buttonImage.color = new Color(0.8f, 0.8f, 1.0f, 1f); // 薄い青色で区別
-            Debug.Log("「選択なし」ボタンの背景色設定完了");
-        }
-
-        // UI設定
-        SetTextComponent(buttonObj, "NameText", "選択なし");
-        SetTextComponent(buttonObj, "DetailText", "補助材料を使用しません");
-
-        // アイコンを非表示
-        Transform iconTransform = buttonObj.transform.Find("Icon");
-        if (iconTransform != null)
-        {
-            Image iconImage = iconTransform.GetComponent<Image>();
-            if (iconImage != null)
+            int equipmentIndex = (int)field.GetValue(upgradeManager);
+            if (equipmentIndex >= 0)
             {
-                iconImage.enabled = false;
-                Debug.Log("「選択なし」ボタンのアイコンを非表示に設定");
+                return DataManager.Instance?.GetUserEquipment(equipmentIndex);
             }
         }
 
-        instantiatedButtons.Add(buttonObj);
-        Debug.Log($"「選択なし」ボタン作成完了。現在のボタン数: {instantiatedButtons.Count}");
+        return null;
     }
+
+    #endregion
+
+    #region ボタン生成メソッド
 
     private void CreateEquipmentButton(EquipmentData equipData, UserEquipment userEquip, int equipmentIndex)
     {
-        if (itemButtonPrefab == null || contentParent == null)
-        {
-            Debug.LogError("ItemButtonPrefabまたはContentParentが設定されていません");
-            return;
-        }
+        if (itemButtonPrefab == null || contentParent == null) return;
 
         GameObject buttonObj = Instantiate(itemButtonPrefab, contentParent);
-
         Button button = buttonObj.GetComponent<Button>();
+
         if (button != null)
         {
+            // 局所変数を使用してキャプチャを明確化
+            int capturedIndex = equipmentIndex;
             button.onClick.AddListener(() => {
-                Debug.Log($"装備が選択されました: {equipData.equipmentName}");
-                OnItemSelected?.Invoke(equipmentIndex.ToString(), "equipment"); // ★イベント呼び出し
+                OnItemSelected?.Invoke(capturedIndex.ToString(), "equipment");
                 CloseSelectionPanel();
             });
         }
@@ -313,53 +212,62 @@ public class ItemSelectionUI : MonoBehaviour
         SetTextComponent(buttonObj, "NameText", $"{equipData.equipmentName} +{userEquip.enhancementLevel}");
         SetTextComponent(buttonObj, "DetailText", $"攻撃力: {userEquip.GetTotalAttack():F1}\n耐久: {userEquip.currentDurability}");
 
+        // 装備の属性表示
+        ElementalType equipmentType = userEquip.GetCurrentElementalType();
+        if (equipmentType != ElementalType.None)
+        {
+            string typeName = UserEquipment.GetElementalTypeName(equipmentType);
+            AppendTextComponent(buttonObj, "DetailText", $"\n[{typeName}属性]");
+        }
+
         instantiatedButtons.Add(buttonObj);
     }
 
-    private void CreateEnhancementItemButton(EnhancementItemData itemData, int quantity)
+    private void CreateEnhancementItemButton(EnhancementItemData itemData, int quantity, bool canUse)
     {
-        if (itemButtonPrefab == null || contentParent == null)
-        {
-            Debug.LogError("ItemButtonPrefabまたはContentParentが設定されていません");
-            return;
-        }
+        if (itemButtonPrefab == null || contentParent == null) return;
 
         GameObject buttonObj = Instantiate(itemButtonPrefab, contentParent);
-
         Button button = buttonObj.GetComponent<Button>();
+
         if (button != null)
         {
-            button.onClick.AddListener(() => {
-                Debug.Log($"強化アイテムが選択されました: {itemData.itemName}");
-                OnItemSelected?.Invoke(itemData.itemId.ToString(), "enhancement"); // ★イベント呼び出し
-                CloseSelectionPanel();
-            });
+            button.interactable = canUse;
+
+            if (canUse)
+            {
+                // 局所変数を使用してキャプチャを明確化
+                int capturedItemId = itemData.itemId;
+                button.onClick.AddListener(() => {
+                    OnItemSelected?.Invoke(capturedItemId.ToString(), "enhancement");
+                    CloseSelectionPanel();
+                });
+            }
         }
 
         // UI要素の設定
         SetImageComponent(buttonObj, "Icon", itemData.icon);
         SetTextComponent(buttonObj, "NameText", $"{itemData.itemName} x{quantity}");
-        SetTextComponent(buttonObj, "DetailText", $"成功率: {itemData.successRate * 100:F0}%\n{itemData.GetEffectDescription()}");
+
+        string detailText = GetEnhancementItemDetailText(itemData);
+        SetTextComponent(buttonObj, "DetailText", detailText);
 
         instantiatedButtons.Add(buttonObj);
     }
 
     private void CreateSupportMaterialButton(SupportMaterialData materialData, int quantity)
     {
-        if (itemButtonPrefab == null || contentParent == null)
-        {
-            Debug.LogError("ItemButtonPrefabまたはContentParentが設定されていません");
-            return;
-        }
+        if (itemButtonPrefab == null || contentParent == null) return;
 
         GameObject buttonObj = Instantiate(itemButtonPrefab, contentParent);
-
         Button button = buttonObj.GetComponent<Button>();
+
         if (button != null)
         {
+            // 局所変数を使用してキャプチャを明確化
+            int capturedMaterialId = materialData.materialId;
             button.onClick.AddListener(() => {
-                Debug.Log($"補助材料が選択されました: {materialData.materialName}");
-                OnItemSelected?.Invoke(materialData.materialId.ToString(), "support"); // ★イベント呼び出し
+                OnItemSelected?.Invoke(capturedMaterialId.ToString(), "support");
                 CloseSelectionPanel();
             });
         }
@@ -372,10 +280,117 @@ public class ItemSelectionUI : MonoBehaviour
         instantiatedButtons.Add(buttonObj);
     }
 
-    // ★既存スクリプト互換性維持用メソッド
+    #endregion
+
+    #region UI操作ヘルパーメソッド
+
+    /// <summary>
+    /// 強化アイテムの詳細テキストを装備選択状態に応じて生成
+    /// </summary>
+    private string GetEnhancementItemDetailText(EnhancementItemData itemData)
+    {
+        // 現在選択中の装備を取得
+        UserEquipment currentEquipment = GetCurrentSelectedEquipment();
+
+        if (currentEquipment == null)
+        {
+            // 装備が選択されていない場合は基本説明を表示
+            string basicInfo = $"{itemData.description}\n";
+            basicInfo += $"成功率: {itemData.successRate * 100:F0}%";
+            return basicInfo;
+        }
+
+        // 装備が選択されている場合は、その装備種類に応じた効果を表示
+        var equipmentData = DataManager.Instance?.GetEquipmentData(currentEquipment.equipmentId);
+        if (equipmentData == null)
+        {
+            return itemData.description;
+        }
+
+        string effectText;
+        string successRateText;
+        string durabilityText;
+
+        if (itemData.useEquipmentTypeSpecificBonus)
+        {
+            // 装備種類別効果を使用
+            effectText = itemData.GetEffectDescriptionForEquipmentType(equipmentData.equipmentType);
+            float adjustedRate = itemData.GetAdjustedSuccessRate(currentEquipment.enhancementLevel);
+            successRateText = $"成功率: {adjustedRate * 100:F1}%";
+            durabilityText = $"消費耐久: {itemData.GetDurabilityReduction(equipmentData.equipmentType)}";
+        }
+        else
+        {
+            // 従来の効果を使用
+            effectText = itemData.GetEffectDescription();
+            float adjustedRate = itemData.GetAdjustedSuccessRate(currentEquipment.enhancementLevel);
+            successRateText = $"成功率: {adjustedRate * 100:F1}%";
+            durabilityText = $"消費耐久: {itemData.GetDurabilityReduction()}";
+        }
+
+        // 属性情報を追加
+        ElementalType itemType = itemData.GetElementalType(equipmentData.equipmentType);
+        if (itemType != ElementalType.None)
+        {
+            string typeName = UserEquipment.GetElementalTypeName(itemType);
+            effectText += $"\n[{typeName}属性強化]";
+        }
+
+        return $"{effectText}\n{successRateText}\n{durabilityText}";
+    }
+
+    private void SetTextComponent(GameObject parent, string childName, string text)
+    {
+        Transform textTransform = parent.transform.Find(childName);
+        if (textTransform != null)
+        {
+            TextMeshProUGUI textComponent = textTransform.GetComponent<TextMeshProUGUI>();
+            if (textComponent != null)
+            {
+                textComponent.text = text;
+            }
+        }
+    }
+
+    private void AppendTextComponent(GameObject parent, string childName, string appendText)
+    {
+        Transform textTransform = parent.transform.Find(childName);
+        if (textTransform != null)
+        {
+            TextMeshProUGUI textComponent = textTransform.GetComponent<TextMeshProUGUI>();
+            if (textComponent != null)
+            {
+                textComponent.text += appendText;
+            }
+        }
+    }
+
+    private void SetImageComponent(GameObject parent, string childName, Sprite sprite)
+    {
+        Transform imageTransform = parent.transform.Find(childName);
+        if (imageTransform != null)
+        {
+            Image imageComponent = imageTransform.GetComponent<Image>();
+            if (imageComponent != null && sprite != null)
+            {
+                imageComponent.sprite = sprite;
+                imageComponent.enabled = true;
+            }
+            else if (imageComponent != null)
+            {
+                imageComponent.enabled = false;
+            }
+        }
+    }
+
+    private void SetActive(GameObject obj, bool active) => obj?.SetActive(active);
+
+    #endregion
+
+    #region 既存互換性保持用メソッド
+
     public void SelectEquipment(EquipmentData equipData, UserEquipment userEquip)
     {
-        // 装備インデックスを検索
         var equipmentList = DataManager.Instance.GetAllUserEquipments();
         for (int i = 0; i < equipmentList.Count; i++)
         {
@@ -406,32 +421,5 @@ public class ItemSelectionUI : MonoBehaviour
         CloseSelectionPanel();
     }
 
-    // ヘルパーメソッド：テキストコンポーネント設定
-    private void SetTextComponent(GameObject parent, string childName, string text)
-    {
-        Transform textTransform = parent.transform.Find(childName);
-        if (textTransform != null)
-        {
-            TextMeshProUGUI textComponent = textTransform.GetComponent<TextMeshProUGUI>();
-            if (textComponent != null)
-            {
-                textComponent.text = text;
-            }
-        }
-    }
-
-    // ヘルパーメソッド：画像コンポーネント設定
-    private void SetImageComponent(GameObject parent, string childName, Sprite sprite)
-    {
-        Transform imageTransform = parent.transform.Find(childName);
-        if (imageTransform != null)
-        {
-            Image imageComponent = imageTransform.GetComponent<Image>();
-            if (imageComponent != null && sprite != null)
-            {
-                imageComponent.sprite = sprite;
-                imageComponent.enabled = true;
-            }
-        }
-    }
+    #endregion
 }

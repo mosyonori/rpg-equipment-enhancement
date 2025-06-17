@@ -2,6 +2,16 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// 属性タイプの定義
+public enum ElementalType
+{
+    None,
+    Fire,
+    Water,
+    Wind,
+    Earth
+}
+
 [System.Serializable]
 public class UserEquipment
 {
@@ -11,14 +21,14 @@ public class UserEquipment
     public bool isEquipped;
     public DateTime acquiredDate;
 
-    // 強化によって得られたボーナス（ユーザー固有データ）
+    // 強化によって得られたボーナス（ユーザー所有データ）
     public int bonusAttackPower = 0;
     public int bonusDefensePower = 0;
-    public int bonusElementalAttack = 0; // ★既存：汎用属性攻撃（互換性維持）
+    public int bonusElementalAttack = 0; // ※既存：汎用属性攻撃（互換性保持）
     public int bonusHP = 0;
     public float bonusCriticalRate = 0f;
 
-    // ★追加：4種類の属性攻撃
+    // ※追加：4種類の属性攻撃
     public int bonusFireAttack = 0;      // 火属性攻撃
     public int bonusWaterAttack = 0;     // 水属性攻撃
     public int bonusWindAttack = 0;      // 風属性攻撃
@@ -40,7 +50,85 @@ public class UserEquipment
     public List<int> unlockedSkills = new List<int>();
     public int equippedSkillId = -1; // 装備中のスキルID
 
-    // ★追加: 総合ステータス計算メソッド（マスターデータ + ボーナス）
+    #region 属性判定システム
+
+    /// <summary>
+    /// 装備が持っている属性攻撃のタイプを取得
+    /// </summary>
+    public ElementalType GetCurrentElementalType()
+    {
+        var masterData = DataManager.Instance.GetEquipmentData(equipmentId);
+        if (masterData == null) return ElementalType.None;
+
+        // ベース値 + ボーナス値で判定
+        float totalFire = masterData.stats.baseFireAttack + bonusFireAttack;
+        float totalWater = masterData.stats.baseWaterAttack + bonusWaterAttack;
+        float totalWind = masterData.stats.baseWindAttack + bonusWindAttack;
+        float totalEarth = masterData.stats.baseEarthAttack + bonusEarthAttack;
+
+        // 最も高い属性攻撃を返す（同値の場合は優先順位: Fire > Water > Wind > Earth）
+        if (totalFire > 0 && totalFire >= totalWater && totalFire >= totalWind && totalFire >= totalEarth)
+            return ElementalType.Fire;
+        if (totalWater > 0 && totalWater >= totalWind && totalWater >= totalEarth)
+            return ElementalType.Water;
+        if (totalWind > 0 && totalWind >= totalEarth)
+            return ElementalType.Wind;
+        if (totalEarth > 0)
+            return ElementalType.Earth;
+
+        return ElementalType.None;
+    }
+
+    /// <summary>
+    /// 指定した属性の強化アイテムが使用可能かチェック
+    /// </summary>
+    public bool CanUseElementalEnhancement(ElementalType enhancementType)
+    {
+        if (enhancementType == ElementalType.None) return true; // 無属性は常に使用可能
+
+        ElementalType currentType = GetCurrentElementalType();
+
+        // 無属性装備なら全ての属性強化が可能
+        if (currentType == ElementalType.None) return true;
+
+        // 既に属性が付いている場合は、同じ属性のみ強化可能
+        return currentType == enhancementType;
+    }
+
+    /// <summary>
+    /// 使用可能でない理由を取得（UI表示用）
+    /// </summary>
+    public string GetElementalRestrictionReason(ElementalType enhancementType)
+    {
+        if (CanUseElementalEnhancement(enhancementType)) return "";
+
+        ElementalType currentType = GetCurrentElementalType();
+        string currentTypeName = GetElementalTypeName(currentType);
+        string enhancementTypeName = GetElementalTypeName(enhancementType);
+
+        return $"この装備は既に{currentTypeName}属性です。{enhancementTypeName}属性の強化はできません。";
+    }
+
+    /// <summary>
+    /// 属性タイプの日本語名を取得
+    /// </summary>
+    public static string GetElementalTypeName(ElementalType type)
+    {
+        switch (type)
+        {
+            case ElementalType.Fire: return "火";
+            case ElementalType.Water: return "水";
+            case ElementalType.Wind: return "風";
+            case ElementalType.Earth: return "土";
+            default: return "無";
+        }
+    }
+
+    #endregion
+
+    #region 既存の合計ステータス計算メソッド（修正なし、互換性保持）
+
+    // ※追加: 合計ステータス計算メソッド（マスターデータ + ボーナス）
     public float GetTotalAttack()
     {
         var masterData = DataManager.Instance.GetEquipmentData(equipmentId);
@@ -76,14 +164,14 @@ public class UserEquipment
         return baseElemental + bonusElementalAttack;
     }
 
-    // ★追加：4種類の属性攻撃取得メソッド
+    // ※追加：4種類の属性攻撃取得メソッド
     public float GetTotalFireAttack()
     {
         var masterData = DataManager.Instance.GetEquipmentData(equipmentId);
         float baseFire = masterData != null ? masterData.stats.baseFireAttack : 0f;
         float total = baseFire + bonusFireAttack;
 
-        // ★デバッグログ追加
+        // ※デバッグログ追加
         Debug.Log($"GetTotalFireAttack - 装備ID:{equipmentId}, base:{baseFire}, bonus:{bonusFireAttack}, total:{total}");
 
         return total;
@@ -110,25 +198,31 @@ public class UserEquipment
         return baseEarth + bonusEarthAttack;
     }
 
-    // ★追加: 強化可能かチェック
+    #endregion
+
+    #region 既存のユーティリティメソッド（修正なし）
+
+    // ※追加: 強化可能かチェック
     public bool CanEnhance()
     {
         return currentDurability > 0;
     }
 
-    // ★追加: 耐久度減少
+    // ※追加: 耐久度減少
     public void ReduceDurability(int amount)
     {
         currentDurability = Mathf.Max(0, currentDurability - amount);
     }
 
-    // ★追加: 耐久度回復
+    // ※追加: 耐久度回復
     public void RestoreDurability(int amount)
     {
         var masterData = DataManager.Instance.GetEquipmentData(equipmentId);
         int maxDurability = masterData != null ? masterData.stats.baseDurability : 100;
         currentDurability = Mathf.Min(maxDurability, currentDurability + amount);
     }
+
+    #endregion
 }
 
 [System.Serializable]
@@ -205,7 +299,7 @@ public class UserData
     public int totalBattles;
     public int totalVictories;
 
-    // ★追加: 装備を取得
+    // ※追加: 装備を取得
     public UserEquipment GetEquipment(int index)
     {
         if (index >= 0 && index < equipments.Count)
@@ -215,7 +309,7 @@ public class UserData
         return null;
     }
 
-    // ★追加: 装備を追加
+    // ※追加: 装備を追加
     public void AddEquipment(int equipmentId)
     {
         var masterData = DataManager.Instance.GetEquipmentData(equipmentId);
@@ -237,7 +331,7 @@ public class UserData
         equipments.Add(newEquipment);
     }
 
-    // ★追加: アイテムを追加
+    // ※追加: アイテムを追加
     public void AddItem(int itemId, int quantity, string itemType = "enhancement")
     {
         List<UserItem> targetList = null;
@@ -275,7 +369,7 @@ public class UserData
         }
     }
 
-    // ★追加: アイテムを消費
+    // ※追加: アイテムを消費
     public bool ConsumeItem(int itemId, int quantity, string itemType = "enhancement")
     {
         List<UserItem> targetList = null;
@@ -309,7 +403,7 @@ public class UserData
         return false;
     }
 
-    // ★追加: アイテム所持数を取得
+    // ※追加: アイテム所持数を取得
     public int GetItemQuantity(int itemId, string itemType = "enhancement")
     {
         List<UserItem> targetList = null;
@@ -343,7 +437,7 @@ public class UserData
         return item != null ? item.quantity : 0;
     }
 
-    // ★追加: 通貨を消費
+    // ※追加: 通貨を消費
     public bool SpendCurrency(int amount)
     {
         if (currency >= amount)
@@ -354,7 +448,7 @@ public class UserData
         return false;
     }
 
-    // ★追加: ジェムを消費
+    // ※追加: ジェムを消費
     public bool SpendGems(int amount)
     {
         if (premiumCurrency >= amount)

@@ -17,8 +17,12 @@ MonoBehaviour:
   description: "\u4F7F\u7528\u3059\u308B\u3068\u5931\u6557\u3057\u305F\u3068\u304D\u306E\u5F37\u5316\u8010\u4E45\u6E1B\u5C11\u3092\u7121\u52B9\u5316\u3059\u308B"
   icon: {fileID: 1246015092, guid: 48c52d8b5f6b88b4c8816cbe7048aa5e, type: 3}
   supportType: 6
-  materialType: protection
+  materialType: durability_protection
   successRateModifier: 0
+  durabilityModifier: 0
+  failureDurabilityReduction: 3
+  preventFailurePenalty: 0
+  guaranteeSuccess: 0
   bonus:
     bonusAttackPower: 0
     bonusDefensePower: 0
@@ -26,5 +30,5 @@ MonoBehaviour:
     bonusHP: 0
     bonusCriticalRate: 0
     durabilityProtection: 0
-  preventFailurePenalty: 1
-  guaranteeSuccess: 0
+  effectDisplayText: "\u5931\u6557\u6642\u306E\u5F37\u5316\u8010\u4E45\u306E\u6E1B\u5C11\u30923\u8EFD\u6E1B"
+  useAutoConfiguration: 0

@@ -83,7 +83,6 @@ public class DataManager : MonoBehaviour
     {
         if (useTemporaryDataForTesting)
         {
-            Debug.Log("テストモード中のため、データを保存しません");
             return;
         }
 
@@ -93,8 +92,6 @@ public class DataManager : MonoBehaviour
             string encryptedData = EncryptString(jsonData);
             PlayerPrefs.SetString(SAVE_KEY, encryptedData);
             PlayerPrefs.Save();
-
-            Debug.Log("ユーザーデータを保存しました");
         }
         catch (Exception e)
         {
@@ -106,7 +103,6 @@ public class DataManager : MonoBehaviour
     {
         if (useTemporaryDataForTesting)
         {
-            Debug.Log("テストモード: 新規データを作成します");
             currentUserData = new UserData();
             ValidateUserData();
             return;
@@ -119,14 +115,11 @@ public class DataManager : MonoBehaviour
                 string encryptedData = PlayerPrefs.GetString(SAVE_KEY);
                 string jsonData = DecryptString(encryptedData);
                 currentUserData = JsonUtility.FromJson<UserData>(jsonData);
-
-                Debug.Log("ユーザーデータを読み込みました");
             }
             else
             {
                 currentUserData = new UserData();
                 SaveUserData();
-                Debug.Log("新規ユーザーデータを作成しました");
             }
 
             ValidateUserData();
@@ -139,14 +132,11 @@ public class DataManager : MonoBehaviour
         }
     }
 
-    // テスト用: データリセット機能
     [ContextMenu("Reset User Data for Testing")]
     public void ResetUserDataForTesting()
     {
-        Debug.Log("テスト用データリセット実行");
         currentUserData = new UserData();
         ValidateUserData();
-        Debug.Log("データリセット完了");
     }
 
     public void ResetUserData()
@@ -158,7 +148,6 @@ public class DataManager : MonoBehaviour
         {
             SaveUserData();
         }
-        Debug.Log("ユーザーデータをリセットしました");
     }
 
     #endregion
@@ -233,7 +222,108 @@ public class DataManager : MonoBehaviour
 
     #endregion
 
-    #region ユーザーデータ操作
+    #region 属性制限システム
+
+    /// <summary>
+    /// 属性制限を考慮した強化実行
+    /// </summary>
+    public bool EnhanceEquipmentWithElementalCheck(int equipmentIndex, int enhancementItemId, int supportItemId = -1)
+    {
+        var userEquipment = GetUserEquipment(equipmentIndex);
+        var enhancementItem = GetEnhancementItemData(enhancementItemId);
+
+        if (userEquipment == null || enhancementItem == null)
+        {
+            Debug.LogError("装備または強化アイテムが見つかりません");
+            return false;
+        }
+
+        // 属性制限チェック
+        if (!enhancementItem.CanUseOnEquipment(userEquipment))
+        {
+            string reason = enhancementItem.GetRestrictionReason(userEquipment);
+            Debug.LogWarning($"属性制限により強化できません: {reason}");
+            return false;
+        }
+
+        // 既存の強化処理を実行
+        return EnhanceEquipment(equipmentIndex, enhancementItemId, supportItemId);
+    }
+
+    /// <summary>
+    /// 使用可能な強化アイテムのリストを取得（属性制限考慮）
+    /// </summary>
+    public List<EnhancementItemData> GetAvailableEnhancementItems(int equipmentIndex)
+    {
+        var userEquipment = GetUserEquipment(equipmentIndex);
+        if (userEquipment == null) return new List<EnhancementItemData>();
+
+        var availableItems = new List<EnhancementItemData>();
+
+        foreach (var itemData in enhancementItemDatabase)
+        {
+            // 所持数チェック
+            int quantity = GetItemQuantity(itemData.itemId);
+            if (quantity <= 0) continue;
+
+            // 属性制限チェック
+            if (!itemData.CanUseOnEquipment(userEquipment)) continue;
+
+            availableItems.Add(itemData);
+        }
+
+        return availableItems;
+    }
+
+    /// <summary>
+    /// 属性制限情報を含む強化アイテム情報を取得
+    /// </summary>
+    public List<EnhancementItemInfo> GetEnhancementItemsWithRestrictionInfo(int equipmentIndex)
+    {
+        var userEquipment = GetUserEquipment(equipmentIndex);
+        var itemInfoList = new List<EnhancementItemInfo>();
+
+        foreach (var itemData in enhancementItemDatabase)
+        {
+            int quantity = GetItemQuantity(itemData.itemId);
+            if (quantity <= 0) continue;
+
+            bool canUse = userEquipment != null ? itemData.CanUseOnEquipment(userEquipment) : true;
+            string restrictionReason = userEquipment != null ? itemData.GetRestrictionReason(userEquipment) : "";
+
+            itemInfoList.Add(new EnhancementItemInfo
+            {
+                itemData = itemData,
+                quantity = quantity,
+                canUse = canUse,
+                restrictionReason = restrictionReason
+            });
+        }
+
+        return itemInfoList;
+    }
+
+    /// <summary>
+    /// 装備の属性情報を取得（デバッグ用）
+    /// </summary>
+    public string GetEquipmentElementalInfo(int equipmentIndex)
+    {
+        var userEquipment = GetUserEquipment(equipmentIndex);
+        if (userEquipment == null) return "装備が見つかりません";
+
+        ElementalType currentType = userEquipment.GetCurrentElementalType();
+        string typeName = UserEquipment.GetElementalTypeName(currentType);
+
+        return $"現在の属性: {typeName}属性\n" +
+               $"火攻撃: {userEquipment.GetTotalFireAttack()}\n" +
+               $"水攻撃: {userEquipment.GetTotalWaterAttack()}\n" +
+               $"風攻撃: {userEquipment.GetTotalWindAttack()}\n" +
+               $"土攻撃: {userEquipment.GetTotalEarthAttack()}";
+    }
+
+    #endregion
+
+    #region ユーザーデータ操作（既存メソッド + 属性対応強化）
 
     public UserEquipment GetUserEquipment(int index)
     {
@@ -291,6 +381,9 @@ public class DataManager : MonoBehaviour
         if (!useTemporaryDataForTesting) SaveUserData();
     }
 
+    /// <summary>
+    /// 既存の強化メソッド（属性制限なし、後方互換性のため保持）
+    /// </summary>
     public bool EnhanceEquipment(int equipmentIndex, int enhancementItemId, int supportItemId = -1)
     {
         var userEquipment = GetUserEquipment(equipmentIndex);
@@ -299,12 +392,6 @@ public class DataManager : MonoBehaviour
             Debug.LogError("装備を強化できません");
             return false;
         }
-
-        Debug.Log($"=== 強化開始 ===");
-        Debug.Log($"装備インデックス: {equipmentIndex}");
-        Debug.Log($"装備ID: {userEquipment.equipmentId}");
-        Debug.Log($"強化前の火属性ボーナス: {userEquipment.bonusFireAttack}");
-        Debug.Log($"装備オブジェクトハッシュ: {userEquipment.GetHashCode()}");
 
         var enhancementItem = GetEnhancementItemData(enhancementItemId);
         if (enhancementItem == null)
@@ -333,9 +420,17 @@ public class DataManager : MonoBehaviour
         // 成功確率計算
         float successRate = enhancementItem.GetAdjustedSuccessRate(userEquipment.enhancementLevel);
 
-        if (supportItem != null && supportItem.materialType == "lucky_stone")
+        // 補助アイテムの効果適用
+        if (supportItem != null)
         {
+            // 成功率修正
             successRate += supportItem.successRateModifier;
+
+            // 成功保証効果
+            if (supportItem.guaranteeSuccess)
+            {
+                successRate = 1.0f;
+            }
         }
 
         successRate = Mathf.Clamp01(successRate);
@@ -344,49 +439,54 @@ public class DataManager : MonoBehaviour
         bool isSuccess = UnityEngine.Random.Range(0f, 1f) <= successRate;
         bool isGreatSuccess = isSuccess && UnityEngine.Random.Range(0f, 1f) <= 0.1f;
 
-        // アイテム消費
+        // ★重要: アイテムは強化実行と同時に必ず消費する
         ConsumeItem(enhancementItemId, 1);
         if (supportItem != null)
         {
             ConsumeItem(supportItemId, 1);
         }
 
-        // デバッグ: 強化アイテムの属性ボーナス確認
-        Debug.Log($"=== 強化アイテム詳細: {enhancementItem.itemName} ===");
-        Debug.Log($"  攻撃力ボーナス: {enhancementItem.bonus.attackPower}");
-        Debug.Log($"  火属性ボーナス: {enhancementItem.bonus.fireAttack}");
-        Debug.Log($"  水属性ボーナス: {enhancementItem.bonus.waterAttack}");
-        Debug.Log($"  風属性ボーナス: {enhancementItem.bonus.windAttack}");
-        Debug.Log($"  土属性ボーナス: {enhancementItem.bonus.earthAttack}");
-        Debug.Log($"========================================");
+        // 耐久度減少の計算（装備種類を考慮）
+        var equipmentMasterData = GetEquipmentData(userEquipment.equipmentId);
+        EquipmentType currentEquipmentType = equipmentMasterData?.equipmentType ?? EquipmentType.Weapon;
+        int baseDurabilityReduction = enhancementItem.GetDurabilityReduction(currentEquipmentType);
+        int finalDurabilityReduction = baseDurabilityReduction;
+
+        // ★修正点：補助アイテムによる耐久度修正を適用
+        if (supportItem != null)
+        {
+            // 新しいシステム: 成功/失敗に応じた耐久度計算
+            finalDurabilityReduction = supportItem.CalculateDurabilityReduction(isSuccess, baseDurabilityReduction);
+            Debug.Log($"補助アイテム効果適用: 基本減少{baseDurabilityReduction} → 最終減少{finalDurabilityReduction}");
+        }
+
+        // 耐久度減少は0未満にならないように
+        finalDurabilityReduction = Mathf.Max(0, finalDurabilityReduction);
+
+        // ★修正: 強化値の伸びを強化アイテムから取得
+        int enhancementValueIncrease = enhancementItem.GetEnhancementValue(currentEquipmentType);
 
         // 結果処理
         if (isGreatSuccess)
         {
             ApplyEnhancementBonus(userEquipment, enhancementItem, 2.0f);
-            userEquipment.enhancementLevel++;
-            Debug.Log("大成功！");
+            // ★修正: 大成功時は強化値も2倍増加
+            int greatSuccessEnhancementIncrease = enhancementValueIncrease * 2;
+            userEquipment.enhancementLevel += greatSuccessEnhancementIncrease;
+            Debug.Log($"大成功！ 強化値増加: +{greatSuccessEnhancementIncrease}（通常{enhancementValueIncrease}の2倍）, 現在の強化レベル: +{userEquipment.enhancementLevel}");
         }
         else if (isSuccess)
         {
             ApplyEnhancementBonus(userEquipment, enhancementItem, 1.0f);
-            userEquipment.enhancementLevel++;
-
-            bool hasProtection = supportItem != null && supportItem.materialType == "protection";
-            if (!hasProtection)
-            {
-                userEquipment.ReduceDurability(enhancementItem.GetDurabilityReduction());
-            }
-            Debug.Log("成功！");
+            userEquipment.enhancementLevel += enhancementValueIncrease;
+            userEquipment.ReduceDurability(finalDurabilityReduction);
+            Debug.Log($"成功！ 強化値増加: +{enhancementValueIncrease}, 現在の強化レベル: +{userEquipment.enhancementLevel}, 耐久減少: {finalDurabilityReduction}");
         }
         else
         {
-            bool hasProtection = supportItem != null && supportItem.materialType == "protection";
-            if (!hasProtection)
-            {
-                userEquipment.ReduceDurability(enhancementItem.GetDurabilityReduction());
-            }
-            Debug.Log("失敗...");
+            // 失敗後の耐久度処理
+            userEquipment.ReduceDurability(finalDurabilityReduction);
+            Debug.Log($"失敗... 耐久減少: {finalDurabilityReduction}");
         }
 
         currentUserData.totalEnhancementAttempts++;
@@ -400,38 +500,56 @@ public class DataManager : MonoBehaviour
         return isSuccess;
     }
 
-    // ★ 修正版: 属性攻撃ボーナス適用を追加
+    /// <summary>
+    /// 修正版: 装備種類を考慮した属性攻撃ボーナス適用
+    /// </summary>
     private void ApplyEnhancementBonus(UserEquipment userEquipment, EnhancementItemData enhancementItem, float multiplier)
     {
-        // 既存の基本ステータス強化
-        userEquipment.bonusAttackPower += Mathf.RoundToInt(enhancementItem.GetAttackPowerBonus() * multiplier);
-        userEquipment.bonusDefensePower += Mathf.RoundToInt(enhancementItem.GetDefensePowerBonus() * multiplier);
-        userEquipment.bonusElementalAttack += Mathf.RoundToInt(enhancementItem.GetElementalAttackBonus() * multiplier);
-        userEquipment.bonusHP += Mathf.RoundToInt(enhancementItem.GetHPBonus() * multiplier);
-        userEquipment.bonusCriticalRate += enhancementItem.GetCriticalRateBonus() * multiplier;
+        // 装備のマスターデータを取得して装備種類を確認
+        var equipmentData = GetEquipmentData(userEquipment.equipmentId);
+        EquipmentType equipmentType = equipmentData?.equipmentType ?? EquipmentType.Weapon;
 
-        // ★ 重要: 4種類の属性攻撃ボーナス適用を追加
-        userEquipment.bonusFireAttack += Mathf.RoundToInt(enhancementItem.GetFireAttackBonus() * multiplier);
-        userEquipment.bonusWaterAttack += Mathf.RoundToInt(enhancementItem.GetWaterAttackBonus() * multiplier);
-        userEquipment.bonusWindAttack += Mathf.RoundToInt(enhancementItem.GetWindAttackBonus() * multiplier);
-        userEquipment.bonusEarthAttack += Mathf.RoundToInt(enhancementItem.GetEarthAttackBonus() * multiplier);
+        // 装備種類に応じたボーナス値を取得
+        userEquipment.bonusAttackPower += Mathf.RoundToInt(enhancementItem.GetAttackPowerBonus(equipmentType) * multiplier);
+        userEquipment.bonusDefensePower += Mathf.RoundToInt(enhancementItem.GetDefensePowerBonus(equipmentType) * multiplier);
+        userEquipment.bonusElementalAttack += Mathf.RoundToInt(enhancementItem.GetElementalAttackBonus(equipmentType) * multiplier);
+        userEquipment.bonusHP += Mathf.RoundToInt(enhancementItem.GetHPBonus(equipmentType) * multiplier);
+        userEquipment.bonusCriticalRate += enhancementItem.GetCriticalRateBonus(equipmentType) * multiplier;
 
-        // ★ デバッグログ追加
-        Debug.Log($"=== 強化ボーナス適用完了 ===");
-        Debug.Log($"適用倍率: {multiplier}");
-        Debug.Log($"Fire Attack ボーナス適用: +{Mathf.RoundToInt(enhancementItem.GetFireAttackBonus() * multiplier)}");
-        Debug.Log($"適用後の Fire Attack ボーナス合計: {userEquipment.bonusFireAttack}");
-        Debug.Log($"Water Attack ボーナス適用: +{Mathf.RoundToInt(enhancementItem.GetWaterAttackBonus() * multiplier)}");
-        Debug.Log($"Wind Attack ボーナス適用: +{Mathf.RoundToInt(enhancementItem.GetWindAttackBonus() * multiplier)}");
-        Debug.Log($"Earth Attack ボーナス適用: +{Mathf.RoundToInt(enhancementItem.GetEarthAttackBonus() * multiplier)}");
-        Debug.Log($"================================");
+        // 重要: 4種類の属性攻撃ボーナス適用（装備種類考慮）
+        userEquipment.bonusFireAttack += Mathf.RoundToInt(enhancementItem.GetFireAttackBonus(equipmentType) * multiplier);
+        userEquipment.bonusWaterAttack += Mathf.RoundToInt(enhancementItem.GetWaterAttackBonus(equipmentType) * multiplier);
+        userEquipment.bonusWindAttack += Mathf.RoundToInt(enhancementItem.GetWindAttackBonus(equipmentType) * multiplier);
+        userEquipment.bonusEarthAttack += Mathf.RoundToInt(enhancementItem.GetEarthAttackBonus(equipmentType) * multiplier);
+
+        // デバッグログ追加（装備種類情報も含む）
+        Debug.Log($"強化ボーナス適用[{GetEquipmentTypeName(equipmentType)}]: " +
+                  $"攻撃+{Mathf.RoundToInt(enhancementItem.GetAttackPowerBonus(equipmentType) * multiplier)}, " +
+                  $"防御+{Mathf.RoundToInt(enhancementItem.GetDefensePowerBonus(equipmentType) * multiplier)}, " +
+                  $"火+{Mathf.RoundToInt(enhancementItem.GetFireAttackBonus(equipmentType) * multiplier)}, " +
+                  $"水+{Mathf.RoundToInt(enhancementItem.GetWaterAttackBonus(equipmentType) * multiplier)}, " +
+                  $"風+{Mathf.RoundToInt(enhancementItem.GetWindAttackBonus(equipmentType) * multiplier)}, " +
+                  $"土+{Mathf.RoundToInt(enhancementItem.GetEarthAttackBonus(equipmentType) * multiplier)}");
+    }
+
+    /// <summary>
+    /// 装備種類の日本語名を取得
+    /// </summary>
+    private string GetEquipmentTypeName(EquipmentType type)
+    {
+        switch (type)
+        {
+            case EquipmentType.Weapon: return "武器";
+            case EquipmentType.Armor: return "防具";
+            case EquipmentType.Accessory: return "アクセサリー";
+            default: return "不明";
+        }
     }
 
     public void AddEquipment(int equipmentId)
     {
         currentUserData.AddEquipment(equipmentId);
         if (!useTemporaryDataForTesting) SaveUserData();
-        Debug.Log($"装備追加: ID={equipmentId}");
     }
 
     public bool UseItem(int itemId, int quantity = 1)
@@ -477,7 +595,6 @@ public class DataManager : MonoBehaviour
                     bonusEarthAttack = 0
                 };
                 currentUserData.equipments.Add(fireKnife);
-                Debug.Log($"火のダガー追加: 耐久値 = {fireKnife.currentDurability}, 初期火属性攻撃 = {fireKnife.bonusFireAttack}");
             }
 
             // 初心者用装備を追加（マスターデータから正しい耐久値を取得）
@@ -504,8 +621,6 @@ public class DataManager : MonoBehaviour
 
                 currentUserData.equipments.Add(starterWeapon);
                 currentUserData.equippedEquipmentIds[0] = 1;
-
-                Debug.Log($"初期装備作成: 耐久値 = {starterWeapon.currentDurability}");
             }
         }
 
@@ -517,23 +632,20 @@ public class DataManager : MonoBehaviour
 
             // 既存の強化アイテム
             AddItem(1, 15); // 基本強化石x15
-            AddItem(2, 8);  // 上級強化石x8
+            AddItem(2, 80);  // 高級強化石x8
+            AddItem(3, 80);  // 高級強化石x8
 
             // 新しい属性強化アイテム
-            AddItem(3, 5);  // 火のルビーx5
-            AddItem(4, 5);  // 水のアクアマランx5
-            AddItem(5, 5);  // 風のオパールx5
-            AddItem(6, 5);  // 土のトパーズx5
+            AddItem(4, 50);  // 火のルビーx5
+            AddItem(5, 50);  // 水のアクアマリンx5
+            AddItem(6, 50);  // 風のオパールx5
+            AddItem(7, 50);  // 土のトパーズx5
 
             // 既存の補助材料
-            currentUserData.AddItem(1, 5, "support"); // 幸運石x5
+            currentUserData.AddItem(1, 50, "support"); // 幸運石x5
 
             // 新しい補助材料
-            currentUserData.AddItem(2, 3, "support"); // 強化耐久保護チケットx3
-
-            Debug.Log("豊富な初期アイテムを追加しました");
-            Debug.Log($"強化アイテム数: {currentUserData.enhancementItems.Count}");
-            Debug.Log($"補助材料数: {currentUserData.supportMaterials.Count}");
+            currentUserData.AddItem(2, 30, "support"); // 強化耐久保護チケットx3
         }
 
         if (currentUserData.lastLoginTime > DateTime.Now)
@@ -549,4 +661,14 @@ public class DataManager : MonoBehaviour
     }
 
     #endregion
+}
+
+// 強化アイテム情報クラス（UI表示用）
+[System.Serializable]
+public class EnhancementItemInfo
+{
+    public EnhancementItemData itemData;
+    public int quantity;
+    public bool canUse;
+    public string restrictionReason;
 }

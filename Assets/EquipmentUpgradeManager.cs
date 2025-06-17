@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
@@ -6,7 +6,7 @@ using System.Collections;
 public class EquipmentUpgradeManager : MonoBehaviour
 {
     [Header("Equipment Selection")]
-    public Button equipmentSlotButton; // ‘•”õ‘I‘ğƒ{ƒ^ƒ“
+    public Button equipmentSlotButton;
     public Image equipmentIcon;
     public TextMeshProUGUI equipmentNameText;
     public TextMeshProUGUI attackText;
@@ -17,19 +17,19 @@ public class EquipmentUpgradeManager : MonoBehaviour
     public TextMeshProUGUI durabilityText;
     public Slider durabilitySlider;
 
-    [Header("Elemental Attack Texts (Optional)")]
-    public TextMeshProUGUI elementalAttackText;     // ”Ä—p‘®«UŒ‚
-    public TextMeshProUGUI fireAttackText;          // ‰Î‘®«UŒ‚
-    public TextMeshProUGUI waterAttackText;         // …‘®«UŒ‚
-    public TextMeshProUGUI windAttackText;          // •—‘®«UŒ‚
-    public TextMeshProUGUI earthAttackText;         // “y‘®«UŒ‚
+    [Header("Elemental Attack Texts")]
+    public TextMeshProUGUI elementalAttackText;
+    public TextMeshProUGUI fireAttackText;
+    public TextMeshProUGUI waterAttackText;
+    public TextMeshProUGUI windAttackText;
+    public TextMeshProUGUI earthAttackText;
 
     [Header("Enhancement Item Selection")]
     public Button enhancementItemButton;
     public Image enhancementItemIcon;
     public TextMeshProUGUI enhancementItemNameText;
     public TextMeshProUGUI enhancementItemQuantityText;
-    public TextMeshProUGUI enhancementItemEffectText; // ‹­‰»ƒAƒCƒeƒ€Œø‰Ê•\¦—p
+    public TextMeshProUGUI enhancementItemEffectText;
 
     [Header("Support Item Selection")]
     public Button supportItemButton;
@@ -42,6 +42,20 @@ public class EquipmentUpgradeManager : MonoBehaviour
     public Button enhanceButton;
     public TextMeshProUGUI enhanceButtonText;
     public TextMeshProUGUI successRateText;
+    public TextMeshProUGUI actualSuccessRateText;
+    public GameObject warningPanel;
+
+    [Header("Button Visual Settings")]
+    public Color enabledTextColor = Color.red;
+    public Color disabledTextColor = Color.gray;
+    public float pressedScale = 0.95f;
+    public float animationDuration = 0.1f;
+
+    [Header("Elemental Restriction UI")]
+    public TextMeshProUGUI elementalRestrictionText;
+    public GameObject restrictionWarningPanel;
+    public TextMeshProUGUI equipmentElementalTypeText;
+    public TextMeshProUGUI itemElementalTypeText;
 
     [Header("Item Selection UI")]
     public ItemSelectionUI itemSelectionUI;
@@ -50,66 +64,118 @@ public class EquipmentUpgradeManager : MonoBehaviour
     public Transform effectSpawnPoint;
     public AudioSource audioSource;
 
-    // Œ»İ‘I‘ğ’†‚Ìƒf[ƒ^
-    private int currentEquipmentIndex = -1; // š C³: ‰Šú’l‚ğ-1i–¢‘I‘ğj‚É•ÏX
+    // ç¾åœ¨é¸æŠä¸­ã®ãƒ‡ãƒ¼ã‚¿
+    private int currentEquipmentIndex = -1;
     private int selectedEnhancementItemId = -1;
     private int selectedSupportItemId = -1;
 
     private void Start()
     {
         SetupUI();
-
-        // š C³: ‰Šúó‘Ô‚Å‚Í‰½‚à‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢ó‘Ô‚É‚·‚é
-        currentEquipmentIndex = -1; // -1‚Å–¢‘I‘ğó‘Ô‚ğ•\‚·
-
         RefreshUI();
     }
 
     private void SetupUI()
     {
-        // ƒ{ƒ^ƒ“ƒCƒxƒ“ƒgİ’è
-        if (enhancementItemButton != null)
-            enhancementItemButton.onClick.AddListener(() => ShowItemSelection("enhancement"));
-        else
-            Debug.LogWarning("enhancementItemButton ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+        enhancementItemButton?.onClick.AddListener(() => ShowItemSelection("enhancement"));
+        supportItemButton?.onClick.AddListener(() => ShowItemSelection("support"));
+        enhanceButton?.onClick.AddListener(OnEnhanceButtonClicked);
+        equipmentSlotButton?.onClick.AddListener(() => ShowItemSelection("equipment"));
 
-        if (supportItemButton != null)
-            supportItemButton.onClick.AddListener(() => ShowItemSelection("support"));
-        else
-            Debug.LogWarning("supportItemButton ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
-
-        if (enhanceButton != null)
-            enhanceButton.onClick.AddListener(OnEnhanceButtonClicked);
-        else
-            Debug.LogWarning("enhanceButton ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
-
-        // ‘•”õ‘I‘ğƒ{ƒ^ƒ“‚ÌƒCƒxƒ“ƒgİ’è
-        if (equipmentSlotButton != null)
-            equipmentSlotButton.onClick.AddListener(() => ShowItemSelection("equipment"));
-        else
-            Debug.LogWarning("equipmentSlotButton ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
-
-        // ƒAƒCƒeƒ€‘I‘ğUI‚ÌƒCƒxƒ“ƒgİ’è
         if (itemSelectionUI != null)
         {
             itemSelectionUI.OnItemSelected += OnItemSelected;
             itemSelectionUI.OnSelectionCancelled += OnSelectionCancelled;
-            Debug.Log("ItemSelectionUI ƒCƒxƒ“ƒgİ’èŠ®—¹");
         }
-        else
+
+        // å¼·åŒ–ãƒœã‚¿ãƒ³ã«ãƒ—ãƒ¬ã‚¹åŠ¹æœã‚’è¿½åŠ 
+        SetupEnhanceButtonEffect();
+    }
+
+    /// <summary>
+    /// å¼·åŒ–ãƒœã‚¿ãƒ³ã«ãƒ—ãƒ¬ã‚¹åŠ¹æœã‚’è¨­å®š
+    /// </summary>
+    private void SetupEnhanceButtonEffect()
+    {
+        if (enhanceButton == null) return;
+
+        // ãƒœã‚¿ãƒ³ã®EventTriggerã‚’å–å¾—ã¾ãŸã¯è¿½åŠ 
+        var eventTrigger = enhanceButton.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+        if (eventTrigger == null)
         {
-            Debug.LogWarning("itemSelectionUI ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñBInspector ‚Åİ’è‚µ‚Ä‚­‚¾‚³‚¢B");
+            eventTrigger = enhanceButton.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+        }
+
+        // PointerDown ã‚¤ãƒ™ãƒ³ãƒˆï¼ˆãƒœã‚¿ãƒ³ã‚’æŠ¼ã—ãŸæ™‚ï¼‰
+        var pointerDownEntry = new UnityEngine.EventSystems.EventTrigger.Entry();
+        pointerDownEntry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerDown;
+        pointerDownEntry.callback.AddListener((eventData) => { OnButtonPressed(); });
+        eventTrigger.triggers.Add(pointerDownEntry);
+
+        // PointerUp ã‚¤ãƒ™ãƒ³ãƒˆï¼ˆãƒœã‚¿ãƒ³ã‚’é›¢ã—ãŸæ™‚ï¼‰
+        var pointerUpEntry = new UnityEngine.EventSystems.EventTrigger.Entry();
+        pointerUpEntry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerUp;
+        pointerUpEntry.callback.AddListener((eventData) => { OnButtonReleased(); });
+        eventTrigger.triggers.Add(pointerUpEntry);
+
+        // PointerExit ã‚¤ãƒ™ãƒ³ãƒˆï¼ˆãƒœã‚¿ãƒ³ã‹ã‚‰é›¢ã‚ŒãŸæ™‚ï¼‰
+        var pointerExitEntry = new UnityEngine.EventSystems.EventTrigger.Entry();
+        pointerExitEntry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerExit;
+        pointerExitEntry.callback.AddListener((eventData) => { OnButtonReleased(); });
+        eventTrigger.triggers.Add(pointerExitEntry);
+    }
+
+    /// <summary>
+    /// ãƒœã‚¿ãƒ³ãŒæŠ¼ã•ã‚ŒãŸæ™‚ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
+    /// </summary>
+    private void OnButtonPressed()
+    {
+        if (enhanceButton != null && enhanceButton.interactable)
+        {
+            StartCoroutine(ScaleButton(pressedScale));
         }
     }
 
-    // ƒAƒCƒeƒ€‘I‘ğUI•\¦
+    /// <summary>
+    /// ãƒœã‚¿ãƒ³ãŒé›¢ã•ã‚ŒãŸæ™‚ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
+    /// </summary>
+    private void OnButtonReleased()
+    {
+        if (enhanceButton != null)
+        {
+            StartCoroutine(ScaleButton(1f));
+        }
+    }
+
+    /// <summary>
+    /// ãƒœã‚¿ãƒ³ã®ã‚¹ã‚±ãƒ¼ãƒ«ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
+    /// </summary>
+    private IEnumerator ScaleButton(float targetScale)
+    {
+        if (enhanceButton == null) yield break;
+
+        Vector3 startScale = enhanceButton.transform.localScale;
+        Vector3 endScale = Vector3.one * targetScale;
+        float elapsed = 0f;
+
+        while (elapsed < animationDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / animationDuration;
+
+            // ã‚¤ãƒ¼ã‚¸ãƒ³ã‚°åŠ¹æœã‚’è¿½åŠ ï¼ˆæ»‘ã‚‰ã‹ãªã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ï¼‰
+            t = Mathf.SmoothStep(0f, 1f, t);
+
+            enhanceButton.transform.localScale = Vector3.Lerp(startScale, endScale, t);
+            yield return null;
+        }
+
+        enhanceButton.transform.localScale = endScale;
+    }
+
     private void ShowItemSelection(string itemType)
     {
-        if (itemSelectionUI == null)
-        {
-            Debug.LogWarning("itemSelectionUI ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñBƒAƒCƒeƒ€‘I‘ğ‰æ–Ê‚ğ•\¦‚Å‚«‚Ü‚¹‚ñB");
-            return;
-        }
+        if (itemSelectionUI == null) return;
 
         switch (itemType)
         {
@@ -122,25 +188,35 @@ public class EquipmentUpgradeManager : MonoBehaviour
             case "support":
                 itemSelectionUI.ShowSupportMaterialSelection();
                 break;
-            default:
-                Debug.LogWarning($"•s–¾‚ÈƒAƒCƒeƒ€ƒ^ƒCƒv: {itemType}");
-                break;
         }
     }
 
-    // ‘•”õ‘I‘ğiŠO•”‚©‚çŒÄ‚Ño‚³‚ê‚éj
     public void SelectEquipment(int equipmentIndex)
     {
         currentEquipmentIndex = equipmentIndex;
         selectedEnhancementItemId = -1;
         selectedSupportItemId = -1;
         RefreshUI();
+
+        // â˜…è¿½åŠ : è£…å‚™é¸æŠæ™‚ã«å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ è¡¨ç¤ºã‚‚æ›´æ–°
+        UpdateEnhancementItemDisplayAfterEquipmentChange();
     }
 
-    // Šù‘¶ŒİŠ·«Šm•Û: Šù‘¶ƒXƒNƒŠƒvƒg—p‚ÌSelectEquipmentƒI[ƒo[ƒ[ƒh
+    /// <summary>
+    /// è£…å‚™å¤‰æ›´å¾Œã«å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã®è¡¨ç¤ºã‚’æ›´æ–°
+    /// </summary>
+    private void UpdateEnhancementItemDisplayAfterEquipmentChange()
+    {
+        // å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãŒé¸æŠã•ã‚Œã¦ã„ã‚‹å ´åˆã¯è¡¨ç¤ºã‚’æ›´æ–°
+        if (selectedEnhancementItemId >= 0)
+        {
+            UpdateEnhancementItemDisplay();
+        }
+    }
+
+    // æ—¢å­˜äº’æ›æ€§ä¿æŒç”¨
     public void SelectEquipment(EquipmentData equipData, UserEquipment userEquip)
     {
-        // ƒ†[ƒU[‘•”õƒŠƒXƒg‚©‚çƒCƒ“ƒfƒbƒNƒX‚ğŒŸõ
         var equipmentList = DataManager.Instance.GetAllUserEquipments();
         for (int i = 0; i < equipmentList.Count; i++)
         {
@@ -150,313 +226,389 @@ public class EquipmentUpgradeManager : MonoBehaviour
                 return;
             }
         }
-
-        Debug.LogWarning("w’è‚³‚ê‚½‘•”õ‚ªƒ†[ƒU[‘•”õƒŠƒXƒg‚ÉŒ©‚Â‚©‚è‚Ü‚¹‚ñ");
     }
 
-    // Šù‘¶ŒİŠ·«Šm•Û: Šù‘¶ƒXƒNƒŠƒvƒg—p‚ÌSelectUpgradeItem
     public void SelectUpgradeItem(EnhancementItemData itemData)
     {
         selectedEnhancementItemId = itemData.itemId;
         RefreshUI();
-        Debug.Log($"‹­‰»ƒAƒCƒeƒ€‚ğ‘I‘ğ‚µ‚Ü‚µ‚½: {itemData.itemName}");
     }
 
-    // Šù‘¶ŒİŠ·«Šm•Û: Šù‘¶ƒXƒNƒŠƒvƒg—p‚ÌSelectSupportItem
     public void SelectSupportItem(SupportMaterialData materialData)
     {
         selectedSupportItemId = materialData.materialId;
         RefreshUI();
-        Debug.Log($"•â•Ş—¿‚ğ‘I‘ğ‚µ‚Ü‚µ‚½: {materialData.materialName}");
     }
 
-    // •â•ƒAƒCƒeƒ€‘I‘ğ‰ğœ
     public void DeselectSupportItem()
     {
         selectedSupportItemId = -1;
         RefreshUI();
     }
 
-    // UI‘S‘Ì‚ğXV
     private void RefreshUI()
     {
         UpdateEquipmentDisplay();
         UpdateEnhancementItemDisplay();
         UpdateSupportItemDisplay();
+        UpdateElementalRestrictionDisplay();
         UpdateEnhanceButton();
+
+        // â˜…è¿½åŠ : ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆæ›´æ–°ã®å¼·åˆ¶å®Ÿè¡Œ
+        Canvas.ForceUpdateCanvases();
+
+        // ã•ã‚‰ã«ç¢ºå®Ÿã«ã™ã‚‹ãŸã‚1ãƒ•ãƒ¬ãƒ¼ãƒ å¾Œã«ã‚‚æ›´æ–°
+        StartCoroutine(ForceLayoutUpdateNextFrame());
     }
 
-    // ‘•”õî•ñ•\¦‚ğXV
+    /// <summary>
+    /// æ¬¡ãƒ•ãƒ¬ãƒ¼ãƒ ã§ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆå¼·åˆ¶æ›´æ–°
+    /// </summary>
+    private System.Collections.IEnumerator ForceLayoutUpdateNextFrame()
+    {
+        yield return null; // 1ãƒ•ãƒ¬ãƒ¼ãƒ å¾…æ©Ÿ
+        Canvas.ForceUpdateCanvases();
+
+        // ã‚ˆã‚Šå¼·åŠ›ãªæ›´æ–°å‡¦ç†
+        ForceRebuildLayout();
+    }
+
+    /// <summary>
+    /// Layout Groupã®å¼·åˆ¶ãƒªãƒ“ãƒ«ãƒ‰
+    /// </summary>
+    private void ForceRebuildLayout()
+    {
+        // è£…å‚™ã‚¨ãƒªã‚¢å…¨ä½“ã®Layout Groupã‚’å–å¾—ã—ã¦å¼·åˆ¶æ›´æ–°
+        var layoutGroups = GetComponentsInChildren<UnityEngine.UI.LayoutGroup>();
+        foreach (var layoutGroup in layoutGroups)
+        {
+            UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(layoutGroup.GetComponent<RectTransform>());
+        }
+
+        // Content Size Fitterã‚‚å¼·åˆ¶æ›´æ–°
+        var contentSizeFitters = GetComponentsInChildren<UnityEngine.UI.ContentSizeFitter>();
+        foreach (var fitter in contentSizeFitters)
+        {
+            UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(fitter.GetComponent<RectTransform>());
+        }
+    }
+
+    #region è£…å‚™è¡¨ç¤º
+
     private void UpdateEquipmentDisplay()
     {
-        // š C³: ‘•”õ‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢ê‡‚Ìˆ—‚ğ’Ç‰Á
         if (currentEquipmentIndex < 0)
         {
-            // ‘•”õ–¢‘I‘ğ‚Ìê‡‚Ì•\¦
-            if (equipmentIcon != null)
-            {
-                equipmentIcon.sprite = null;
-                equipmentIcon.color = new Color(1, 1, 1, 0.3f); // ”–‚¢ƒOƒŒ[
-            }
-
-            if (equipmentNameText != null) equipmentNameText.text = "‘•”õ‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢";
-            if (enhancementLevelText != null) enhancementLevelText.text = "";
-
-            // ‘S‚Ä‚ÌƒXƒe[ƒ^ƒXƒeƒLƒXƒg‚ğ”ñ•\¦‚Ü‚½‚Í‹ó‚É‚·‚é
-            SetStatTextEmpty(attackText);
-            SetStatTextEmpty(defenseText);
-            SetStatTextEmpty(criticalRateText);
-            SetStatTextEmpty(hpText);
-            SetStatTextEmpty(elementalAttackText);
-            SetStatTextEmpty(fireAttackText);
-            SetStatTextEmpty(waterAttackText);
-            SetStatTextEmpty(windAttackText);
-            SetStatTextEmpty(earthAttackText);
-
-            if (durabilityText != null) durabilityText.text = "";
-            if (durabilitySlider != null)
-            {
-                durabilitySlider.value = 0;
-                durabilitySlider.gameObject.SetActive(false);
-            }
-
+            SetEquipmentEmptyDisplay();
             return;
         }
 
         var userEquipment = DataManager.Instance?.GetUserEquipment(currentEquipmentIndex);
-        if (userEquipment == null)
-        {
-            Debug.LogWarning($"‘•”õ‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñBƒCƒ“ƒfƒbƒNƒX: {currentEquipmentIndex}");
-            return;
-        }
+        if (userEquipment == null) return;
 
         var masterData = DataManager.Instance.GetEquipmentData(userEquipment.equipmentId);
-        if (masterData == null)
-        {
-            Debug.LogWarning($"‘•”õƒ}ƒXƒ^[ƒf[ƒ^‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñBID: {userEquipment.equipmentId}");
-            return;
-        }
+        if (masterData == null) return;
 
-        // Šî–{î•ñ
-        if (equipmentIcon != null && masterData.icon != null)
-        {
-            equipmentIcon.sprite = masterData.icon;
-            equipmentIcon.color = Color.white; // ƒAƒCƒRƒ“‚ğ”’F‚Å•\¦
-            Debug.Log($"‘•”õƒAƒCƒRƒ“İ’è: {masterData.equipmentName}, ƒAƒCƒRƒ“: {masterData.icon?.name ?? "null"}");
-        }
+        // åŸºæœ¬æƒ…å ±
+        SetIcon(equipmentIcon, masterData.icon);
+        SetText(equipmentNameText, masterData.equipmentName);
+        SetText(enhancementLevelText, $"å¼·åŒ–å€¤ï¼š+{userEquipment.enhancementLevel}");
 
-        if (equipmentNameText != null) equipmentNameText.text = masterData.equipmentName;
-
-        // C³: •\¦‡˜‚ğ’²®
-        // 1. ‹­‰»ƒŒƒxƒ‹iˆê”Ôãj
-        if (enhancementLevelText != null) enhancementLevelText.text = $"+{userEquipment.enhancementLevel}";
-
-        // 2. Šî–{ƒXƒe[ƒ^ƒX•\¦iƒ}ƒXƒ^[ƒf[ƒ^ + ƒ†[ƒU[ƒ{[ƒiƒXj
-        UpdateStatText(attackText, "UŒ‚—Í", userEquipment.GetTotalAttack());
-        UpdateStatText(defenseText, "–hŒä—Í", userEquipment.GetTotalDefense());
-        UpdateStatText(criticalRateText, "ƒNƒŠƒeƒBƒJƒ‹—¦", userEquipment.GetTotalCriticalRate(), "%");
+        // ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+        UpdateStatText(attackText, "æ”»æ’ƒåŠ›", userEquipment.GetTotalAttack());
+        UpdateStatText(defenseText, "é˜²å¾¡åŠ›", userEquipment.GetTotalDefense());
+        UpdateStatText(criticalRateText, "ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ç‡", userEquipment.GetTotalCriticalRate(), "%");
         UpdateStatText(hpText, "HP", userEquipment.GetTotalHP());
 
-        // 3. ‘®«UŒ‚‚Ì•\¦iİ’è‚³‚ê‚Ä‚¢‚éê‡‚Ì‚İj
-        UpdateStatText(elementalAttackText, "‘®«UŒ‚", userEquipment.GetTotalElementalAttack());
-        UpdateStatText(fireAttackText, "‰Î‘®«UŒ‚", userEquipment.GetTotalFireAttack());
-        UpdateStatText(waterAttackText, "…‘®«UŒ‚", userEquipment.GetTotalWaterAttack());
-        UpdateStatText(windAttackText, "•—‘®«UŒ‚", userEquipment.GetTotalWindAttack());
-        UpdateStatText(earthAttackText, "“y‘®«UŒ‚", userEquipment.GetTotalEarthAttack());
+        // å±æ€§æ”»æ’ƒ
+        UpdateStatText(elementalAttackText, "å±æ€§æ”»æ’ƒ", userEquipment.GetTotalElementalAttack());
+        UpdateStatText(fireAttackText, "ç«å±æ€§æ”»æ’ƒ", userEquipment.GetTotalFireAttack());
+        UpdateStatText(waterAttackText, "æ°´å±æ€§æ”»æ’ƒ", userEquipment.GetTotalWaterAttack());
+        UpdateStatText(windAttackText, "é¢¨å±æ€§æ”»æ’ƒ", userEquipment.GetTotalWindAttack());
+        UpdateStatText(earthAttackText, "åœŸå±æ€§æ”»æ’ƒ", userEquipment.GetTotalEarthAttack());
 
-        // 4. ‘Ï‹v“x•\¦iˆê”Ô‰ºj
-        if (durabilityText != null) durabilityText.text = $"{userEquipment.currentDurability}/{masterData.stats.baseDurability}";
+        UpdateDurabilityDisplay(userEquipment, masterData);
+        UpdateEquipmentElementalDisplay(userEquipment);
+    }
+
+    private void SetEquipmentEmptyDisplay()
+    {
+        SetIcon(equipmentIcon, null);
+        SetText(equipmentNameText, "è£…å‚™ã‚’é¸æŠ");
+        SetText(enhancementLevelText, "");
+
+        SetStatTextEmpty(attackText);
+        SetStatTextEmpty(defenseText);
+        SetStatTextEmpty(criticalRateText);
+        SetStatTextEmpty(hpText);
+        SetStatTextEmpty(elementalAttackText);
+        SetStatTextEmpty(fireAttackText);
+        SetStatTextEmpty(waterAttackText);
+        SetStatTextEmpty(windAttackText);
+        SetStatTextEmpty(earthAttackText);
+
+        SetText(durabilityText, "");
+        SetSliderActive(durabilitySlider, false);
+        SetTextActive(equipmentElementalTypeText, false);
+    }
+
+    private void UpdateDurabilityDisplay(UserEquipment userEquipment, EquipmentData masterData)
+    {
+        SetText(durabilityText, $"å¼·åŒ–è€ä¹…ï¼š{userEquipment.currentDurability}/{masterData.stats.baseDurability}");
+        SetSliderActive(durabilitySlider, true);
 
         if (durabilitySlider != null)
         {
-            durabilitySlider.gameObject.SetActive(true);
             durabilitySlider.maxValue = masterData.stats.baseDurability;
             durabilitySlider.value = userEquipment.currentDurability;
 
-            // ‘Ï‹v“x‚É‰‚¶‚ÄF‚ğ•ÏX
             float ratio = (float)userEquipment.currentDurability / masterData.stats.baseDurability;
             Color color = ratio > 0.6f ? Color.green : ratio > 0.3f ? Color.yellow : Color.red;
 
-            if (durabilityText != null) durabilityText.color = color;
-
+            SetTextColor(durabilityText, color);
             var fillImage = durabilitySlider.fillRect?.GetComponent<Image>();
             if (fillImage != null) fillImage.color = color;
         }
-
-        // ƒfƒoƒbƒO: Œ»İ‚Ì‘®«UŒ‚’l‚ğƒƒOo—Í
-        Debug.Log($"‘•”õƒXƒe[ƒ^ƒXXV - {masterData.equipmentName}:");
-        Debug.Log($"  ‰Î‘®«UŒ‚: {userEquipment.GetTotalFireAttack()} (base: {masterData.stats.baseFireAttack}, bonus: {userEquipment.bonusFireAttack})");
-        Debug.Log($"  …‘®«UŒ‚: {userEquipment.GetTotalWaterAttack()} (base: {masterData.stats.baseWaterAttack}, bonus: {userEquipment.bonusWaterAttack})");
-        Debug.Log($"  •—‘®«UŒ‚: {userEquipment.GetTotalWindAttack()} (base: {masterData.stats.baseWindAttack}, bonus: {userEquipment.bonusWindAttack})");
-        Debug.Log($"  “y‘®«UŒ‚: {userEquipment.GetTotalEarthAttack()} (base: {masterData.stats.baseEarthAttack}, bonus: {userEquipment.bonusEarthAttack})");
     }
 
-    // š C³: ‹­‰»ƒAƒCƒeƒ€•\¦‚ğXV
+    private void UpdateEquipmentElementalDisplay(UserEquipment userEquipment)
+    {
+        if (equipmentElementalTypeText == null) return;
+
+        ElementalType currentType = userEquipment.GetCurrentElementalType();
+        string typeName = UserEquipment.GetElementalTypeName(currentType);
+
+        if (currentType == ElementalType.None)
+        {
+            SetText(equipmentElementalTypeText, "ç„¡å±æ€§");
+            SetTextColor(equipmentElementalTypeText, Color.gray);
+        }
+        else
+        {
+            SetText(equipmentElementalTypeText, $"{typeName}å±æ€§");
+            SetTextColor(equipmentElementalTypeText, GetElementalTypeColor(currentType));
+        }
+
+        SetTextActive(equipmentElementalTypeText, true);
+    }
+
+    #endregion
+
+    #region å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ è¡¨ç¤º
+
     private void UpdateEnhancementItemDisplay()
     {
         if (selectedEnhancementItemId < 0)
         {
-            // ‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢ê‡‚Ì•\¦
-            if (enhancementItemIcon != null)
-            {
-                enhancementItemIcon.sprite = null;
-                enhancementItemIcon.color = new Color(1, 1, 1, 0.3f); // ”–‚¢ƒOƒŒ[
-            }
-
-            if (enhancementItemNameText != null)
-                enhancementItemNameText.text = "‹­‰»ƒAƒCƒeƒ€‚ğ‘I‘ğ";
-
-            if (enhancementItemQuantityText != null)
-                enhancementItemQuantityText.text = "";
-
-            if (enhancementItemEffectText != null)
-            {
-                enhancementItemEffectText.text = "‹­‰»ƒAƒCƒeƒ€‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢\nE‹­‰»¬Œ÷‚ÌŒø‰Ê‚ª•\¦‚³‚ê‚Ü‚·\nE‹­‰»¬Œ÷—¦‚É‰e‹¿‚µ‚Ü‚·";
-            }
+            SetIcon(enhancementItemIcon, null);
+            SetText(enhancementItemNameText, "å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚’é¸æŠ");
+            SetText(enhancementItemQuantityText, "");
+            SetText(enhancementItemEffectText, null);
+            UpdateItemElementalDisplay(null);
         }
         else
         {
             var itemData = DataManager.Instance.GetEnhancementItemData(selectedEnhancementItemId);
             if (itemData != null)
             {
-                // ƒAƒCƒRƒ“•\¦‚ÌC³
-                if (enhancementItemIcon != null)
-                {
-                    enhancementItemIcon.sprite = itemData.icon;
-                    enhancementItemIcon.color = Color.white; // ”’F‚Å•\¦
-                    Debug.Log($"‹­‰»ƒAƒCƒeƒ€ƒAƒCƒRƒ“İ’è: {itemData.itemName}, ƒAƒCƒRƒ“: {itemData.icon?.name ?? "null"}");
-                }
+                SetIcon(enhancementItemIcon, itemData.icon);
+                SetText(enhancementItemNameText, itemData.itemName);
+                SetText(enhancementItemQuantityText, $"æ‰€æŒæ•°: {DataManager.Instance.GetItemQuantity(selectedEnhancementItemId)}");
 
-                if (enhancementItemNameText != null)
-                    enhancementItemNameText.text = itemData.itemName; // ƒAƒCƒeƒ€–¼‚Ì‚İ•\¦
+                // â˜…ä¿®æ­£: è£…å‚™é¸æŠçŠ¶æ…‹ã«å¿œã˜ã¦åŠ¹æœè¡¨ç¤ºã‚’å¤‰æ›´
+                string effectText = GetEnhancementItemEffectText(itemData);
+                SetText(enhancementItemEffectText, effectText);
 
-                if (enhancementItemQuantityText != null)
-                    enhancementItemQuantityText.text = $"Š”: {DataManager.Instance.GetItemQuantity(selectedEnhancementItemId)}";
-
-                // š d—v‚ÈC³: Œø‰ÊƒeƒLƒXƒg‚ğ•\¦iƒ}ƒXƒ^[ƒf[ƒ^‚ÌŠî–{¬Œ÷—¦‚ğg—pj
-                if (enhancementItemEffectText != null)
-                {
-                    // ƒ}ƒXƒ^[ƒf[ƒ^‚ÌŠî–{¬Œ÷—¦‚ğg—pi‘•”õ‹­‰»’l‚â•â•Ş—¿‚Ì‰e‹¿‚ğó‚¯‚È‚¢j
-                    float baseSuccessRate = itemData.successRate;
-                    string effectDescription = itemData.GetEffectDescription();
-
-                    enhancementItemEffectText.text = $"{effectDescription}\nŠî–{¬Œ÷—¦: {baseSuccessRate * 100:F0}%\nÁ–Õ‘Ï‹v: {itemData.GetDurabilityReduction()}";
-                }
-            }
-            else
-            {
-                Debug.LogError($"‹­‰»ƒAƒCƒeƒ€ƒf[ƒ^‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: ID {selectedEnhancementItemId}");
+                UpdateItemElementalDisplay(itemData);
             }
         }
     }
 
-    // •â•ƒAƒCƒeƒ€•\¦‚ğXV
+    /// <summary>
+    /// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã®åŠ¹æœãƒ†ã‚­ã‚¹ãƒˆã‚’è£…å‚™é¸æŠçŠ¶æ…‹ã«å¿œã˜ã¦ç”Ÿæˆ
+    /// </summary>
+    private string GetEnhancementItemEffectText(EnhancementItemData itemData)
+    {
+        var userEquipment = DataManager.Instance.GetUserEquipment(currentEquipmentIndex);
+
+        if (userEquipment == null)
+        {
+            // è£…å‚™ãŒé¸æŠã•ã‚Œã¦ã„ãªã„å ´åˆã¯åŸºæœ¬èª¬æ˜ã‚’è¡¨ç¤º
+            return itemData.description;
+        }
+
+        // è£…å‚™ãŒé¸æŠã•ã‚Œã¦ã„ã‚‹å ´åˆã¯ã€ãã®è£…å‚™ç¨®é¡ã«å¿œã˜ãŸåŠ¹æœã‚’è¡¨ç¤º
+        var equipmentData = DataManager.Instance.GetEquipmentData(userEquipment.equipmentId);
+        if (equipmentData == null)
+        {
+            return itemData.description;
+        }
+
+        // è£…å‚™ç¨®é¡ã«å¿œã˜ãŸåŠ¹æœã‚’å–å¾—
+        string equipmentTypeEffect;
+        int durabilityReduction;
+
+        if (itemData.useEquipmentTypeSpecificBonus)
+        {
+            equipmentTypeEffect = itemData.GetEffectDescriptionForEquipmentType(equipmentData.equipmentType);
+            durabilityReduction = itemData.GetDurabilityReduction(equipmentData.equipmentType);
+        }
+        else
+        {
+            equipmentTypeEffect = itemData.GetEffectDescription();
+            durabilityReduction = itemData.GetDurabilityReduction();
+        }
+
+        // æˆåŠŸç‡ã¨è€ä¹…æ¶ˆè²»æƒ…å ±ã‚’è¿½åŠ 
+        float successRate = itemData.GetAdjustedSuccessRate(userEquipment.enhancementLevel);
+
+        return $"{equipmentTypeEffect}\n" +
+               $"æˆåŠŸç‡: {successRate * 100:F1}%\n" +
+               $"æ¶ˆè²»è€ä¹…: {durabilityReduction}";
+    }
+
+    private void UpdateItemElementalDisplay(EnhancementItemData itemData)
+    {
+        if (itemElementalTypeText == null) return;
+
+        if (itemData == null)
+        {
+            SetTextActive(itemElementalTypeText, false);
+            return;
+        }
+
+        // è£…å‚™ç¨®é¡ã‚’è€ƒæ…®ã—ãŸå±æ€§åˆ¤å®š
+        var userEquipment = DataManager.Instance.GetUserEquipment(currentEquipmentIndex);
+        EquipmentType equipmentType = EquipmentType.Weapon;
+
+        if (userEquipment != null)
+        {
+            var equipmentData = DataManager.Instance.GetEquipmentData(userEquipment.equipmentId);
+            equipmentType = equipmentData?.equipmentType ?? EquipmentType.Weapon;
+        }
+
+        ElementalType itemType = itemData.GetElementalType(equipmentType);
+        string typeName = UserEquipment.GetElementalTypeName(itemType);
+
+        if (itemType == ElementalType.None)
+        {
+            SetText(itemElementalTypeText, "ç„¡å±æ€§å¼·åŒ–");
+            SetTextColor(itemElementalTypeText, Color.gray);
+        }
+        else
+        {
+            SetText(itemElementalTypeText, $"{typeName}å±æ€§å¼·åŒ–");
+            SetTextColor(itemElementalTypeText, GetElementalTypeColor(itemType));
+        }
+
+        SetTextActive(itemElementalTypeText, true);
+    }
+
+    #endregion
+
+    #region è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ è¡¨ç¤º
+
     private void UpdateSupportItemDisplay()
     {
         if (selectedSupportItemId < 0)
         {
-            // ‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢ê‡‚Ì•\¦
-            if (supportItemIcon != null)
-            {
-                supportItemIcon.sprite = null;
-                supportItemIcon.color = new Color(1, 1, 1, 0.3f); // ”–‚¢ƒOƒŒ[
-            }
-
-            if (supportItemNameText != null)
-                supportItemNameText.text = "•â•ƒAƒCƒeƒ€i”CˆÓj";
-
-            if (supportItemQuantityText != null)
-                supportItemQuantityText.text = "";
-
-            if (supportItemEffectText != null)
-                supportItemEffectText.text = "";
+            SetIcon(supportItemIcon, null);
+            SetText(supportItemNameText, "è£œåŠ©ææ–™ã‚’é¸æŠï¼ˆä»»æ„ï¼‰");
+            SetText(supportItemQuantityText, "");
+            SetText(supportItemEffectText, "");
         }
         else
         {
             var itemData = DataManager.Instance.GetSupportMaterialData(selectedSupportItemId);
             if (itemData != null)
             {
-                // ƒAƒCƒRƒ“•\¦‚ÌC³
-                if (supportItemIcon != null)
-                {
-                    supportItemIcon.sprite = itemData.icon;
-                    supportItemIcon.color = Color.white; // ”’F‚Å•\¦
-                    Debug.Log($"•â•ƒAƒCƒeƒ€ƒAƒCƒRƒ“İ’è: {itemData.materialName}, ƒAƒCƒRƒ“: {itemData.icon?.name ?? "null"}");
-                }
-
-                if (supportItemNameText != null)
-                    supportItemNameText.text = itemData.materialName; // ƒAƒCƒeƒ€–¼‚Ì‚İ•\¦
-
-                if (supportItemQuantityText != null)
-                    supportItemQuantityText.text = $"Š”: {DataManager.Instance.GetItemQuantity(selectedSupportItemId)}";
-
-                if (supportItemEffectText != null)
-                    supportItemEffectText.text = itemData.GetEffectDescription();
-            }
-            else
-            {
-                Debug.LogError($"•â•ƒAƒCƒeƒ€ƒf[ƒ^‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: ID {selectedSupportItemId}");
+                SetIcon(supportItemIcon, itemData.icon);
+                SetText(supportItemNameText, itemData.materialName);
+                SetText(supportItemQuantityText, $"æ‰€æŒæ•°: {DataManager.Instance.GetItemQuantity(selectedSupportItemId)}");
+                SetText(supportItemEffectText, itemData.GetEffectDescription());
             }
         }
     }
 
-    // ƒAƒCƒeƒ€ƒXƒƒbƒg‚ğ‹ó‚Éİ’è
-    private void SetItemSlotEmpty(Image icon, TextMeshProUGUI nameText, TextMeshProUGUI quantityText, string placeholder)
+    #endregion
+
+    #region å±æ€§åˆ¶é™è¡¨ç¤º
+
+    private void UpdateElementalRestrictionDisplay()
     {
-        if (icon != null)
-        {
-            icon.sprite = null;
-            icon.color = new Color(1, 1, 1, 0.3f); // ”¼“§–¾‚Å•\¦
-            icon.enabled = true; // ‰æ‘œ‚Í—LŒø‚Ì‚Ü‚Üi”wŒi•\¦—pj
-        }
-
-        if (nameText != null)
-        {
-            nameText.text = placeholder;
-        }
-
-        if (quantityText != null)
-        {
-            quantityText.text = "";
-        }
+        // å±æ€§åˆ¶é™è¡¨ç¤ºã¯è£…å‚™ã¨ã‚¢ã‚¤ãƒ†ãƒ ã®å±æ€§è¡¨ç¤ºã®ã¿ã§ååˆ†
+        // åˆ¶é™é•åæ™‚ã®ç‰¹åˆ¥ãªè¡¨ç¤ºã¯è¡Œã‚ãªã„
     }
 
-    // ‹­‰»ƒ{ƒ^ƒ“‚Ìó‘Ô‚ğXV
+    #endregion
+
+    #region å¼·åŒ–ãƒœã‚¿ãƒ³
+
     private void UpdateEnhanceButton()
     {
-        // š C³: ‘•”õ‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢ê‡‚Ìˆ—‚ğ’Ç‰Á
-        if (currentEquipmentIndex < 0)
-        {
-            enhanceButton.interactable = false;
-            enhanceButtonText.text = "‹­‰»Às";
-            successRateText.text = "‘•”õ‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢";
-            return;
-        }
-
         var userEquipment = DataManager.Instance.GetUserEquipment(currentEquipmentIndex);
-        bool canEnhance = userEquipment != null && selectedEnhancementItemId >= 0 &&
+        var enhancementItem = DataManager.Instance.GetEnhancementItemData(selectedEnhancementItemId);
+
+        bool canEnhance = currentEquipmentIndex >= 0 && userEquipment != null &&
+                         selectedEnhancementItemId >= 0 && enhancementItem != null &&
                          userEquipment.CanEnhance() &&
-                         DataManager.Instance.GetItemQuantity(selectedEnhancementItemId) > 0;
+                         DataManager.Instance.GetItemQuantity(selectedEnhancementItemId) > 0 &&
+                         enhancementItem.CanUseOnEquipment(userEquipment);
 
-        enhanceButton.interactable = canEnhance;
+        SetButtonInteractable(enhanceButton, canEnhance);
 
-        if (canEnhance)
+        string warningMessage = GetWarningMessage(userEquipment, enhancementItem);
+        bool shouldShowWarning = !string.IsNullOrEmpty(warningMessage);
+
+        SetText(successRateText, warningMessage);
+        SetActive(warningPanel, shouldShowWarning);
+
+        if (actualSuccessRateText != null)
         {
-            float successRate = CalculateSuccessRate();
-            enhanceButtonText.text = "‹­‰»Às";
-            successRateText.text = $"¬Œ÷—¦: {successRate * 100:F1}%";
+            float successRate = canEnhance ? CalculateSuccessRate() : 0f;
+            SetText(actualSuccessRateText, $"æˆåŠŸç‡: {successRate * 100:F1}%");
         }
-        else
+
+        // ãƒœã‚¿ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®è‰²ã‚’å¤‰æ›´
+        UpdateButtonTextColor(canEnhance);
+
+        SetText(enhanceButtonText, "å¼·åŒ–å®Ÿè¡Œ");
+    }
+
+    /// <summary>
+    /// ãƒœã‚¿ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®è‰²ã‚’æ›´æ–°
+    /// </summary>
+    private void UpdateButtonTextColor(bool canEnhance)
+    {
+        if (enhanceButtonText != null)
         {
-            enhanceButtonText.text = "‹­‰»Às";
-            successRateText.text = "‘•”õ‚Æ‹­‰»ƒAƒCƒeƒ€‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢";
+            Color targetColor = canEnhance ? enabledTextColor : disabledTextColor;
+            enhanceButtonText.color = targetColor;
         }
     }
 
-    // ¬Œ÷Šm—¦ŒvZ
+    private string GetWarningMessage(UserEquipment userEquipment, EnhancementItemData enhancementItem)
+    {
+        if (currentEquipmentIndex < 0 && selectedEnhancementItemId < 0)
+            return "è£…å‚™ã¨å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚’é¸æŠã—ã¦ãã ã•ã„";
+
+        if (currentEquipmentIndex < 0)
+            return "è£…å‚™ã‚’é¸æŠã—ã¦ãã ã•ã„";
+
+        if (selectedEnhancementItemId < 0)
+            return "å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚’é¸æŠã—ã¦ãã ã•ã„";
+
+        if (userEquipment != null && enhancementItem != null && !enhancementItem.CanUseOnEquipment(userEquipment))
+            return "å±æ€§åˆ¶é™ã«ã‚ˆã‚Šä½¿ç”¨ã§ãã¾ã›ã‚“";
+
+        if (userEquipment != null && !userEquipment.CanEnhance())
+            return "è€ä¹…åº¦ãŒä¸è¶³ã—ã¦ã„ã¾ã™";
+
+        return "";
+    }
+
     private float CalculateSuccessRate()
     {
-        // š C³: ‘•”õ‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢ê‡‚Í0‚ğ•Ô‚·
         if (currentEquipmentIndex < 0 || selectedEnhancementItemId < 0) return 0f;
 
         var enhancementItem = DataManager.Instance.GetEnhancementItemData(selectedEnhancementItemId);
@@ -465,83 +617,68 @@ public class EquipmentUpgradeManager : MonoBehaviour
 
         float baseRate = enhancementItem.GetAdjustedSuccessRate(userEquipment.enhancementLevel);
 
-        // •â•ƒAƒCƒeƒ€‚Ìƒ{[ƒiƒX
         if (selectedSupportItemId >= 0)
         {
             var supportItem = DataManager.Instance.GetSupportMaterialData(selectedSupportItemId);
-            if (supportItem != null && supportItem.materialType == "lucky_stone")
+            if (supportItem != null)
             {
                 baseRate += supportItem.successRateModifier;
+                if (supportItem.guaranteeSuccess)
+                    baseRate = 1.0f;
             }
         }
 
         return Mathf.Clamp01(baseRate);
     }
 
-    // ‹­‰»ƒ{ƒ^ƒ“ƒNƒŠƒbƒN
+    #endregion
+
+    #region ã‚¤ãƒ™ãƒ³ãƒˆå‡¦ç†
+
     private void OnEnhanceButtonClicked()
     {
-        // š C³: ‘•”õ‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢ê‡‚Ìƒ`ƒFƒbƒN‚ğ’Ç‰Á
-        if (currentEquipmentIndex < 0 || selectedEnhancementItemId < 0)
-        {
-            Debug.LogWarning("‹­‰»‚É•K—v‚ÈƒAƒCƒeƒ€‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
-            return;
-        }
+        if (currentEquipmentIndex < 0 || selectedEnhancementItemId < 0) return;
 
-        // ‹­‰»Às
-        bool success = DataManager.Instance.EnhanceEquipment(
+        // å¼·åŒ–å‰ã®çŠ¶æ…‹ã‚’ãƒ­ã‚°å‡ºåŠ›
+        Debug.Log($"å¼·åŒ–å®Ÿè¡Œ: è£…å‚™ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹={currentEquipmentIndex}, å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ID={selectedEnhancementItemId}, è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ ID={selectedSupportItemId}");
+
+        // å±æ€§åˆ¶é™ãƒã‚§ãƒƒã‚¯ã‚’å«ã‚€å¼·åŒ–å®Ÿè¡Œ
+        bool success = DataManager.Instance.EnhanceEquipmentWithElementalCheck(
             currentEquipmentIndex,
             selectedEnhancementItemId,
             selectedSupportItemId >= 0 ? selectedSupportItemId : -1
         );
 
-        Debug.Log($"‹­‰»Œ‹‰Ê: {(success ? "¬Œ÷" : "¸”s")}");
-
-        // ƒGƒtƒFƒNƒgÄ¶
-        StartCoroutine(PlayEnhancementEffect(success));
-
-        // ƒAƒCƒeƒ€‘I‘ğ‚ğƒŠƒZƒbƒg
+        // â˜…é‡è¦: å¼·åŒ–å®Ÿè¡Œå¾Œã¯æˆåŠŸ/å¤±æ•—ã«é–¢ã‚ã‚‰ãšã€å¿…ãšã‚¢ã‚¤ãƒ†ãƒ é¸æŠã‚’ãƒªã‚»ãƒƒãƒˆ
+        Debug.Log($"å¼·åŒ–çµæœ: {(success ? "æˆåŠŸ" : "å¤±æ•—")} - ã‚¢ã‚¤ãƒ†ãƒ é¸æŠã‚’ãƒªã‚»ãƒƒãƒˆ");
         selectedEnhancementItemId = -1;
         selectedSupportItemId = -1;
 
-        // d—v: UIXV‚ğ‹­§Às
-        Debug.Log("‹­‰»ˆ—Š®—¹Œã‚ÌUIXVŠJn");
-        RefreshUI();
-        Debug.Log("‹­‰»ˆ—Š®—¹Œã‚ÌUIXVŠ®—¹");
-
-        // ’Ç‰Á: ‹­‰»Œã‚ÌƒXƒe[ƒ^ƒXŠm”F
-        var userEquipment = DataManager.Instance.GetUserEquipment(currentEquipmentIndex);
-        if (userEquipment != null)
+        // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆå†ç”Ÿ
+        if (success)
         {
-            Debug.Log($"=== ‹­‰»Š®—¹Œã‚ÌÅIŠm”F ===");
-            Debug.Log($"‹­‰»ƒŒƒxƒ‹: {userEquipment.enhancementLevel}");
-            Debug.Log($"‰Î‘®«UŒ‚: {userEquipment.GetTotalFireAttack()} (base: {userEquipment.bonusFireAttack})");
-            Debug.Log($"UŒ‚—Í: {userEquipment.GetTotalAttack()}");
-            Debug.Log($"==============================");
+            StartCoroutine(PlayEnhancementEffect(success));
         }
+
+        // UIæ›´æ–°
+        RefreshUI();
+
+        // å¼·åŒ–å¾Œã®çŠ¶æ…‹ç¢ºèª
+        Debug.Log($"UIæ›´æ–°å¾Œ: å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ é¸æŠ={selectedEnhancementItemId}, è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ é¸æŠ={selectedSupportItemId}");
     }
 
-    // ƒAƒCƒeƒ€‘I‘ğ‚ÌƒR[ƒ‹ƒoƒbƒN
     private void OnItemSelected(string itemId, string itemType)
     {
-        Debug.Log($"ƒAƒCƒeƒ€‘I‘ğ: ID={itemId}, Type={itemType}");
-
         if (itemType == "equipment")
         {
-            // ‘•”õ‘I‘ğ‚Ìê‡
             if (int.TryParse(itemId, out int equipIndex))
-            {
                 SelectEquipment(equipIndex);
-                Debug.Log($"‘•”õ‘I‘ğŠ®—¹: ƒCƒ“ƒfƒbƒNƒX {equipIndex}");
-            }
             return;
         }
 
         if (itemType == "support_none")
         {
-            // •â•Ş—¿u‘I‘ğ‚È‚µv
-            Debug.Log("•â•Ş—¿‚ğu‘I‘ğ‚È‚µv‚Éİ’è");
-            selectedSupportItemId = -1; // -1‚Éİ’è‚µ‚Ä‘I‘ğ‰ğœ
+            selectedSupportItemId = -1;
             RefreshUI();
             return;
         }
@@ -552,99 +689,96 @@ public class EquipmentUpgradeManager : MonoBehaviour
             {
                 case "enhancement":
                     selectedEnhancementItemId = id;
-                    Debug.Log($"‹­‰»ƒAƒCƒeƒ€‘I‘ğ: ID={id}");
-
-                    // ‘¦À‚ÉƒAƒCƒRƒ“ƒfƒoƒbƒO
-                    var enhanceItem = DataManager.Instance.GetEnhancementItemData(id);
-                    if (enhanceItem != null)
-                    {
-                        Debug.Log($"‹­‰»ƒAƒCƒeƒ€Ú×: {enhanceItem.itemName}, ƒAƒCƒRƒ“‘¶İ: {enhanceItem.icon != null}");
-                    }
                     break;
                 case "support":
                     selectedSupportItemId = id;
-                    Debug.Log($"•â•Ş—¿‘I‘ğ: ID={id}");
-
-                    // ‘¦À‚ÉƒAƒCƒRƒ“ƒfƒoƒbƒO
-                    var supportItem = DataManager.Instance.GetSupportMaterialData(id);
-                    if (supportItem != null)
-                    {
-                        Debug.Log($"•â•Ş—¿Ú×: {supportItem.materialName}, ƒAƒCƒRƒ“‘¶İ: {supportItem.icon != null}");
-                    }
                     break;
             }
         }
 
         RefreshUI();
-        Debug.Log("UIXVŠ®—¹");
     }
 
-    // ‘I‘ğƒLƒƒƒ“ƒZƒ‹‚ÌƒR[ƒ‹ƒoƒbƒN
     private void OnSelectionCancelled()
     {
-        // “Á‚Éˆ—‚È‚µ
+        // ç‰¹ã«å‡¦ç†ãªã—
     }
 
-    // ‹­‰»ƒGƒtƒFƒNƒgÄ¶
     private IEnumerator PlayEnhancementEffect(bool success)
     {
-        // ƒGƒtƒFƒNƒgŠJn
-        if (effectSpawnPoint != null)
-        {
-            Debug.Log(success ? "‹­‰»¬Œ÷ƒGƒtƒFƒNƒgÄ¶" : "‹­‰»¸”sƒGƒtƒFƒNƒgÄ¶");
-        }
-
-        // ‰¹ºÄ¶
-        if (audioSource != null)
-        {
-            // ‚±‚±‚Å¬Œ÷/¸”s‰¹‚ğÄ¶
-        }
-
-        yield return new WaitForSeconds(1f); // ƒGƒtƒFƒNƒgŠÔ
-
-        Debug.Log(success ? "‹­‰»¬Œ÷I" : "‹­‰»¸”s...");
+        // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãƒ»éŸ³å£°å†ç”Ÿå‡¦ç†
+        yield return new WaitForSeconds(1f);
     }
 
-    // ’Ç‰ÁFƒXƒe[ƒ^ƒX•\¦—pƒwƒ‹ƒp[ƒƒ\ƒbƒh
+    #endregion
+
+    #region ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£ãƒ¡ã‚½ãƒƒãƒ‰
+
     private void UpdateStatText(TextMeshProUGUI textComponent, string statName, float value, string suffix = "")
     {
-        if (textComponent == null)
-        {
-            if (value > 0)
-            {
-                Debug.LogWarning($"{statName} ‚Ì TextComponent ‚ª null ‚Å‚·i’l: {value}j");
-            }
-            return;
-        }
+        if (textComponent == null) return;
 
         if (value > 0)
         {
-            // ’l‚ª0‚æ‚è‘å‚«‚¢ê‡‚Ì‚İ•\¦
-            textComponent.text = $"{statName}: {value:F1}{suffix}";
-            textComponent.gameObject.SetActive(true);
-            Debug.Log($"ƒXƒe[ƒ^ƒX•\¦XV: {statName} = {value:F1}{suffix}");
+            SetText(textComponent, $"{statName}: {value:F1}{suffix}");
+            SetTextActive(textComponent, true);
         }
         else
         {
-            // ’l‚ª0ˆÈ‰º‚Ìê‡‚Í”ñ•\¦
-            textComponent.gameObject.SetActive(false);
-            Debug.Log($"ƒXƒe[ƒ^ƒX”ñ•\¦: {statName} (’l: {value})");
+            SetTextActive(textComponent, false);
         }
     }
 
-    // š ’Ç‰Á: ƒXƒe[ƒ^ƒXƒeƒLƒXƒg‚ğ‹ó‚É‚·‚éƒwƒ‹ƒp[ƒƒ\ƒbƒh
     private void SetStatTextEmpty(TextMeshProUGUI textComponent)
     {
         if (textComponent != null)
         {
-            textComponent.text = "";
-            textComponent.gameObject.SetActive(false);
+            SetText(textComponent, "");
+            SetTextActive(textComponent, false);
         }
     }
 
+    private Color GetElementalTypeColor(ElementalType type)
+    {
+        switch (type)
+        {
+            case ElementalType.Fire: return new Color(1f, 0.3f, 0.3f);
+            case ElementalType.Water: return new Color(0.3f, 0.7f, 1f);
+            case ElementalType.Wind: return new Color(0.7f, 1f, 0.7f);
+            case ElementalType.Earth: return new Color(0.8f, 0.6f, 0.3f);
+            default: return Color.gray;
+        }
+    }
+
+    // UIæ“ä½œãƒ˜ãƒ«ãƒ‘ãƒ¼ãƒ¡ã‚½ãƒƒãƒ‰
+    private void SetText(TextMeshProUGUI text, string value) => text?.SetText(value);
+    private void SetTextColor(TextMeshProUGUI text, Color color) { if (text != null) text.color = color; }
+    private void SetTextActive(TextMeshProUGUI text, bool active) => text?.gameObject.SetActive(active);
+    private void SetActive(GameObject obj, bool active) => obj?.SetActive(active);
+    private void SetButtonInteractable(Button button, bool interactable) { if (button != null) button.interactable = interactable; }
+    private void SetSliderActive(Slider slider, bool active) => slider?.gameObject.SetActive(active);
+
+    private void SetIcon(Image icon, Sprite sprite)
+    {
+        if (icon == null) return;
+
+        if (sprite != null)
+        {
+            icon.sprite = sprite;
+            icon.enabled = true;
+            icon.color = Color.white;
+        }
+        else
+        {
+            icon.sprite = null;
+            icon.enabled = false;
+        }
+    }
+
+    #endregion
+
     private void OnDestroy()
     {
-        // ƒCƒxƒ“ƒg‰ğœ
         if (itemSelectionUI != null)
         {
             itemSelectionUI.OnItemSelected -= OnItemSelected;

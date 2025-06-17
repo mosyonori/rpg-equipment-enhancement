@@ -15,8 +15,8 @@ MonoBehaviour:
   equipmentId: 2
   equipmentName: "\u706B\u306E\u30C0\u30AC\u30FC"
   description: "\u706B\u3092\u307E\u3068\u3063\u305F\u77ED\u5263\u3002\u708E\u5C5E\u6027\u653B\u6483\u304C\u4ED8\u4E0E\u3055\u308C\u3066\u3044\u308B\u3002"
-  icon: {fileID: -522851007, guid: f985437a992583f4e847b87ab0dc844c, type: 3}
-  enhancedIcon: {fileID: -522851007, guid: f985437a992583f4e847b87ab0dc844c, type: 3}
+  icon: {fileID: -101499420, guid: 6eb16e372762d6b4cb708c44ebfab931, type: 3}
+  enhancedIcon: {fileID: -101499420, guid: 6eb16e372762d6b4cb708c44ebfab931, type: 3}
   equipmentType: 0
   stats:
     baseAttackPower: 20

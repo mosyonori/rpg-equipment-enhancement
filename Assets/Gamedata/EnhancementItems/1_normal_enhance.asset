@@ -14,11 +14,49 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: 1
   itemName: "\u57FA\u672C\u5F37\u5316\u77F3"
-  description: "\u57FA\u672C\u3068\u306A\u308B\u5F37\u5316\u77F3\u3002\u88C5\u5099\u3092\u5F37\u5316\u51FA\u6765\u308B\u3002"
-  icon: {fileID: 1722304462, guid: 244b91b8126a70a4da5a8b6b3ac46dd7, type: 3}
+  description: "\u57FA\u672C\u3068\u306A\u308B\u5F37\u5316\u77F3\\n\u88C5\u5099\u3092\u5F37\u5316\u51FA\u6765\u308B"
+  icon: {fileID: 21300000, guid: 1f52721ebd2ef83429f7512fbce4a4f7, type: 3}
   itemType: 0
-  successRate: 0.5
+  successRate: 0.8
   greatSuccessRate: 0.1
+  useEquipmentTypeSpecificBonus: 1
+  equipmentTypeBonus:
+    weaponBonus:
+      enhancementValue: 1
+      attackPower: 10
+      defensePower: 0
+      elementalAttack: 0
+      hp: 0
+      criticalRate: 1
+      fireAttack: 0
+      waterAttack: 0
+      windAttack: 0
+      earthAttack: 0
+      durabilityReduction: 1
+    armorBonus:
+      enhancementValue: 1
+      attackPower: 0
+      defensePower: 10
+      elementalAttack: 0
+      hp: 30
+      criticalRate: 0
+      fireAttack: 0
+      waterAttack: 0
+      windAttack: 0
+      earthAttack: 0
+      durabilityReduction: 1
+    accessoryBonus:
+      enhancementValue: 1
+      attackPower: 5
+      defensePower: 5
+      elementalAttack: 0
+      hp: 0
+      criticalRate: 0
+      fireAttack: 0
+      waterAttack: 0
+      windAttack: 0
+      earthAttack: 0
+      durabilityReduction: 1
   bonus:
     enhancementValue: 1
     attackPower: 10
@@ -32,5 +70,6 @@ MonoBehaviour:
     earthAttack: 0
     durabilityReduction: 1
   rarity: 1
+  effectDisplayText: 
   enhanceEffectPrefab: {fileID: 0}
   enhanceSound: {fileID: 0}
