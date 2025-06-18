@@ -13,12 +13,16 @@ MonoBehaviour:
   m_Name: 1_luck_up
   m_EditorClassIdentifier: 
   materialId: 1
-  materialName: "\u5E78\u904B\u306E\u304A\u5B88\u308A"
-  description: "\u53E4\u3073\u305F\u304A\u5B88\u308A\u3002\u6210\u529F\u78BA\u7387\u304C10%\u4E0A\u304C\u308B\u3002"
-  icon: {fileID: 1531790249, guid: 86f051e1276d6af4f9e9755457e97cdc, type: 3}
+  materialName: "\u5E78\u904B\u306E\u30B3\u30A4\u30F3"
+  description: "\u53E4\u3073\u305F\u30B3\u30A4\u30F3\u3002\u6210\u529F\u78BA\u7387\u304C10%\u4E0A\u304C\u308B\u3002"
+  icon: {fileID: 21300000, guid: 83f2beb3e2ba2e347b4b0d5d63d0373b, type: 3}
   supportType: 0
   materialType: lucky_stone
   successRateModifier: 0.1
+  durabilityModifier: 0
+  failureDurabilityReduction: 0
+  preventFailurePenalty: 0
+  guaranteeSuccess: 0
   bonus:
     bonusAttackPower: 0
     bonusDefensePower: 0
@@ -26,5 +30,5 @@ MonoBehaviour:
     bonusHP: 0
     bonusCriticalRate: 0
     durabilityProtection: 0
-  preventFailurePenalty: 0
-  guaranteeSuccess: 0
+  effectDisplayText: 
+  useAutoConfiguration: 0

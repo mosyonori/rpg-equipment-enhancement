@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: 3
   itemName: "\u6700\u9AD8\u7D1A\u5F37\u5316\u77F3"
   description: "\u6700\u9AD8\u54C1\u8CEA\u306E\u5F37\u5316\u77F3\\n\u88C5\u5099\u3092\u3088\u308A\u52B9\u7387\u826F\u304F\u5F37\u5316\u51FA\u6765\u308B"
-  icon: {fileID: 21300000, guid: 7cdf458ed74c54b4a9529131cdab9d8b, type: 3}
+  icon: {fileID: 21300000, guid: 95edb5be0415eba42bcaf8bd532b459b, type: 3}
   itemType: 0
   successRate: 0.6
   greatSuccessRate: 0.1
@@ -38,8 +38,8 @@ MonoBehaviour:
       attackPower: 0
       defensePower: 100
       elementalAttack: 0
-      hp: 0
-      criticalRate: 230
+      hp: 230
+      criticalRate: 0
       fireAttack: 0
       waterAttack: 0
       windAttack: 0

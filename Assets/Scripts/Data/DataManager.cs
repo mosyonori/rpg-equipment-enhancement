@@ -382,7 +382,7 @@ public class DataManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 既存の強化メソッド（属性制限なし、後方互換性のため保持）
+    /// 既存の強化メソッド（属性制限なし、後方互換性のため保護）
     /// </summary>
     public bool EnhanceEquipment(int equipmentIndex, int enhancementItemId, int supportItemId = -1)
     {
@@ -470,17 +470,17 @@ public class DataManager : MonoBehaviour
         if (isGreatSuccess)
         {
             ApplyEnhancementBonus(userEquipment, enhancementItem, 2.0f);
-            // ★修正: 大成功時は強化値も2倍増加
+            // ★修正: 大成功時は強化値も2倍追加
             int greatSuccessEnhancementIncrease = enhancementValueIncrease * 2;
             userEquipment.enhancementLevel += greatSuccessEnhancementIncrease;
-            Debug.Log($"大成功！ 強化値増加: +{greatSuccessEnhancementIncrease}（通常{enhancementValueIncrease}の2倍）, 現在の強化レベル: +{userEquipment.enhancementLevel}");
+            Debug.Log($"大成功！ 強化値追加: +{greatSuccessEnhancementIncrease}（通常{enhancementValueIncrease}の2倍）, 現在の強化レベル: +{userEquipment.enhancementLevel}");
         }
         else if (isSuccess)
         {
             ApplyEnhancementBonus(userEquipment, enhancementItem, 1.0f);
             userEquipment.enhancementLevel += enhancementValueIncrease;
             userEquipment.ReduceDurability(finalDurabilityReduction);
-            Debug.Log($"成功！ 強化値増加: +{enhancementValueIncrease}, 現在の強化レベル: +{userEquipment.enhancementLevel}, 耐久減少: {finalDurabilityReduction}");
+            Debug.Log($"成功！ 強化値追加: +{enhancementValueIncrease}, 現在の強化レベル: +{userEquipment.enhancementLevel}, 耐久減少: {finalDurabilityReduction}");
         }
         else
         {
@@ -572,6 +572,57 @@ public class DataManager : MonoBehaviour
         if (useTemporaryDataForTesting || currentUserData.equipments.Count == 0)
         {
             currentUserData.equipments.Clear(); // 既存データをクリア
+
+            // ★追加: ID 3, 4の新装備データを追加
+            // 装備ID 3のテストデータ
+            var equipment3Data = GetEquipmentData(3);
+            if (equipment3Data != null)
+            {
+                var equipment3 = new UserEquipment
+                {
+                    equipmentId = 3,
+                    enhancementLevel = 0,
+                    currentDurability = equipment3Data.stats.baseDurability,
+                    isEquipped = false,
+                    acquiredDate = DateTime.Now,
+                    bonusAttackPower = 0,
+                    bonusDefensePower = 0,
+                    bonusElementalAttack = 0,
+                    bonusHP = 0,
+                    bonusCriticalRate = 0f,
+                    bonusFireAttack = 0,
+                    bonusWaterAttack = 0,
+                    bonusWindAttack = 0,
+                    bonusEarthAttack = 0
+                };
+                currentUserData.equipments.Add(equipment3);
+                Debug.Log($"テストデータに装備ID 3を追加: {equipment3Data.equipmentName}");
+            }
+
+            // 装備ID 4のテストデータ
+            var equipment4Data = GetEquipmentData(4);
+            if (equipment4Data != null)
+            {
+                var equipment4 = new UserEquipment
+                {
+                    equipmentId = 4,
+                    enhancementLevel = 0,
+                    currentDurability = equipment4Data.stats.baseDurability,
+                    isEquipped = false,
+                    acquiredDate = DateTime.Now,
+                    bonusAttackPower = 0,
+                    bonusDefensePower = 0,
+                    bonusElementalAttack = 0,
+                    bonusHP = 0,
+                    bonusCriticalRate = 0f,
+                    bonusFireAttack = 0,
+                    bonusWaterAttack = 0,
+                    bonusWindAttack = 0,
+                    bonusEarthAttack = 0
+                };
+                currentUserData.equipments.Add(equipment4);
+                Debug.Log($"テストデータに装備ID 4を追加: {equipment4Data.equipmentName}");
+            }
 
             // 新装備追加: 火のダガー
             var fireKnifeData = GetEquipmentData(2); // ID 2が火のダガーの場合

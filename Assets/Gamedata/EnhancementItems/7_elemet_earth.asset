@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: 7
   itemName: "\u571F\u306E\u30C8\u30D1\u30FC\u30BA"
   description: "\u571F\u5C5E\u6027\u3092\u5F37\u5316\u51FA\u6765\u308B\u5B9D\u77F3"
-  icon: {fileID: 21300000, guid: 631623504cc918346a96f6e1927d871f, type: 3}
+  icon: {fileID: 893079415, guid: 9c884d58fdd8e36438eb04484a54b451, type: 3}
   itemType: 1
   successRate: 0.7
   greatSuccessRate: 0.1
