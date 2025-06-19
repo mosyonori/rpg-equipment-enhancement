@@ -45,6 +45,9 @@ public class EquipmentUpgradeManager : MonoBehaviour
     public TextMeshProUGUI actualSuccessRateText;
     public GameObject warningPanel;
 
+    [Header("Navigation Buttons")]
+    public Button homeButton;  // ★追加: ホーム画面に戻るボタン
+
     [Header("Button Visual Settings")]
     public Color enabledTextColor = Color.red;
     public Color disabledTextColor = Color.gray;
@@ -82,6 +85,9 @@ public class EquipmentUpgradeManager : MonoBehaviour
         enhanceButton?.onClick.AddListener(OnEnhanceButtonClicked);
         equipmentSlotButton?.onClick.AddListener(() => ShowItemSelection("equipment"));
 
+        // ★追加: ホームボタンの設定
+        homeButton?.onClick.AddListener(OnHomeButtonClicked);
+
         if (itemSelectionUI != null)
         {
             itemSelectionUI.OnItemSelected += OnItemSelected;
@@ -90,6 +96,23 @@ public class EquipmentUpgradeManager : MonoBehaviour
 
         // 強化ボタンにプレス効果を追加
         SetupEnhanceButtonEffect();
+    }
+
+    /// <summary>
+    /// ホームボタンクリック時の処理
+    /// </summary>
+    private void OnHomeButtonClicked()
+    {
+        // GameSceneManagerを探してホーム画面に遷移
+        var sceneManager = Object.FindFirstObjectByType<GameSceneManager>();
+        if (sceneManager != null)
+        {
+            sceneManager.LoadHomeScene();
+        }
+        else
+        {
+            Debug.LogWarning("GameSceneManagerが見つかりません。ホーム画面への遷移ができませんでした。");
+        }
     }
 
     /// <summary>

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: "Quest_001_\u521D\u5FC3\u8005\u306E\u8A66\u7DF4"
   m_EditorClassIdentifier: 
   questId: 0
-  questName: 
-  questDescription: 
+  questName: "\u521D\u5FC3\u8005\u306E\u8A66\u7DF4"
+  questDescription: "\u5192\u967A\u306E\u7B2C\u4E00\u6B69\u3092\u8E0F\u307F\u51FA\u305D\u3046"
   requiredLevel: 1
   prerequisiteQuestIds: 
   questType: 0

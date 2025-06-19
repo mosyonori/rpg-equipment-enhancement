@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: "Quest_005_\u30A4\u30D9\u30F3\u30C8\uFF1A\u706B\u306E\u8A66\u7DF4"
   m_EditorClassIdentifier: 
   questId: 0
-  questName: 
-  questDescription: 
+  questName: "\u30A4\u30D9\u30F3\u30C8\uFF1A\u706B\u306E\u8A66\u7DF4"
+  questDescription: "\u708E\u306E\u7CBE\u970A\u306B\u6311\u6226\uFF01"
   requiredLevel: 1
   prerequisiteQuestIds: 
-  questType: 0
+  questType: 1
   clearLimit: -1
   requiredStamina: 10
   recommendedPower: 0

@@ -14,7 +14,6 @@ public class QuestListItem : MonoBehaviour
     public TextMeshProUGUI questTypeText;
     public TextMeshProUGUI questNameText;
     public TextMeshProUGUI clearLimitText;
-    public Image backgroundImage;
 
     [Header("Visual Settings")]
     public Color normalColor = Color.white;
@@ -128,13 +127,6 @@ public class QuestListItem : MonoBehaviour
             selectButton.interactable = selectable;
         }
 
-        // 背景色の更新
-        Color targetColor = selectable ? normalColor : disabledColor;
-        if (backgroundImage != null)
-        {
-            backgroundImage.color = targetColor;
-        }
-
         // テキストの透明度調整
         float alpha = selectable ? 1.0f : 0.5f;
         SetTextAlpha(questTypeText, alpha);
@@ -162,6 +154,10 @@ public class QuestListItem : MonoBehaviour
                 return "デイリー";
             case QuestType.Event:
                 return "イベント";
+            case QuestType.Tutorial:
+                return "チュートリアル";
+            case QuestType.Boss:
+                return "ボス";
             default:
                 return questType.ToString();
         }
@@ -211,16 +207,21 @@ public class QuestListItem : MonoBehaviour
     /// </summary>
     public void PlaySelectAnimation()
     {
-        if (backgroundImage != null)
+        // 背景画像がないため、ボタンの色変更アニメーションを実装
+        if (selectButton != null)
         {
-            // 簡単な色変更アニメーション
-            StartCoroutine(AnimateColorChange());
+            StartCoroutine(AnimateButtonColorChange());
         }
     }
 
-    private System.Collections.IEnumerator AnimateColorChange()
+    private System.Collections.IEnumerator AnimateButtonColorChange()
     {
-        Color originalColor = backgroundImage.color;
+        if (selectButton == null) yield break;
+
+        var buttonImage = selectButton.GetComponent<Image>();
+        if (buttonImage == null) yield break;
+
+        Color originalColor = buttonImage.color;
         Color highlightColor = selectedColor;
 
         // ハイライト
@@ -231,7 +232,7 @@ public class QuestListItem : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
-            backgroundImage.color = Color.Lerp(originalColor, highlightColor, t);
+            buttonImage.color = Color.Lerp(originalColor, highlightColor, t);
             yield return null;
         }
 
@@ -241,11 +242,11 @@ public class QuestListItem : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
-            backgroundImage.color = Color.Lerp(highlightColor, originalColor, t);
+            buttonImage.color = Color.Lerp(highlightColor, originalColor, t);
             yield return null;
         }
 
-        backgroundImage.color = originalColor;
+        buttonImage.color = originalColor;
     }
 
     #endregion
