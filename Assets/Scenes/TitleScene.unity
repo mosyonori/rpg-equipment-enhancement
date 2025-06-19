@@ -379,6 +379,102 @@ MonoBehaviour:
   titleBGM: {fileID: 0}
   buttonClickSE: {fileID: 0}
   tapSE: {fileID: 0}
+--- !u!1 &577054373
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 577054375}
+  - component: {fileID: 577054374}
+  m_Layer: 0
+  m_Name: DataManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &577054374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 577054373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54cdebe2f842e9746a6d515377d782fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  equipmentDatabase:
+  - {fileID: 11400000, guid: 2045a90a179ff914f8f7303fa0329843, type: 2}
+  - {fileID: 11400000, guid: b3a4cdbeb820fff468e05c9f80c86655, type: 2}
+  - {fileID: 11400000, guid: e4b0825163216b34ab399716dc43d53b, type: 2}
+  - {fileID: 11400000, guid: a830f60b34c96464eb60a3c3db293cc0, type: 2}
+  enhancementItemDatabase:
+  - {fileID: 11400000, guid: db06f02a86ef9494c92b1709a80980ff, type: 2}
+  - {fileID: 11400000, guid: 9acf4d358269a9c4ab83a4d730c7f52b, type: 2}
+  - {fileID: 11400000, guid: 603ece4838b08a74a9b4cfb7282764ca, type: 2}
+  - {fileID: 11400000, guid: f4744a2345f609442a59be5fe4f4af25, type: 2}
+  - {fileID: 11400000, guid: 892091415c022a44da4a892a41ba41c9, type: 2}
+  - {fileID: 11400000, guid: df7918062db5bf140a0445d222fb7ae9, type: 2}
+  - {fileID: 11400000, guid: 030fd5950c7d1264eb978f4e2cf75a46, type: 2}
+  supportMaterialDatabase:
+  - {fileID: 11400000, guid: c7820a60e56c82244a9b35c8c77b67ea, type: 2}
+  - {fileID: 11400000, guid: d69658b3219a27b4481a8b5229d83817, type: 2}
+  questDatabase:
+  - {fileID: 11400000, guid: f323ca01bb65bd549be44249877e851a, type: 2}
+  - {fileID: 11400000, guid: cca0c27c474d12b429c326b98b856628, type: 2}
+  - {fileID: 11400000, guid: 187a922fa2208ef4da581313b2b7df9d, type: 2}
+  - {fileID: 11400000, guid: 2a95694c37cb3994faf92aa29a77a21c, type: 2}
+  - {fileID: 11400000, guid: ba3b711daadf90f488d0a942618fda01, type: 2}
+  currentUserData:
+    userId: fe47f50b-2ade-447c-88bf-73da11f19ea6
+    playerName: Player
+    playerLevel: 1
+    experience: 0
+    currency: 1000
+    premiumCurrency: 0
+    equipments: []
+    maxEquipmentSlots: 10
+    equippedEquipmentIds: ffffffffffffffffffffffff
+    enhancementItems: []
+    supportMaterials: []
+    specialItems: []
+    questProgress: []
+    currentStage: 1
+    highestStage: 1
+    totalPlayTimeSeconds: 0
+    dailyAdGachaCount: 0
+    purchasedProducts: []
+    gameSettings:
+      soundEnabled: 1
+      musicEnabled: 1
+      soundVolume: 1
+      musicVolume: 1
+      notificationEnabled: 1
+    totalEnhancementAttempts: 0
+    successfulEnhancements: 0
+    totalBattles: 0
+    totalVictories: 0
+  useTemporaryDataForTesting: 1
+--- !u!4 &577054375
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 577054373}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 540, y: 960, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &594131718
 GameObject:
   m_ObjectHideFlags: 0
@@ -1747,3 +1843,4 @@ SceneRoots:
   - {fileID: 2029967072}
   - {fileID: 594131721}
   - {fileID: 1039010945}
+  - {fileID: 577054375}

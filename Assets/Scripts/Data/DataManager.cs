@@ -10,12 +10,13 @@ public class DataManager : MonoBehaviour
     public EquipmentData[] equipmentDatabase;
     public EnhancementItemData[] enhancementItemDatabase;
     public SupportMaterialData[] supportMaterialDatabase;
+    public QuestData[] questDatabase;
 
     [Header("現在のユーザーデータ")]
     public UserData currentUserData;
 
     [Header("デバッグ設定")]
-    public bool useTemporaryDataForTesting = true; // テスト用: trueにするとセーブデータを使わない
+    public bool useTemporaryDataForTesting = true;
 
     private static DataManager instance;
     public static DataManager Instance
@@ -55,36 +56,24 @@ public class DataManager : MonoBehaviour
 
     void OnApplicationPause(bool pauseStatus)
     {
-        if (pauseStatus && !useTemporaryDataForTesting)
-        {
-            SaveUserData();
-        }
+        if (pauseStatus && !useTemporaryDataForTesting) SaveUserData();
     }
 
     void OnApplicationFocus(bool hasFocus)
     {
-        if (!hasFocus && !useTemporaryDataForTesting)
-        {
-            SaveUserData();
-        }
+        if (!hasFocus && !useTemporaryDataForTesting) SaveUserData();
     }
 
     void OnDestroy()
     {
-        if (!useTemporaryDataForTesting)
-        {
-            SaveUserData();
-        }
+        if (!useTemporaryDataForTesting) SaveUserData();
     }
 
     #region セーブ・ロード
 
     public void SaveUserData()
     {
-        if (useTemporaryDataForTesting)
-        {
-            return;
-        }
+        if (useTemporaryDataForTesting) return;
 
         try
         {
@@ -132,22 +121,12 @@ public class DataManager : MonoBehaviour
         }
     }
 
-    [ContextMenu("Reset User Data for Testing")]
-    public void ResetUserDataForTesting()
-    {
-        currentUserData = new UserData();
-        ValidateUserData();
-    }
-
     public void ResetUserData()
     {
         PlayerPrefs.DeleteKey(SAVE_KEY);
         currentUserData = new UserData();
         ValidateUserData();
-        if (!useTemporaryDataForTesting)
-        {
-            SaveUserData();
-        }
+        if (!useTemporaryDataForTesting) SaveUserData();
     }
 
     #endregion
@@ -191,8 +170,6 @@ public class DataManager : MonoBehaviour
             if (equipment.equipmentId == equipmentId)
                 return equipment;
         }
-
-        Debug.LogWarning($"装備ID {equipmentId} が見つかりません");
         return null;
     }
 
@@ -203,8 +180,6 @@ public class DataManager : MonoBehaviour
             if (item.itemId == itemId)
                 return item;
         }
-
-        Debug.LogWarning($"強化アイテムID {itemId} が見つかりません");
         return null;
     }
 
@@ -215,115 +190,149 @@ public class DataManager : MonoBehaviour
             if (material.materialId == materialId)
                 return material;
         }
-
-        Debug.LogWarning($"補助材料ID {materialId} が見つかりません");
         return null;
+    }
+
+    #endregion
+
+    #region クエストデータ取得
+
+    public List<QuestData> GetAllQuestData()
+    {
+        var questList = new List<QuestData>();
+
+        if (questDatabase != null && questDatabase.Length > 0)
+        {
+            questList.AddRange(questDatabase);
+            questList.Sort((a, b) => a.questId.CompareTo(b.questId));
+        }
+        else
+        {
+            Debug.LogError("questDatabaseが設定されていません");
+        }
+
+        return questList;
+    }
+
+    public QuestData GetQuestData(int questId)
+    {
+        if (questDatabase != null)
+        {
+            foreach (var questData in questDatabase)
+            {
+                if (questData.questId == questId)
+                    return questData;
+            }
+        }
+        return null;
+    }
+
+    #endregion
+
+    #region クエスト機能
+
+    public int GetPlayerLevel()
+    {
+        return currentUserData?.playerLevel ?? 1;
+    }
+
+    public int GetCurrentStamina()
+    {
+        return 100; // 仮実装
+    }
+
+    public bool ConsumeStamina(int amount)
+    {
+        Debug.Log($"スタミナ {amount} を消費しました");
+        return true; // 仮実装
+    }
+
+    public bool IsQuestCleared(int questId)
+    {
+        if (currentUserData?.questProgress == null) return false;
+        var progress = currentUserData.questProgress.Find(q => q.questId == questId);
+        return progress != null && progress.isCleared;
+    }
+
+    public int GetQuestRemainingClears(int questId)
+    {
+        var questData = GetQuestData(questId);
+        if (questData == null) return 0;
+
+        if (questData.clearLimit == -1) return 999;
+
+        var progress = currentUserData?.questProgress?.Find(q => q.questId == questId);
+        int currentClears = progress?.clearCount ?? 0;
+        return Mathf.Max(0, questData.clearLimit - currentClears);
+    }
+
+    public bool StartQuest(int questId)
+    {
+        var questData = GetQuestData(questId);
+        if (questData == null) return false;
+
+        if (GetPlayerLevel() < questData.requiredLevel) return false;
+        if (questData.prerequisiteQuestIds != null)
+        {
+            foreach (int prereqId in questData.prerequisiteQuestIds)
+            {
+                if (!IsQuestCleared(prereqId)) return false;
+            }
+        }
+        if (questData.clearLimit > 0 && GetQuestRemainingClears(questId) <= 0) return false;
+        if (GetCurrentStamina() < questData.requiredStamina) return false;
+
+        if (!ConsumeStamina(questData.requiredStamina)) return false;
+
+        Debug.Log($"クエスト開始: {questData.questName}");
+        return true;
+    }
+
+    public void CompleteQuest(int questId)
+    {
+        if (currentUserData == null) return;
+
+        var progress = currentUserData.questProgress.Find(q => q.questId == questId);
+        if (progress == null)
+        {
+            progress = new QuestProgress
+            {
+                questId = questId,
+                isCleared = true,
+                clearCount = 1,
+                firstClearTime = DateTime.Now,
+                lastClearTime = DateTime.Now
+            };
+            currentUserData.questProgress.Add(progress);
+        }
+        else
+        {
+            progress.isCleared = true;
+            progress.clearCount++;
+            progress.lastClearTime = DateTime.Now;
+        }
+
+        SaveUserData();
     }
 
     #endregion
 
     #region 属性制限システム
 
-    /// <summary>
-    /// 属性制限を考慮した強化実行
-    /// </summary>
     public bool EnhanceEquipmentWithElementalCheck(int equipmentIndex, int enhancementItemId, int supportItemId = -1)
     {
         var userEquipment = GetUserEquipment(equipmentIndex);
         var enhancementItem = GetEnhancementItemData(enhancementItemId);
 
-        if (userEquipment == null || enhancementItem == null)
-        {
-            Debug.LogError("装備または強化アイテムが見つかりません");
-            return false;
-        }
+        if (userEquipment == null || enhancementItem == null) return false;
+        if (!enhancementItem.CanUseOnEquipment(userEquipment)) return false;
 
-        // 属性制限チェック
-        if (!enhancementItem.CanUseOnEquipment(userEquipment))
-        {
-            string reason = enhancementItem.GetRestrictionReason(userEquipment);
-            Debug.LogWarning($"属性制限により強化できません: {reason}");
-            return false;
-        }
-
-        // 既存の強化処理を実行
         return EnhanceEquipment(equipmentIndex, enhancementItemId, supportItemId);
-    }
-
-    /// <summary>
-    /// 使用可能な強化アイテムのリストを取得（属性制限考慮）
-    /// </summary>
-    public List<EnhancementItemData> GetAvailableEnhancementItems(int equipmentIndex)
-    {
-        var userEquipment = GetUserEquipment(equipmentIndex);
-        if (userEquipment == null) return new List<EnhancementItemData>();
-
-        var availableItems = new List<EnhancementItemData>();
-
-        foreach (var itemData in enhancementItemDatabase)
-        {
-            // 所持数チェック
-            int quantity = GetItemQuantity(itemData.itemId);
-            if (quantity <= 0) continue;
-
-            // 属性制限チェック
-            if (!itemData.CanUseOnEquipment(userEquipment)) continue;
-
-            availableItems.Add(itemData);
-        }
-
-        return availableItems;
-    }
-
-    /// <summary>
-    /// 属性制限情報を含む強化アイテム情報を取得
-    /// </summary>
-    public List<EnhancementItemInfo> GetEnhancementItemsWithRestrictionInfo(int equipmentIndex)
-    {
-        var userEquipment = GetUserEquipment(equipmentIndex);
-        var itemInfoList = new List<EnhancementItemInfo>();
-
-        foreach (var itemData in enhancementItemDatabase)
-        {
-            int quantity = GetItemQuantity(itemData.itemId);
-            if (quantity <= 0) continue;
-
-            bool canUse = userEquipment != null ? itemData.CanUseOnEquipment(userEquipment) : true;
-            string restrictionReason = userEquipment != null ? itemData.GetRestrictionReason(userEquipment) : "";
-
-            itemInfoList.Add(new EnhancementItemInfo
-            {
-                itemData = itemData,
-                quantity = quantity,
-                canUse = canUse,
-                restrictionReason = restrictionReason
-            });
-        }
-
-        return itemInfoList;
-    }
-
-    /// <summary>
-    /// 装備の属性情報を取得（デバッグ用）
-    /// </summary>
-    public string GetEquipmentElementalInfo(int equipmentIndex)
-    {
-        var userEquipment = GetUserEquipment(equipmentIndex);
-        if (userEquipment == null) return "装備が見つかりません";
-
-        ElementalType currentType = userEquipment.GetCurrentElementalType();
-        string typeName = UserEquipment.GetElementalTypeName(currentType);
-
-        return $"現在の属性: {typeName}属性\n" +
-               $"火攻撃: {userEquipment.GetTotalFireAttack()}\n" +
-               $"水攻撃: {userEquipment.GetTotalWaterAttack()}\n" +
-               $"風攻撃: {userEquipment.GetTotalWindAttack()}\n" +
-               $"土攻撃: {userEquipment.GetTotalEarthAttack()}";
     }
 
     #endregion
 
-    #region ユーザーデータ操作（既存メソッド + 属性対応強化）
+    #region ユーザーデータ操作
 
     public UserEquipment GetUserEquipment(int index)
     {
@@ -381,169 +390,90 @@ public class DataManager : MonoBehaviour
         if (!useTemporaryDataForTesting) SaveUserData();
     }
 
-    /// <summary>
-    /// 既存の強化メソッド（属性制限なし、後方互換性のため保護）
-    /// </summary>
     public bool EnhanceEquipment(int equipmentIndex, int enhancementItemId, int supportItemId = -1)
     {
         var userEquipment = GetUserEquipment(equipmentIndex);
-        if (userEquipment == null || !userEquipment.CanEnhance())
-        {
-            Debug.LogError("装備を強化できません");
-            return false;
-        }
+        if (userEquipment == null || !userEquipment.CanEnhance()) return false;
 
         var enhancementItem = GetEnhancementItemData(enhancementItemId);
-        if (enhancementItem == null)
-        {
-            Debug.LogError("強化アイテムが見つかりません");
-            return false;
-        }
-
-        if (GetItemQuantity(enhancementItemId) <= 0)
-        {
-            Debug.LogError("強化アイテムが不足しています");
-            return false;
-        }
+        if (enhancementItem == null) return false;
+        if (GetItemQuantity(enhancementItemId) <= 0) return false;
 
         SupportMaterialData supportItem = null;
         if (supportItemId >= 0)
         {
             supportItem = GetSupportMaterialData(supportItemId);
-            if (supportItem != null && GetItemQuantity(supportItemId) <= 0)
-            {
-                Debug.LogError("補助アイテムが不足しています");
-                return false;
-            }
+            if (supportItem != null && GetItemQuantity(supportItemId) <= 0) return false;
         }
 
-        // 成功確率計算
         float successRate = enhancementItem.GetAdjustedSuccessRate(userEquipment.enhancementLevel);
 
-        // 補助アイテムの効果適用
         if (supportItem != null)
         {
-            // 成功率修正
             successRate += supportItem.successRateModifier;
-
-            // 成功保証効果
-            if (supportItem.guaranteeSuccess)
-            {
-                successRate = 1.0f;
-            }
+            if (supportItem.guaranteeSuccess) successRate = 1.0f;
         }
 
         successRate = Mathf.Clamp01(successRate);
 
-        // 強化判定
         bool isSuccess = UnityEngine.Random.Range(0f, 1f) <= successRate;
         bool isGreatSuccess = isSuccess && UnityEngine.Random.Range(0f, 1f) <= 0.1f;
 
-        // ★重要: アイテムは強化実行と同時に必ず消費する
         ConsumeItem(enhancementItemId, 1);
-        if (supportItem != null)
-        {
-            ConsumeItem(supportItemId, 1);
-        }
+        if (supportItem != null) ConsumeItem(supportItemId, 1);
 
-        // 耐久度減少の計算（装備種類を考慮）
         var equipmentMasterData = GetEquipmentData(userEquipment.equipmentId);
         EquipmentType currentEquipmentType = equipmentMasterData?.equipmentType ?? EquipmentType.Weapon;
         int baseDurabilityReduction = enhancementItem.GetDurabilityReduction(currentEquipmentType);
         int finalDurabilityReduction = baseDurabilityReduction;
 
-        // ★修正点：補助アイテムによる耐久度修正を適用
         if (supportItem != null)
         {
-            // 新しいシステム: 成功/失敗に応じた耐久度計算
             finalDurabilityReduction = supportItem.CalculateDurabilityReduction(isSuccess, baseDurabilityReduction);
-            Debug.Log($"補助アイテム効果適用: 基本減少{baseDurabilityReduction} → 最終減少{finalDurabilityReduction}");
         }
 
-        // 耐久度減少は0未満にならないように
         finalDurabilityReduction = Mathf.Max(0, finalDurabilityReduction);
-
-        // ★修正: 強化値の伸びを強化アイテムから取得
         int enhancementValueIncrease = enhancementItem.GetEnhancementValue(currentEquipmentType);
 
-        // 結果処理
         if (isGreatSuccess)
         {
             ApplyEnhancementBonus(userEquipment, enhancementItem, 2.0f);
-            // ★修正: 大成功時は強化値も2倍追加
             int greatSuccessEnhancementIncrease = enhancementValueIncrease * 2;
             userEquipment.enhancementLevel += greatSuccessEnhancementIncrease;
-            Debug.Log($"大成功！ 強化値追加: +{greatSuccessEnhancementIncrease}（通常{enhancementValueIncrease}の2倍）, 現在の強化レベル: +{userEquipment.enhancementLevel}");
         }
         else if (isSuccess)
         {
             ApplyEnhancementBonus(userEquipment, enhancementItem, 1.0f);
             userEquipment.enhancementLevel += enhancementValueIncrease;
             userEquipment.ReduceDurability(finalDurabilityReduction);
-            Debug.Log($"成功！ 強化値追加: +{enhancementValueIncrease}, 現在の強化レベル: +{userEquipment.enhancementLevel}, 耐久減少: {finalDurabilityReduction}");
         }
         else
         {
-            // 失敗後の耐久度処理
             userEquipment.ReduceDurability(finalDurabilityReduction);
-            Debug.Log($"失敗... 耐久減少: {finalDurabilityReduction}");
         }
 
         currentUserData.totalEnhancementAttempts++;
-        if (isSuccess)
-        {
-            currentUserData.successfulEnhancements++;
-        }
+        if (isSuccess) currentUserData.successfulEnhancements++;
 
         if (!useTemporaryDataForTesting) SaveUserData();
-
         return isSuccess;
     }
 
-    /// <summary>
-    /// 修正版: 装備種類を考慮した属性攻撃ボーナス適用
-    /// </summary>
     private void ApplyEnhancementBonus(UserEquipment userEquipment, EnhancementItemData enhancementItem, float multiplier)
     {
-        // 装備のマスターデータを取得して装備種類を確認
         var equipmentData = GetEquipmentData(userEquipment.equipmentId);
         EquipmentType equipmentType = equipmentData?.equipmentType ?? EquipmentType.Weapon;
 
-        // 装備種類に応じたボーナス値を取得
         userEquipment.bonusAttackPower += Mathf.RoundToInt(enhancementItem.GetAttackPowerBonus(equipmentType) * multiplier);
         userEquipment.bonusDefensePower += Mathf.RoundToInt(enhancementItem.GetDefensePowerBonus(equipmentType) * multiplier);
         userEquipment.bonusElementalAttack += Mathf.RoundToInt(enhancementItem.GetElementalAttackBonus(equipmentType) * multiplier);
         userEquipment.bonusHP += Mathf.RoundToInt(enhancementItem.GetHPBonus(equipmentType) * multiplier);
         userEquipment.bonusCriticalRate += enhancementItem.GetCriticalRateBonus(equipmentType) * multiplier;
 
-        // 重要: 4種類の属性攻撃ボーナス適用（装備種類考慮）
         userEquipment.bonusFireAttack += Mathf.RoundToInt(enhancementItem.GetFireAttackBonus(equipmentType) * multiplier);
         userEquipment.bonusWaterAttack += Mathf.RoundToInt(enhancementItem.GetWaterAttackBonus(equipmentType) * multiplier);
         userEquipment.bonusWindAttack += Mathf.RoundToInt(enhancementItem.GetWindAttackBonus(equipmentType) * multiplier);
         userEquipment.bonusEarthAttack += Mathf.RoundToInt(enhancementItem.GetEarthAttackBonus(equipmentType) * multiplier);
-
-        // デバッグログ追加（装備種類情報も含む）
-        Debug.Log($"強化ボーナス適用[{GetEquipmentTypeName(equipmentType)}]: " +
-                  $"攻撃+{Mathf.RoundToInt(enhancementItem.GetAttackPowerBonus(equipmentType) * multiplier)}, " +
-                  $"防御+{Mathf.RoundToInt(enhancementItem.GetDefensePowerBonus(equipmentType) * multiplier)}, " +
-                  $"火+{Mathf.RoundToInt(enhancementItem.GetFireAttackBonus(equipmentType) * multiplier)}, " +
-                  $"水+{Mathf.RoundToInt(enhancementItem.GetWaterAttackBonus(equipmentType) * multiplier)}, " +
-                  $"風+{Mathf.RoundToInt(enhancementItem.GetWindAttackBonus(equipmentType) * multiplier)}, " +
-                  $"土+{Mathf.RoundToInt(enhancementItem.GetEarthAttackBonus(equipmentType) * multiplier)}");
-    }
-
-    /// <summary>
-    /// 装備種類の日本語名を取得
-    /// </summary>
-    private string GetEquipmentTypeName(EquipmentType type)
-    {
-        switch (type)
-        {
-            case EquipmentType.Weapon: return "武器";
-            case EquipmentType.Armor: return "防具";
-            case EquipmentType.Accessory: return "アクセサリー";
-            default: return "不明";
-        }
     }
 
     public void AddEquipment(int equipmentId)
@@ -568,13 +498,10 @@ public class DataManager : MonoBehaviour
             currentUserData.maxEquipmentSlots = 10;
         }
 
-        // 修正: 初期装備を毎回リセット（テスト用）
         if (useTemporaryDataForTesting || currentUserData.equipments.Count == 0)
         {
-            currentUserData.equipments.Clear(); // 既存データをクリア
+            currentUserData.equipments.Clear();
 
-            // ★追加: ID 3, 4の新装備データを追加
-            // 装備ID 3のテストデータ
             var equipment3Data = GetEquipmentData(3);
             if (equipment3Data != null)
             {
@@ -584,22 +511,11 @@ public class DataManager : MonoBehaviour
                     enhancementLevel = 0,
                     currentDurability = equipment3Data.stats.baseDurability,
                     isEquipped = false,
-                    acquiredDate = DateTime.Now,
-                    bonusAttackPower = 0,
-                    bonusDefensePower = 0,
-                    bonusElementalAttack = 0,
-                    bonusHP = 0,
-                    bonusCriticalRate = 0f,
-                    bonusFireAttack = 0,
-                    bonusWaterAttack = 0,
-                    bonusWindAttack = 0,
-                    bonusEarthAttack = 0
+                    acquiredDate = DateTime.Now
                 };
                 currentUserData.equipments.Add(equipment3);
-                Debug.Log($"テストデータに装備ID 3を追加: {equipment3Data.equipmentName}");
             }
 
-            // 装備ID 4のテストデータ
             var equipment4Data = GetEquipmentData(4);
             if (equipment4Data != null)
             {
@@ -609,23 +525,12 @@ public class DataManager : MonoBehaviour
                     enhancementLevel = 0,
                     currentDurability = equipment4Data.stats.baseDurability,
                     isEquipped = false,
-                    acquiredDate = DateTime.Now,
-                    bonusAttackPower = 0,
-                    bonusDefensePower = 0,
-                    bonusElementalAttack = 0,
-                    bonusHP = 0,
-                    bonusCriticalRate = 0f,
-                    bonusFireAttack = 0,
-                    bonusWaterAttack = 0,
-                    bonusWindAttack = 0,
-                    bonusEarthAttack = 0
+                    acquiredDate = DateTime.Now
                 };
                 currentUserData.equipments.Add(equipment4);
-                Debug.Log($"テストデータに装備ID 4を追加: {equipment4Data.equipmentName}");
             }
 
-            // 新装備追加: 火のダガー
-            var fireKnifeData = GetEquipmentData(2); // ID 2が火のダガーの場合
+            var fireKnifeData = GetEquipmentData(2);
             if (fireKnifeData != null)
             {
                 var fireKnife = new UserEquipment
@@ -634,21 +539,11 @@ public class DataManager : MonoBehaviour
                     enhancementLevel = 0,
                     currentDurability = fireKnifeData.stats.baseDurability,
                     isEquipped = false,
-                    acquiredDate = DateTime.Now,
-                    bonusAttackPower = 0,
-                    bonusDefensePower = 0,
-                    bonusElementalAttack = 0,
-                    bonusHP = 0,
-                    bonusCriticalRate = 0f,
-                    bonusFireAttack = 0,
-                    bonusWaterAttack = 0,
-                    bonusWindAttack = 0,
-                    bonusEarthAttack = 0
+                    acquiredDate = DateTime.Now
                 };
                 currentUserData.equipments.Add(fireKnife);
             }
 
-            // 初心者用装備を追加（マスターデータから正しい耐久値を取得）
             var starterEquipData = GetEquipmentData(1);
             if (starterEquipData != null)
             {
@@ -658,16 +553,7 @@ public class DataManager : MonoBehaviour
                     enhancementLevel = 0,
                     currentDurability = starterEquipData.stats.baseDurability,
                     isEquipped = true,
-                    acquiredDate = DateTime.Now,
-                    bonusAttackPower = 0,
-                    bonusDefensePower = 0,
-                    bonusElementalAttack = 0,
-                    bonusHP = 0,
-                    bonusCriticalRate = 0f,
-                    bonusFireAttack = 0,
-                    bonusWaterAttack = 0,
-                    bonusWindAttack = 0,
-                    bonusEarthAttack = 0
+                    acquiredDate = DateTime.Now
                 };
 
                 currentUserData.equipments.Add(starterWeapon);
@@ -675,28 +561,21 @@ public class DataManager : MonoBehaviour
             }
         }
 
-        // 初期アイテム追加（テスト用）
         if (useTemporaryDataForTesting || currentUserData.enhancementItems.Count == 0)
         {
             currentUserData.enhancementItems.Clear();
             currentUserData.supportMaterials.Clear();
 
-            // 既存の強化アイテム
-            AddItem(1, 15); // 基本強化石x15
-            AddItem(2, 80);  // 高級強化石x8
-            AddItem(3, 80);  // 高級強化石x8
+            AddItem(1, 15);
+            AddItem(2, 80);
+            AddItem(3, 80);
+            AddItem(4, 50);
+            AddItem(5, 50);
+            AddItem(6, 50);
+            AddItem(7, 50);
 
-            // 新しい属性強化アイテム
-            AddItem(4, 50);  // 火のルビーx5
-            AddItem(5, 50);  // 水のアクアマリンx5
-            AddItem(6, 50);  // 風のオパールx5
-            AddItem(7, 50);  // 土のトパーズx5
-
-            // 既存の補助材料
-            currentUserData.AddItem(1, 50, "support"); // 幸運石x5
-
-            // 新しい補助材料
-            currentUserData.AddItem(2, 30, "support"); // 強化耐久保護チケットx3
+            currentUserData.AddItem(1, 50, "support");
+            currentUserData.AddItem(2, 30, "support");
         }
 
         if (currentUserData.lastLoginTime > DateTime.Now)
@@ -712,14 +591,4 @@ public class DataManager : MonoBehaviour
     }
 
     #endregion
-}
-
-// 強化アイテム情報クラス（UI表示用）
-[System.Serializable]
-public class EnhancementItemInfo
-{
-    public EnhancementItemData itemData;
-    public int quantity;
-    public bool canUse;
-    public string restrictionReason;
 }
