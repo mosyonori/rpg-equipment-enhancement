@@ -147,49 +147,100 @@ public class QuestDataImporter : EditorWindow
         var result = new List<QuestCSVData>();
         var lines = csvContent.Split('\n').Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
 
-        if (lines.Length < 2) return result; // ヘッダー行と最低1行のデータが必要
+        if (lines.Length < 2)
+        {
+            Debug.LogError("CSVファイルにデータ行がありません。ヘッダー行と最低1行のデータが必要です。");
+            return result;
+        }
+
+        // デバッグ用：ヘッダー行を表示
+        Debug.Log($"ヘッダー行: {lines[0]}");
 
         // ヘッダー行をスキップして、データ行を処理
         for (int i = 1; i < lines.Length; i++)
         {
             var values = SplitCSVLine(lines[i]);
-            if (values.Length < 20) continue; // 必要な列数をチェック
+
+            // デバッグ用：各行の列数を表示
+            Debug.Log($"行 {i + 1}: {values.Length} 列のデータ");
+
+            if (values.Length < 20)
+            {
+                Debug.LogWarning($"行 {i + 1}: 列数が不足しています（{values.Length}/20）。スキップします。");
+                continue;
+            }
 
             try
             {
                 var data = new QuestCSVData
                 {
-                    questId = int.Parse(values[0]),
-                    questName = values[1],
-                    questDescription = values[2],
+                    questId = ParseInt(values[0], "questId", i + 1),
+                    questName = values[1].Trim(),
+                    questDescription = values[2].Trim(),
                     questType = ParseQuestType(values[3]),
-                    requiredLevel = int.Parse(values[4]),
+                    requiredLevel = ParseInt(values[4], "requiredLevel", i + 1, 1),
                     prerequisiteQuests = ParseIntArray(values[5]),
-                    clearLimit = int.Parse(values[6]),
-                    requiredStamina = int.Parse(values[7]),
-                    recommendedPower = int.Parse(values[8]),
-                    monsterSpawnCSV = values[9],
-                    monsterCount = int.Parse(values[10]),
-                    turnLimit = int.Parse(values[11]),
-                    rewardExp = int.Parse(values[12]),
-                    rewardGold = int.Parse(values[13]),
-                    itemDropCSV = values[14],
-                    firstClearItemType = values[15],
-                    firstClearItemId = string.IsNullOrWhiteSpace(values[16]) ? 0 : int.Parse(values[16]),
-                    firstClearItemQuantity = string.IsNullOrWhiteSpace(values[17]) ? 0 : int.Parse(values[17]),
-                    backgroundId = int.Parse(values[18]),
-                    bgmId = int.Parse(values[19])
+                    clearLimit = ParseInt(values[6], "clearLimit", i + 1, -1),
+                    requiredStamina = ParseInt(values[7], "requiredStamina", i + 1, 5),
+                    recommendedPower = ParseInt(values[8], "recommendedPower", i + 1, 100),
+                    monsterSpawnCSV = values[9].Trim(),
+                    monsterCount = ParseInt(values[10], "monsterCount", i + 1, 1),
+                    turnLimit = ParseInt(values[11], "turnLimit", i + 1, 0),
+                    rewardExp = ParseInt(values[12], "rewardExp", i + 1, 0),
+                    rewardGold = ParseInt(values[13], "rewardGold", i + 1, 0),
+                    itemDropCSV = values[14].Trim(),
+                    firstClearItemType = values[15].Trim(),
+                    firstClearItemId = ParseInt(values[16], "firstClearItemId", i + 1, 0),
+                    firstClearItemQuantity = ParseInt(values[17], "firstClearItemQuantity", i + 1, 0),
+                    backgroundId = ParseInt(values[18], "backgroundId", i + 1, 1),
+                    bgmId = ParseInt(values[19], "bgmId", i + 1, 1)
                 };
 
+                // 基本的な検証
+                if (data.questId <= 0)
+                {
+                    Debug.LogError($"行 {i + 1}: 無効なクエストID ({data.questId})");
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(data.questName))
+                {
+                    Debug.LogError($"行 {i + 1}: クエスト名が空です");
+                    continue;
+                }
+
                 result.Add(data);
+                Debug.Log($"行 {i + 1}: クエスト '{data.questName}' (ID: {data.questId}) を正常に読み込みました");
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"行 {i + 1} のパースエラー: {e.Message}");
+                Debug.LogError($"行 {i + 1} のパースエラー: {e.Message}\n{e.StackTrace}");
             }
         }
 
+        Debug.Log($"合計 {result.Count} 個のクエストデータを読み込みました");
         return result;
+    }
+
+    // 安全な整数パース関数
+    private int ParseInt(string value, string fieldName, int lineNumber, int defaultValue = 0)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            Debug.Log($"行 {lineNumber}: {fieldName} が空です。デフォルト値 {defaultValue} を使用します。");
+            return defaultValue;
+        }
+
+        value = value.Trim();
+        if (int.TryParse(value, out int result))
+        {
+            return result;
+        }
+        else
+        {
+            Debug.LogWarning($"行 {lineNumber}: {fieldName} の値 '{value}' を整数に変換できません。デフォルト値 {defaultValue} を使用します。");
+            return defaultValue;
+        }
     }
 
     private string[] SplitCSVLine(string line)
@@ -208,7 +259,9 @@ public class QuestDataImporter : EditorWindow
             }
             else if (c == ',' && !inQuotes)
             {
-                result.Add(currentField.Trim());
+                // フィールドの処理
+                currentField = ProcessField(currentField);
+                result.Add(currentField);
                 currentField = "";
             }
             else
@@ -217,8 +270,29 @@ public class QuestDataImporter : EditorWindow
             }
         }
 
-        result.Add(currentField.Trim());
+        // 最後のフィールド
+        currentField = ProcessField(currentField);
+        result.Add(currentField);
         return result.ToArray();
+    }
+
+    // フィールドの前処理
+    private string ProcessField(string field)
+    {
+        // 前後の空白とクォートを削除
+        field = field.Trim();
+        if (field.StartsWith("\"") && field.EndsWith("\""))
+        {
+            field = field.Substring(1, field.Length - 2);
+        }
+
+        // アポストロフィがある場合は削除（Googleスプレッドシート対策）
+        if (field.StartsWith("'"))
+        {
+            field = field.Substring(1);
+        }
+
+        return field;
     }
 
     private QuestType ParseQuestType(string type)

@@ -7,7 +7,7 @@
       "RelativeMoniker": "D:0:0:{14A141A5-E7EA-0CC6-2595-AAB6DDBB6EB2}|Assembly-CSharp-Editor.csproj|solutionrelative:assets\\editor\\questdataimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|c:\\users\\aax62\\blacksmith\\assets\\scripts\\managers\\questmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\managers\\questmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\managers\\questmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -46,8 +46,25 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "QuestDataImporter.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Editor\\QuestDataImporter.cs",
+              "RelativeDocumentMoniker": "Assets\\Editor\\QuestDataImporter.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Editor\\QuestDataImporter.cs",
+              "RelativeToolTip": "Assets\\Editor\\QuestDataImporter.cs",
+              "ViewState": "AgIAAEoBAAAAAAAAAAAqwIgBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T14:51:36.55Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
@@ -58,21 +75,7 @@
               "RelativeToolTip": "Assets\\Scripts\\Managers\\QuestManager.cs",
               "ViewState": "AgIAAKUAAAAAAAAAAAAqwMIAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-18T14:58:27.516Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "QuestDataImporter.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Editor\\QuestDataImporter.cs",
-              "RelativeDocumentMoniker": "Assets\\Editor\\QuestDataImporter.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Editor\\QuestDataImporter.cs",
-              "RelativeToolTip": "Assets\\Editor\\QuestDataImporter.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACABAAAyAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-18T14:51:36.55Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-18T14:58:27.516Z"
             },
             {
               "$type": "Document",
@@ -84,8 +87,7 @@
               "RelativeToolTip": "Assets\\Scripts\\Data\\QuestData.cs",
               "ViewState": "AgIAAOoAAAAAAAAAAAAqwP8AAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-18T14:56:12.177Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-18T14:56:12.177Z"
             },
             {
               "$type": "Document",
@@ -98,10 +100,6 @@
               "ViewState": "AgIAAFYAAAAAAAAAAAAqwJQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-18T14:49:40.995Z"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
             },
             {
               "$type": "Document",

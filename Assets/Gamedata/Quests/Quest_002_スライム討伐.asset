@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f6d14d6af3d493449b2cd859d1ed865, type: 3}
+  m_Name: "Quest_002_\u30B9\u30E9\u30A4\u30E0\u8A0E\u4F10"
+  m_EditorClassIdentifier: 
+  questId: 0
+  questName: 
+  questDescription: 
+  requiredLevel: 1
+  prerequisiteQuestIds: 
+  questType: 0
+  clearLimit: -1
+  requiredStamina: 10
+  recommendedPower: 0
+  monsterSpawnCSV: 1:100
+  monsterCount: 3
+  turnLimit: 30
+  rewardExp: 0
+  rewardGold: 0
+  itemDropCSV: enhancement_1:30,equipment_1:10
+  hasFirstClearReward: 0
+  firstClearItemType: 0
+  firstClearItemId: 0
+  firstClearItemQuantity: 0
+  backgroundId: 0
+  bgmId: 0
