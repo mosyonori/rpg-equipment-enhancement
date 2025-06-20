@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c4d8053c48422840b7e1b15f87fb4b5, type: 3}
+  m_Name: StatusEffect_attack_down
+  m_EditorClassIdentifier: 
+  statusEffectId: attack_down
+  statusEffectName: "\u653B\u6483\u529B\u4F4E\u4E0B"
+  statusEffectDescription: "\u653B\u6483\u529B\u3068\u5404\u5C5E\u6027\u653B\u6483\u529B\u304C30%\u4F4E\u4E0B\u3059\u308B"
+  effectType: 1
+  isStackable: 0
+  attackModifier: 0
+  defenseModifier: 0
+  attackMultiplier: 0.7
+  defenseMultiplier: 1
+  fireAttackMultiplier: 0.7
+  waterAttackMultiplier: 0.7
+  windAttackMultiplier: 0.7
+  earthAttackMultiplier: 0.7
+  preventAction: 0
+  turnStartDamagePercent: 0
+  turnStartHealPercent: 0
+  iconId: icon_attack_down
+  colorCode: '#FF6B6B'
+  priority: 100

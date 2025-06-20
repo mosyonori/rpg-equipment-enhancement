@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fcf74994ddc8244da897b61d21cfb57, type: 3}
+  m_Name: "Monster_004_\u30A6\u30A3\u30F3\u30C9\u30A6\u30EB\u30D5"
+  m_EditorClassIdentifier: 
+  monsterId: 4
+  monsterName: "\u30A6\u30A3\u30F3\u30C9\u30A6\u30EB\u30D5"
+  monsterDescription: "\u98A8\u306E\u901F\u3055\u3067\u99C6\u3051\u308B\u72FC"
+  level: 7
+  maxHP: 150
+  attackPower: 30
+  defensePower: 15
+  speed: 18
+  criticalRate: 12
+  fireAttack: 0
+  waterAttack: 0
+  windAttack: 25
+  earthAttack: 0
+  skill1Id: skill_wind_claw
+  skill2Id: skill_howl
+  iconId: icon_wind_wolf
+  rarity: Uncommon
+  monsterType: Beast

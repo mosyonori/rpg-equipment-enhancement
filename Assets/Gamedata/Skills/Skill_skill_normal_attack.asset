@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a44671c8b63d3834d8cbaae6a302693a, type: 3}
+  m_Name: Skill_skill_normal_attack
+  m_EditorClassIdentifier: 
+  skillId: skill_normal_attack
+  skillName: "\u901A\u5E38\u653B\u6483"
+  skillDescription: "\u57FA\u672C\u7684\u306A\u7269\u7406\u653B\u6483"
+  skillType: 0
+  targetType: 0
+  damageMultiplier: 1
+  maxCoolTime: 0
+  mpCost: 0
+  skillElement: 0
+  statusEffectId: 
+  statusEffectChance: 0
+  statusEffectDuration: 0
+  iconId: icon_normal_attack
+  animationId: anim_normal_attack
+  soundId: sound_punch
+  rarity: 0
+  skillCategory: 0

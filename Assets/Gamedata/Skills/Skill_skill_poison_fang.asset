@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a44671c8b63d3834d8cbaae6a302693a, type: 3}
+  m_Name: Skill_skill_poison_fang
+  m_EditorClassIdentifier: 
+  skillId: skill_poison_fang
+  skillName: "\u30DD\u30A4\u30BA\u30F3\u30D5\u30A1\u30F3\u30B0"
+  skillDescription: "\u6BD2\u7259\u3067\u6575\u3092\u653B\u6483\u3057\u6BD2\u72B6\u614B\u306B\u3059\u308B"
+  skillType: 0
+  targetType: 0
+  damageMultiplier: 1
+  maxCoolTime: 4
+  mpCost: 0
+  skillElement: 0
+  statusEffectId: poison
+  statusEffectChance: 40
+  statusEffectDuration: 3
+  iconId: icon_poison_fang
+  animationId: anim_poison_fang
+  soundId: sound_poison
+  rarity: 1
+  skillCategory: 0

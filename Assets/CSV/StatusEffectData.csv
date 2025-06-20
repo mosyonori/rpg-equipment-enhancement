@@ -1,0 +1,8 @@
+statusEffectId,statusEffectName,statusEffectDescription,effectType,isStackable,attackModifier,defenseModifier,attackMultiplier,defenseMultiplier,fireAttackMultiplier,waterAttackMultiplier,windAttackMultiplier,earthAttackMultiplier,preventAction,turnStartDamagePercent,turnStartHealPercent,iconId,colorCode,priority
+attack_down,攻撃力低下,攻撃力と各属性攻撃力が30%低下する,Debuff,FALSE,0,0,0.7,1,0.7,0.7,0.7,0.7,FALSE,0,0,icon_attack_down,#FF6B6B,100
+defense_down,防御力低下,防御力が50%低下する,Debuff,FALSE,0,0,1,0.5,1,1,1,1,FALSE,0,0,icon_defense_down,#FF9999,100
+attack_up,攻撃力増加,攻撃力と各属性攻撃力が50%増加する,Buff,FALSE,0,0,1.5,1,1.5,1.5,1.5,1.5,FALSE,0,0,icon_attack_up,#4ECDC4,100
+defense_up,防御力増加,防御力が70%増加する,Buff,FALSE,0,0,1,1.7,1,1,1,1,FALSE,0,0,icon_defense_up,#45B7D1,100
+stun,気絶,行動不能状態,Debuff,FALSE,0,0,1,1,1,1,1,1,TRUE,0,0,icon_stun,#8E44AD,200
+poison,毒,ターン開始時に最大HPの5%のダメージを受ける,Debuff,FALSE,0,0,1,1,1,1,1,1,FALSE,5,0,icon_poison,#9B59B6,100
+regen,継続回復,ターン開始時に最大HPの10%分HPを回復する,Buff,FALSE,0,0,1,1,1,1,1,1,FALSE,0,10,icon_regen,#2ECC71,100

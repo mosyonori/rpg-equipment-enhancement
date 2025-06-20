@@ -1,0 +1,6 @@
+monsterId,monsterName,monsterDescription,level,maxHP,attackPower,defensePower,speed,criticalRate,fireAttack,waterAttack,windAttack,earthAttack,skill1Id,skill2Id,iconId,rarity,monsterType
+1,スライム,初心者向けの弱いモンスター,1,50,10,5,8,5,0,0,0,0,,,icon_slime,Common,Beast
+2,ファイアスライム,火の力を持つスライム,3,80,15,8,7,8,20,0,0,0,skill_fire_ball,,icon_fire_slime,Common,Beast
+3,ゴブリン,狡猾な小鬼,5,120,25,12,12,10,0,0,0,0,skill_quick_strike,skill_guard,icon_goblin,Common,Humanoid
+4,ウィンドウルフ,風の速さで駆ける狼,7,150,30,15,18,12,0,0,25,0,skill_wind_claw,skill_howl,icon_wind_wolf,Uncommon,Beast
+5,アースゴーレム,土の力で作られた巨人,10,300,40,35,5,3,0,0,0,40,skill_earthquake,skill_stone_armor,icon_earth_golem,Rare,Construct

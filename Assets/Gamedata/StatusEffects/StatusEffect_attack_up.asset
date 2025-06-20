@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c4d8053c48422840b7e1b15f87fb4b5, type: 3}
+  m_Name: StatusEffect_attack_up
+  m_EditorClassIdentifier: 
+  statusEffectId: attack_up
+  statusEffectName: "\u653B\u6483\u529B\u5897\u52A0"
+  statusEffectDescription: "\u653B\u6483\u529B\u3068\u5404\u5C5E\u6027\u653B\u6483\u529B\u304C50%\u5897\u52A0\u3059\u308B"
+  effectType: 0
+  isStackable: 0
+  attackModifier: 0
+  defenseModifier: 0
+  attackMultiplier: 1.5
+  defenseMultiplier: 1
+  fireAttackMultiplier: 1.5
+  waterAttackMultiplier: 1.5
+  windAttackMultiplier: 1.5
+  earthAttackMultiplier: 1.5
+  preventAction: 0
+  turnStartDamagePercent: 0
+  turnStartHealPercent: 0
+  iconId: icon_attack_up
+  colorCode: '#4ECDC4'
+  priority: 100

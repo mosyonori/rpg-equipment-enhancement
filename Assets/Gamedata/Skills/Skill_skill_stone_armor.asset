@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a44671c8b63d3834d8cbaae6a302693a, type: 3}
+  m_Name: Skill_skill_stone_armor
+  m_EditorClassIdentifier: 
+  skillId: skill_stone_armor
+  skillName: "\u30B9\u30C8\u30FC\u30F3\u30A2\u30FC\u30DE\u30FC"
+  skillDescription: "\u571F\u306E\u93A7\u3067\u9632\u5FA1\u529B\u3092\u5927\u5E45\u306B\u4E0A\u6607"
+  skillType: 1
+  targetType: 2
+  damageMultiplier: 0
+  maxCoolTime: 8
+  mpCost: 0
+  skillElement: 4
+  statusEffectId: defense_up
+  statusEffectChance: 100
+  statusEffectDuration: 5
+  iconId: icon_stone_armor
+  animationId: anim_stone_armor
+  soundId: sound_earth_magic
+  rarity: 2
+  skillCategory: 1

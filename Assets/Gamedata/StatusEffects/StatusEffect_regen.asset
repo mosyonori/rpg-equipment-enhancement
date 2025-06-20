@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c4d8053c48422840b7e1b15f87fb4b5, type: 3}
+  m_Name: StatusEffect_regen
+  m_EditorClassIdentifier: 
+  statusEffectId: regen
+  statusEffectName: "\u7D99\u7D9A\u56DE\u5FA9"
+  statusEffectDescription: "\u30BF\u30FC\u30F3\u958B\u59CB\u6642\u306B\u6700\u5927HP\u306E10%\u5206HP\u3092\u56DE\u5FA9\u3059\u308B"
+  effectType: 0
+  isStackable: 0
+  attackModifier: 0
+  defenseModifier: 0
+  attackMultiplier: 1
+  defenseMultiplier: 1
+  fireAttackMultiplier: 1
+  waterAttackMultiplier: 1
+  windAttackMultiplier: 1
+  earthAttackMultiplier: 1
+  preventAction: 0
+  turnStartDamagePercent: 0
+  turnStartHealPercent: 10
+  iconId: icon_regen
+  colorCode: '#2ECC71'
+  priority: 100

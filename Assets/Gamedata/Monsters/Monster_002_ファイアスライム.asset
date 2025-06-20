@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fcf74994ddc8244da897b61d21cfb57, type: 3}
+  m_Name: "Monster_002_\u30D5\u30A1\u30A4\u30A2\u30B9\u30E9\u30A4\u30E0"
+  m_EditorClassIdentifier: 
+  monsterId: 2
+  monsterName: "\u30D5\u30A1\u30A4\u30A2\u30B9\u30E9\u30A4\u30E0"
+  monsterDescription: "\u706B\u306E\u529B\u3092\u6301\u3064\u30B9\u30E9\u30A4\u30E0"
+  level: 3
+  maxHP: 80
+  attackPower: 15
+  defensePower: 8
+  speed: 7
+  criticalRate: 8
+  fireAttack: 20
+  waterAttack: 0
+  windAttack: 0
+  earthAttack: 0
+  skill1Id: skill_fire_ball
+  skill2Id: 
+  iconId: icon_fire_slime
+  rarity: Common
+  monsterType: Beast

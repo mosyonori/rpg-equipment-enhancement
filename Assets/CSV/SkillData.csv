@@ -1,0 +1,14 @@
+skillId,skillName,skillDescription,skillType,targetType,damageMultiplier,maxCoolTime,mpCost,skillElement,statusEffectId,statusEffectChance,statusEffectDuration,iconId,animationId,soundId,rarity,skillCategory
+skill_normal_attack,通常攻撃,基本的な物理攻撃,Attack,SingleEnemy,1,0,0,None,,0,0,icon_normal_attack,anim_normal_attack,sound_punch,Common,Physical
+skill_fire_ball,ファイアボール,火の玉を飛ばして敵を攻撃する,Attack,SingleEnemy,1.3,3,0,Fire,,0,0,icon_fire_ball,anim_fire_ball,sound_fire_magic,Common,Magic
+skill_quick_strike,クイックストライク,素早い攻撃で敵を切り裂く,Attack,SingleEnemy,1.1,2,0,None,,0,0,icon_quick_strike,anim_quick_strike,sound_slash,Common,Physical
+skill_guard,ガード,防御力を一時的に上昇させる,Support,Self,0,4,0,None,defense_up,100,3,icon_guard,anim_guard,sound_shield,Common,Physical
+skill_wind_claw,ウィンドクロー,風の刃で敵を攻撃する,Attack,SingleEnemy,1.4,4,0,Wind,,0,0,icon_wind_claw,anim_wind_claw,sound_wind_magic,Uncommon,Magic
+skill_howl,ハウル,雄叫びで敵全体を威嚇する,Debuff,AllEnemies,0,5,0,None,attack_down,60,2,icon_howl,anim_howl,sound_howl,Common,Special
+skill_earthquake,アースクエイク,大地を揺らして敵全体を攻撃,Attack,AllEnemies,1.2,6,0,Earth,,0,0,icon_earthquake,anim_earthquake,sound_earth_magic,Rare,Magic
+skill_stone_armor,ストーンアーマー,土の鎧で防御力を大幅に上昇,Support,Self,0,8,0,Earth,defense_up,100,5,icon_stone_armor,anim_stone_armor,sound_earth_magic,Rare,Magic
+skill_heal_small,スモールヒール,小さな回復魔法でHPを回復,Heal,Self,0.3,3,0,None,,0,0,icon_heal_small,anim_heal_small,sound_heal_magic,Common,Magic
+skill_poison_fang,ポイズンファング,毒牙で敵を攻撃し毒状態にする,Attack,SingleEnemy,1,4,0,None,poison,40,3,icon_poison_fang,anim_poison_fang,sound_poison,Uncommon,Physical
+skill_stun_blow,スタンブロー,強力な一撃で敵を気絶させる,Attack,SingleEnemy,1.5,6,0,None,stun,30,1,icon_stun_blow,anim_stun_blow,sound_heavy_hit,Rare,Physical
+skill_regeneration,リジェネレーション,継続的にHPを回復する魔法,Support,Self,0,5,0,None,regen,100,4,icon_regeneration,anim_regeneration,sound_heal_magic,Uncommon,Magic
+skill_armor_break,アーマーブレイク,敵の防御力を大幅に低下させる,Debuff,SingleEnemy,0,4,0,None,defense_down,70,3,icon_armor_break,anim_armor_break,sound_metal_break,Uncommon,Physical
