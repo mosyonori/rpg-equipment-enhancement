@@ -28,6 +28,8 @@ public enum BattleResult
     TimeUp
 }
 
+// StatusEffectTypeはStatusEffectMasterData.csで定義済みで定義済み
+
 [System.Serializable]
 public class BattleSkill
 {
@@ -58,7 +60,7 @@ public class StatusEffect
     public int remainingTurns;
     public StatusEffectType effectType;
 
-    // 効果値
+    // 基本効果値
     public int attackModifier = 0;
     public int defenseModifier = 0;
     public float attackMultiplier = 1.0f;
@@ -74,6 +76,10 @@ public class StatusEffect
     public bool preventAction = false;
     public float turnStartDamagePercent = 0f;
     public float turnStartHealPercent = 0f;
+
+    // 継続ダメージ/回復の固定値版（追加）
+    public int damagePerTurn = 0;
+    public int healPerTurn = 0;
 
     public bool IsExpired => remainingTurns <= 0;
 
@@ -112,7 +118,7 @@ public abstract class BattleCharacter : MonoBehaviour
     [Header("状態異常")]
     public List<StatusEffect> activeEffects = new List<StatusEffect>();
 
-    [Header("戦闘制御")]
+    [Header("行動制御")]
     public bool hasActedThisTurn = false;
 
     // 計算プロパティ
@@ -120,8 +126,21 @@ public abstract class BattleCharacter : MonoBehaviour
     public int EffectiveAttackPower => CalculateEffectiveAttack();
     public int EffectiveDefensePower => CalculateEffectiveDefense();
 
+    protected virtual void Awake()
+    {
+        // 初期化時の安全処理
+        if (activeEffects == null)
+            activeEffects = new List<StatusEffect>();
+
+        if (currentHP <= 0 && maxHP > 0)
+            currentHP = maxHP;
+
+        if (string.IsNullOrEmpty(characterName))
+            characterName = gameObject.name;
+    }
+
     // AI行動ロジック（共通）
-    public BattleSkill GetNextAction()
+    public virtual BattleSkill GetNextAction()
     {
         // スキル1が使用可能な場合
         if (skill1 != null && skill1.CanUse)
@@ -131,14 +150,17 @@ public abstract class BattleCharacter : MonoBehaviour
         if (skill2 != null && skill2.CanUse)
             return skill2;
 
-        // 通常攻撃（null を返して通常攻撃を示す）
+        // 通常攻撃（nullを返して通常攻撃を示す）
         return null;
     }
 
     // ターゲット選択ロジック（共通）
-    public BattleCharacter SelectTarget(List<BattleCharacter> enemies)
+    public virtual BattleCharacter SelectTarget(List<BattleCharacter> enemies)
     {
-        var aliveEnemies = enemies.Where(e => e.isAlive).ToList();
+        if (enemies == null || enemies.Count == 0)
+            return null;
+
+        var aliveEnemies = enemies.Where(e => e != null && e.isAlive).ToList();
         if (!aliveEnemies.Any()) return null;
 
         // 1. 有利な属性の相手を優先
@@ -153,8 +175,10 @@ public abstract class BattleCharacter : MonoBehaviour
     }
 
     // ダメージを受ける
-    public void TakeDamage(int damage)
+    public virtual void TakeDamage(int damage)
     {
+        if (!isAlive) return;
+
         currentHP = Mathf.Max(0, currentHP - damage);
 
         if (currentHP <= 0)
@@ -165,15 +189,21 @@ public abstract class BattleCharacter : MonoBehaviour
     }
 
     // 回復
-    public void Heal(int amount)
+    public virtual void Heal(int amount)
     {
+        if (!isAlive) return;
         currentHP = Mathf.Min(maxHP, currentHP + amount);
     }
 
     // 状態異常適用
-    public void ApplyStatusEffect(StatusEffect effect)
+    public virtual void ApplyStatusEffect(StatusEffect effect)
     {
-        // 既存の同じ効果を削除（重複不可の場合）
+        if (effect == null) return;
+
+        if (activeEffects == null)
+            activeEffects = new List<StatusEffect>();
+
+        // 既存の同じ効果を除去（重複不可の場合）
         activeEffects.RemoveAll(e => e.effectId == effect.effectId);
         activeEffects.Add(effect);
     }
@@ -181,10 +211,14 @@ public abstract class BattleCharacter : MonoBehaviour
     // ターン開始処理
     public virtual void OnTurnStart()
     {
+        if (activeEffects == null) return;
+
         // 状態異常の効果適用
         foreach (var effect in activeEffects.ToList())
         {
-            // ダメージ効果
+            if (!isAlive) break;
+
+            // ダメージ効果（パーセント版）
             if (effect.turnStartDamagePercent > 0)
             {
                 int damage = Mathf.RoundToInt(maxHP * effect.turnStartDamagePercent / 100f);
@@ -192,12 +226,26 @@ public abstract class BattleCharacter : MonoBehaviour
                 Debug.Log($"{characterName}は{effect.effectName}により{damage}のダメージを受けた！");
             }
 
-            // 回復効果
+            // ダメージ効果（固定値版）
+            if (effect.damagePerTurn > 0)
+            {
+                TakeDamage(effect.damagePerTurn);
+                Debug.Log($"{characterName}は{effect.effectName}により{effect.damagePerTurn}のダメージを受けた！");
+            }
+
+            // 回復効果（パーセント版）
             if (effect.turnStartHealPercent > 0)
             {
                 int healAmount = Mathf.RoundToInt(maxHP * effect.turnStartHealPercent / 100f);
                 Heal(healAmount);
                 Debug.Log($"{characterName}は{effect.effectName}により{healAmount}回復した！");
+            }
+
+            // 回復効果（固定値版）
+            if (effect.healPerTurn > 0)
+            {
+                Heal(effect.healPerTurn);
+                Debug.Log($"{characterName}は{effect.effectName}により{effect.healPerTurn}回復した！");
             }
         }
     }
@@ -205,6 +253,8 @@ public abstract class BattleCharacter : MonoBehaviour
     // ターン終了処理
     public virtual void OnTurnEnd()
     {
+        if (activeEffects == null) return;
+
         // 状態異常のターン数減少
         foreach (var effect in activeEffects.ToList())
         {
@@ -270,6 +320,8 @@ public abstract class BattleCharacter : MonoBehaviour
     // 2次優先度でターゲット選択
     private BattleCharacter SelectBySecondaryPriority(List<BattleCharacter> targets)
     {
+        if (targets == null || targets.Count == 0) return null;
+
         // 2. HPが最も低い相手
         int minHP = targets.Min(t => t.currentHP);
         var lowHPTargets = targets.Where(t => t.currentHP == minHP).ToList();
@@ -286,7 +338,7 @@ public abstract class BattleCharacter : MonoBehaviour
             if (skillReadyTargets.Count == 1)
                 return skillReadyTargets[0];
 
-            // 4. 位置が若い順
+            // 4. 位置が近い順
             return skillReadyTargets.OrderBy(t => t.position).First();
         }
 
@@ -297,6 +349,8 @@ public abstract class BattleCharacter : MonoBehaviour
     // 効果適用後のステータス計算
     private int CalculateEffectiveAttack()
     {
+        if (activeEffects == null) return attackPower;
+
         int baseValue = attackPower;
         float multiplier = 1.0f;
 
@@ -311,6 +365,8 @@ public abstract class BattleCharacter : MonoBehaviour
 
     private int CalculateEffectiveDefense()
     {
+        if (activeEffects == null) return defensePower;
+
         int baseValue = defensePower;
         float multiplier = 1.0f;
 

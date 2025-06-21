@@ -301,10 +301,10 @@ RectTransform:
   - {fileID: 1417137962}
   m_Father: {fileID: 777139485}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 184, y: 300}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &53788833
 GameObject:
@@ -1074,10 +1074,10 @@ RectTransform:
   - {fileID: 396469849}
   m_Father: {fileID: 1471005629}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 200}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &286077951
 MonoBehaviour:
@@ -1229,8 +1229,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1029537228}
   m_HandleRect: {fileID: 1029537227}
   m_Direction: 2
-  m_Value: 0.5
-  m_Size: 0.61
+  m_Value: 0
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1373,7 +1373,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 402410303}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1382,11 +1382,11 @@ RectTransform:
   - {fileID: 707416101}
   m_Father: {fileID: 1119660805}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 90}
-  m_SizeDelta: {x: 1080, y: -420}
-  m_Pivot: {x: 0, y: 0.5}
+  m_SizeDelta: {x: 0, y: 1500}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &402410305
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2422,7 +2422,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 0.2784314}
+  m_Color: {r: 1, g: 0, b: 0, a: 0.1764706}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2465,7 +2465,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 400
+  m_Spacing: 50
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
@@ -2787,6 +2787,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 796969448}
+  - component: {fileID: 796969449}
   m_Layer: 0
   m_Name: BattleManager
   m_TagString: Untagged
@@ -2809,6 +2810,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &796969449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 796969447}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c887cd1c6652874cbaed1dc7d914dad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  questId: 1
+  turnLimit: 30
+  currentTurn: 0
+  players: []
+  enemies: []
+  currentActor: {fileID: 0}
+  currentState: 0
+  battleResult: 0
+  playerSpawnPoint: {fileID: 1783603106}
+  enemySpawnPoints:
+  - {fileID: 411287257}
+  - {fileID: 1808613426}
+  - {fileID: 1398579069}
+  battleUI: {fileID: 402410303}
+  victoryUI: {fileID: 1776452382}
+  defeatUI: {fileID: 2138628599}
+  questNameText: {fileID: 1453724887}
+  turnInfoText: {fileID: 787864161}
+  playerUIParent: {fileID: 24034300}
+  enemyUIParent: {fileID: 707416101}
+  characterUIPrefab: {fileID: 8393804161327131468, guid: 6e832aebb91042e44adf4e74af7f7aea, type: 3}
+  battleLogText: {fileID: 1417137963}
+  battleLogScrollRect: {fileID: 286077951}
+  homeButton: {fileID: 1748016141}
+  autoButton: {fileID: 229277380}
+  settingsButton: {fileID: 2112130670}
+  victoryRewardText: {fileID: 599583639}
+  retryButton: {fileID: 1316076088}
+  victoryHomeButton: {fileID: 69379857}
+  defeatHomeButton: {fileID: 1037556164}
+  enableDebugLog: 1
+  actionDelay: 0.5
 --- !u!1 &842476082
 GameObject:
   m_ObjectHideFlags: 0
@@ -3816,8 +3861,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1471401546}
-  - {fileID: 585354394}
   - {fileID: 402410304}
+  - {fileID: 585354394}
   - {fileID: 1471005629}
   - {fileID: 1373729594}
   - {fileID: 1776452383}
@@ -4508,8 +4553,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1292072752}
   m_HandleRect: {fileID: 1292072751}
   m_Direction: 0
-  m_Value: 0.5
-  m_Size: 0.9945652
+  m_Value: 0
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -5036,10 +5081,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 43739279}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1417137963
 MonoBehaviour:
@@ -5370,7 +5415,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1471401546
 RectTransform:
   m_ObjectHideFlags: 0
