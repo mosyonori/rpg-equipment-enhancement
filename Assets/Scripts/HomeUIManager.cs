@@ -19,7 +19,7 @@ public class HomeUIManager : MonoBehaviour
     public GameObject questSelectionPanel;
     public GameObject questListPanel;
     public GameObject questDeparturePanel;
-    public Button questSelectionBackButton;  // 追加：クエスト選択画面の戻るボタン
+    public Button questSelectionBackButton;
 
     [Header("Quest List UI")]
     public Transform questListContent;
@@ -48,18 +48,15 @@ public class HomeUIManager : MonoBehaviour
 
     private void SetupUI()
     {
-        // メインボタンの設定
         questButton?.onClick.AddListener(OnQuestButtonClicked);
         equipmentButton?.onClick.AddListener(OnEquipmentButtonClicked);
         enhancementButton?.onClick.AddListener(OnEnhancementButtonClicked);
         inventoryButton?.onClick.AddListener(OnInventoryButtonClicked);
 
-        // クエスト関連ボタンの設定
         departureButton?.onClick.AddListener(OnDepartureButtonClicked);
         backButton?.onClick.AddListener(OnBackButtonClicked);
         questSelectionBackButton?.onClick.AddListener(OnQuestSelectionBackButtonClicked);
 
-        // 初期状態でクエスト関連パネルを非表示
         questSelectionPanel?.SetActive(false);
         questListPanel?.SetActive(false);
         questDeparturePanel?.SetActive(false);
@@ -67,7 +64,6 @@ public class HomeUIManager : MonoBehaviour
 
     private void InitializeHome()
     {
-        // ユーザーキャラクター表示の初期化
         if (userCharacterDisplay != null)
         {
             userCharacterDisplay.SetActive(true);
@@ -85,23 +81,17 @@ public class HomeUIManager : MonoBehaviour
     private void OnEquipmentButtonClicked()
     {
         Debug.Log("装備編集ボタンがクリックされました");
-        // 装備シーンへの遷移（後で実装）
-        // GameSceneManager.Instance?.LoadEquipmentScene();
     }
 
     private void OnEnhancementButtonClicked()
     {
         Debug.Log("強化ボタンがクリックされました");
         GameSceneManager.Instance.LoadEquipmentScene();
-        // 強化シーンへの遷移（後で実装）
-        // GameSceneManager.Instance?.LoadEnhancementScene();
     }
 
     private void OnInventoryButtonClicked()
     {
         Debug.Log("インベントリボタンがクリックされました");
-        // インベントリシーンへの遷移（後で実装）
-        // GameSceneManager.Instance?.LoadInventoryScene();
     }
 
     #endregion
@@ -110,15 +100,10 @@ public class HomeUIManager : MonoBehaviour
 
     private void ShowQuestSelection()
     {
-        // クエスト選択パネルを表示
         questSelectionPanel?.SetActive(true);
         questListPanel?.SetActive(true);
         questDeparturePanel?.SetActive(false);
-
-        // ユーザーキャラクター表示を非表示
         userCharacterDisplay?.SetActive(false);
-
-        // クエストリストを更新
         UpdateQuestList();
     }
 
@@ -130,13 +115,11 @@ public class HomeUIManager : MonoBehaviour
             return;
         }
 
-        // 既存のリストアイテムをクリア
         foreach (Transform child in questListContent)
         {
             Destroy(child.gameObject);
         }
 
-        // DataManagerから直接クエストデータを取得
         var questDataList = DataManager.Instance?.GetAllQuestData();
         if (questDataList == null || questDataList.Count == 0)
         {
@@ -144,7 +127,6 @@ public class HomeUIManager : MonoBehaviour
             return;
         }
 
-        // 各クエストのリストアイテムを生成
         foreach (var questData in questDataList)
         {
             CreateQuestListItem(questData);
@@ -172,11 +154,8 @@ public class HomeUIManager : MonoBehaviour
 
     private void ShowQuestDeparture(QuestData questData)
     {
-        // クエストリストを非表示にして、出撃画面を表示
         questListPanel?.SetActive(false);
         questDeparturePanel?.SetActive(true);
-
-        // クエスト詳細情報を表示
         UpdateQuestDepartureInfo(questData);
     }
 
@@ -184,19 +163,14 @@ public class HomeUIManager : MonoBehaviour
     {
         if (questData == null) return;
 
-        // 基本情報の表示
         SetText(questTypeText, questData.questType.ToString());
         SetText(questNameText, questData.questName);
         SetText(questDescriptionText, questData.questDescription);
 
-        // クリア制限の表示
         string clearLimitStr = questData.clearLimit == -1 ? "無制限" : $"残り{questData.clearLimit}回";
         SetText(clearLimitText, clearLimitStr);
-
-        // ターン制限の表示
         SetText(turnLimitText, $"制限ターン: {questData.turnLimit}");
 
-        // 初回クリア報酬の表示（既存のQuestDataの構造に合わせる）
         if (questData.hasFirstClearReward && questData.firstClearItemId > 0)
         {
             string rewardText = $"初回報酬: {questData.firstClearItemType} x{questData.firstClearItemQuantity}";
@@ -217,17 +191,11 @@ public class HomeUIManager : MonoBehaviour
         }
 
         Debug.Log($"クエストに出撃: {currentSelectedQuest.questName}");
-
-        // クエストシーンへの遷移
-        // GameSceneManager.Instance?.LoadQuestScene(currentSelectedQuest.questId);
-
-        // 仮の処理（実際のクエスト実行ロジックは別途実装）
         StartQuest(currentSelectedQuest);
     }
 
     private void OnQuestSelectionBackButtonClicked()
     {
-        // クエスト選択全体を閉じてホーム画面に戻る
         CloseQuestSelection();
     }
 
@@ -235,13 +203,11 @@ public class HomeUIManager : MonoBehaviour
     {
         if (questDeparturePanel.activeInHierarchy)
         {
-            // 出撃画面からクエストリストに戻る
             questDeparturePanel?.SetActive(false);
             questListPanel?.SetActive(true);
         }
         else
         {
-            // クエスト選択全体を閉じてホーム画面に戻る
             CloseQuestSelection();
         }
     }
@@ -251,10 +217,7 @@ public class HomeUIManager : MonoBehaviour
         questSelectionPanel?.SetActive(false);
         questListPanel?.SetActive(false);
         questDeparturePanel?.SetActive(false);
-
-        // ユーザーキャラクター表示を再表示
         userCharacterDisplay?.SetActive(true);
-
         currentSelectedQuest = null;
     }
 
@@ -264,48 +227,60 @@ public class HomeUIManager : MonoBehaviour
 
     private void StartQuest(QuestData questData)
     {
-        // スタミナチェック
-        int currentStamina = DataManager.Instance?.GetCurrentStamina() ?? 0;
-        if (currentStamina < questData.requiredStamina)
+        Debug.Log("=== クエスト開始処理デバッグ ===");
+
+        // 1. 基本チェック
+        Debug.Log($"クエスト名: {questData.questName}");
+        Debug.Log($"必要スタミナ: {questData.requiredStamina}");
+        Debug.Log($"必要レベル: {questData.requiredLevel}");
+
+        // 2. DataManager確認
+        if (DataManager.Instance == null)
         {
-            Debug.LogWarning("スタミナが不足しています");
-            // スタミナ不足のダイアログ表示
+            Debug.LogError("DataManager.Instance が null です");
             return;
         }
 
-        // 前提クエストチェック
-        if (questData.prerequisiteQuestIds != null && questData.prerequisiteQuestIds.Length > 0)
+        // 3. プレイヤー情報確認
+        int playerLevel = DataManager.Instance.GetPlayerLevel();
+        int currentStamina = DataManager.Instance.GetCurrentStamina();
+        Debug.Log($"プレイヤーレベル: {playerLevel}");
+        Debug.Log($"現在のスタミナ: {currentStamina}");
+
+        // 4. 前提条件詳細チェック
+        if (playerLevel < questData.requiredLevel)
         {
-            foreach (int prerequisiteId in questData.prerequisiteQuestIds)
-            {
-                if (!DataManager.Instance.IsQuestCleared(prerequisiteId))
-                {
-                    Debug.LogWarning($"前提クエスト（ID: {prerequisiteId}）がクリアされていません");
-                    return;
-                }
-            }
+            Debug.LogWarning($"レベル不足: 必要{questData.requiredLevel} / 現在{playerLevel}");
+            return;
         }
 
-        // クエスト開始処理
-        Debug.Log($"クエスト開始: {questData.questName}");
+        if (currentStamina < questData.requiredStamina)
+        {
+            Debug.LogWarning($"スタミナ不足: 必要{questData.requiredStamina} / 現在{currentStamina}");
+            return;
+        }
 
-        // スタミナ消費
-        DataManager.Instance?.ConsumeStamina(questData.requiredStamina);
+        Debug.Log("前提条件チェック完了 - すべてOK");
 
-        // クエスト画面への遷移
+        // UI を閉じる
         CloseQuestSelection();
 
-        // 実際のクエスト実行（バトルシーンなど）は別途実装
-        // QuestManager.Instance?.StartQuest(questData);
+        Debug.Log("戦闘シーンに直接遷移開始");
 
-        // DataManagerのクエスト開始機能を使用
-        bool questStarted = DataManager.Instance.StartQuest(currentSelectedQuest.questId);
-        if (questStarted)
+        // ★★★ 直接シーン遷移を使用 ★★★
+        try
         {
-            Debug.Log($"クエスト {currentSelectedQuest.questName} を開始しました");
-            // ここで実際のクエストシーンに遷移
-            // GameSceneManager.Instance?.LoadQuestScene();
+            Debug.Log("SceneManager.LoadScene(\"BattleScene\") を実行");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("BattleScene");
+            Debug.Log("SceneManager.LoadScene 実行完了");
         }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"シーン遷移エラー: {e.Message}");
+            Debug.LogError($"スタックトレース: {e.StackTrace}");
+        }
+
+        Debug.Log("=== クエスト開始処理デバッグ終了 ===");
     }
 
     #endregion

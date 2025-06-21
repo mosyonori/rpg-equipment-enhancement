@@ -12,6 +12,7 @@ public class GameSceneManager : MonoBehaviour
     public string homeSceneName = "HomeScene";
     public string equipmentSceneName = "EquipmentScene";
     public string questSceneName = "QuestScene";
+    public string battleSceneName = "BattleScene";  // ★追加：戦闘シーン
 
     [Header("ロード設定")]
     public bool useLoadingScreen = true;
@@ -91,6 +92,30 @@ public class GameSceneManager : MonoBehaviour
     {
         Debug.Log("クエスト画面に遷移します");
         LoadScene(questSceneName);
+    }
+
+    /// <summary>
+    /// ★新規追加：戦闘画面に遷移
+    /// </summary>
+    public void LoadBattleScene()
+    {
+        Debug.Log("戦闘画面に遷移します");
+        LoadScene(battleSceneName);
+    }
+
+    /// <summary>
+    /// ★新規追加：戦闘画面に遷移（クエストIDを指定）
+    /// </summary>
+    public void LoadBattleScene(int questId)
+    {
+        Debug.Log($"戦闘画面に遷移します (クエストID: {questId})");
+        // クエストIDをDataManagerに保存しておく
+        if (DataManager.Instance != null)
+        {
+            // 必要に応じてクエストIDを保存する処理を追加
+            Debug.Log($"クエストID {questId} を設定しました");
+        }
+        LoadScene(battleSceneName);
     }
 
     /// <summary>
@@ -230,6 +255,9 @@ public class GameSceneManager : MonoBehaviour
     [ContextMenu("Load Equipment Scene")]
     public void DebugLoadEquipment() => LoadEquipmentScene();
 
+    [ContextMenu("Load Battle Scene")]  // ★追加
+    public void DebugLoadBattle() => LoadBattleScene();
+
     [ContextMenu("Print Current Scene")]
     public void DebugPrintCurrentScene()
     {
@@ -242,6 +270,7 @@ public class GameSceneManager : MonoBehaviour
         Debug.Log($"Title Scene exists: {DoesSceneExist(titleSceneName)}");
         Debug.Log($"Home Scene exists: {DoesSceneExist(homeSceneName)}");
         Debug.Log($"Equipment Scene exists: {DoesSceneExist(equipmentSceneName)}");
+        Debug.Log($"Battle Scene exists: {DoesSceneExist(battleSceneName)}");  // ★追加
     }
 
     #endregion

@@ -1242,7 +1242,8 @@ MonoBehaviour:
   homeSceneName: HomeScene
   equipmentSceneName: EquipmentScene
   questSceneName: QuestScene
-  useLoadingScreen: 1
+  battleSceneName: BattleScene
+  useLoadingScreen: 0
   minimumLoadTime: 1
 --- !u!4 &1039010945
 Transform:

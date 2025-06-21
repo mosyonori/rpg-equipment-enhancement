@@ -26,7 +26,10 @@ public class ItemSelectionUI : MonoBehaviour
     public System.Action OnSelectionCancelled;
 
     private List<GameObject> instantiatedButtons = new List<GameObject>();
-    private int currentEquipmentIndex = -1; // 現在選択中の装備インデックス
+    [System.Obsolete("", true)] // または
+#pragma warning disable CS0414
+    private int currentEquipmentIndex = -1;
+#pragma warning restore CS0414
 
     public enum SelectionType
     {
