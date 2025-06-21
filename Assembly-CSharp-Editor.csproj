@@ -62,8 +62,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\TutorialInfo\Scripts\Editor\ReadmeEditor.cs" />
-    <Compile Include="Assets\Editor\QuestDataImporter.cs" />
-    <Compile Include="Assets\Editor\MasterDataImporter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

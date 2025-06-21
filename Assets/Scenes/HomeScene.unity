@@ -4578,7 +4578,6 @@ GameObject:
   - component: {fileID: 1814397449}
   - component: {fileID: 1814397448}
   - component: {fileID: 1814397447}
-  - component: {fileID: 1814397451}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -4675,37 +4674,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &1814397451
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1814397446}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1d04d6a57810e2448f277c8f9499aca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  questButton: {fileID: 362408816}
-  equipmentButton: {fileID: 1505456229}
-  enhancementButton: {fileID: 1761209855}
-  inventoryButton: {fileID: 602628374}
-  questSelectionPanel: {fileID: 1108652875}
-  questListPanel: {fileID: 1213922017}
-  questDeparturePanel: {fileID: 1180151774}
-  questSelectionBackButton: {fileID: 848543420}
-  questListContent: {fileID: 1811418969}
-  questListItemPrefab: {fileID: 4663374148652050492, guid: a2bbf16772b13004d96eb70b174ffef3, type: 3}
-  questTypeText: {fileID: 1360694381}
-  questNameText: {fileID: 1394092198}
-  questDescriptionText: {fileID: 1726456454}
-  clearLimitText: {fileID: 889129695}
-  turnLimitText: {fileID: 594820740}
-  firstClearRewardText: {fileID: 1806425122}
-  departureButton: {fileID: 695170212}
-  backButton: {fileID: 2023100481}
-  userCharacterDisplay: {fileID: 1503840797}
 --- !u!1 &1922248058
 GameObject:
   m_ObjectHideFlags: 0
