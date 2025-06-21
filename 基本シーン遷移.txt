@@ -1,0 +1,19 @@
+ゲームの基本構造
+
+			タイトル画面
+		　　	　　↓↑
+	装備編集画面	↔ホーム画面(中央)↔	装備強化画面
+			　　↓↑
+			クエスト戦闘画面
+
+タイトル画面から Tittle_Home_Buttonでホームへ移動
+ホーム画面から Home_Setting_Tittle_Buttonでタイトルへ移動
+
+ホーム画面から Home_EquipmentEnhance_Buttonで装備強化画面へ移動
+装備強化画面から EquipmentEnhance_Home_Buttonでホーム画面へ移動
+
+ホーム画面から Home_QuestBattle_Buttonでクエスト戦闘画面へ移動
+クエスト戦闘画面から QuestBattle_Home_Buttonでホーム画面へ移動
+
+ホーム画面から Home_EquipmentEdit_Buttonで装備編集画面へ移動
+装備編集画面から EquipmentEdit_Home_Buttonでホーム画面へ移動
