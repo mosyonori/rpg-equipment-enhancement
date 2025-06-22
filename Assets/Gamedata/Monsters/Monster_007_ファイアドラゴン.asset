@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41e3fcaeb1eb11c41afca11303678930, type: 3}
+  m_Name: "Monster_007_\u30D5\u30A1\u30A4\u30A2\u30C9\u30E9\u30B4\u30F3"
+  m_EditorClassIdentifier: 
+  monsterId: 7
+  monsterType: boss
+  attributeType: earth
+  rarity: epic
+  monsterName: "\u30D5\u30A1\u30A4\u30A2\u30C9\u30E9\u30B4\u30F3"
+  description: "\u706B\u5C5E\u6027\u30C9\u30E9\u30B4\u30F3"
+  hp: 500
+  offense: 100
+  defense: 300
+  speed: 10
+  criticalRate: 25
+  criticalDamageRate: 150
+  fireOffence: 100
+  waterOffence: 0
+  windOffence: 0
+  earthOffence: 0
+  usedSkill1: 0
+  usedSkill2: 
+  usedSkill3: 
+  monsterIcon: {fileID: 0}
+  monsterModel: {fileID: 0}
+  animations: []
+  completionFlag: 1
+  collectionFlag: 1

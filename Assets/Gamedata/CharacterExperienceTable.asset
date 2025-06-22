@@ -1,0 +1,312 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: CharacterExperienceTable
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::CharacterExperienceTable
+  experienceTable:
+  - characterLevel: 1
+    needExperience: 0
+    totalExperience: 0
+  - characterLevel: 2
+    needExperience: 100
+    totalExperience: 100
+  - characterLevel: 3
+    needExperience: 120
+    totalExperience: 220
+  - characterLevel: 4
+    needExperience: 145
+    totalExperience: 365
+  - characterLevel: 5
+    needExperience: 175
+    totalExperience: 540
+  - characterLevel: 6
+    needExperience: 210
+    totalExperience: 750
+  - characterLevel: 7
+    needExperience: 250
+    totalExperience: 1000
+  - characterLevel: 8
+    needExperience: 300
+    totalExperience: 1300
+  - characterLevel: 9
+    needExperience: 360
+    totalExperience: 1660
+  - characterLevel: 10
+    needExperience: 430
+    totalExperience: 2090
+  - characterLevel: 11
+    needExperience: 515
+    totalExperience: 2605
+  - characterLevel: 12
+    needExperience: 615
+    totalExperience: 3220
+  - characterLevel: 13
+    needExperience: 735
+    totalExperience: 3955
+  - characterLevel: 14
+    needExperience: 880
+    totalExperience: 4835
+  - characterLevel: 15
+    needExperience: 1055
+    totalExperience: 5890
+  - characterLevel: 16
+    needExperience: 1265
+    totalExperience: 7155
+  - characterLevel: 17
+    needExperience: 1520
+    totalExperience: 8675
+  - characterLevel: 18
+    needExperience: 1820
+    totalExperience: 10495
+  - characterLevel: 19
+    needExperience: 2185
+    totalExperience: 12680
+  - characterLevel: 20
+    needExperience: 2620
+    totalExperience: 15300
+  - characterLevel: 21
+    needExperience: 3145
+    totalExperience: 18445
+  - characterLevel: 22
+    needExperience: 3775
+    totalExperience: 22220
+  - characterLevel: 23
+    needExperience: 4530
+    totalExperience: 26750
+  - characterLevel: 24
+    needExperience: 5435
+    totalExperience: 32185
+  - characterLevel: 25
+    needExperience: 6520
+    totalExperience: 38705
+  - characterLevel: 26
+    needExperience: 7825
+    totalExperience: 46530
+  - characterLevel: 27
+    needExperience: 9390
+    totalExperience: 55920
+  - characterLevel: 28
+    needExperience: 11270
+    totalExperience: 67190
+  - characterLevel: 29
+    needExperience: 13525
+    totalExperience: 80715
+  - characterLevel: 30
+    needExperience: 16230
+    totalExperience: 96945
+  - characterLevel: 31
+    needExperience: 19475
+    totalExperience: 116420
+  - characterLevel: 32
+    needExperience: 23370
+    totalExperience: 139790
+  - characterLevel: 33
+    needExperience: 28045
+    totalExperience: 167835
+  - characterLevel: 34
+    needExperience: 33655
+    totalExperience: 201490
+  - characterLevel: 35
+    needExperience: 40385
+    totalExperience: 241875
+  - characterLevel: 36
+    needExperience: 48460
+    totalExperience: 290335
+  - characterLevel: 37
+    needExperience: 58150
+    totalExperience: 348485
+  - characterLevel: 38
+    needExperience: 69780
+    totalExperience: 418265
+  - characterLevel: 39
+    needExperience: 83735
+    totalExperience: 502000
+  - characterLevel: 40
+    needExperience: 100480
+    totalExperience: 602480
+  - characterLevel: 41
+    needExperience: 120575
+    totalExperience: 723055
+  - characterLevel: 42
+    needExperience: 144690
+    totalExperience: 867745
+  - characterLevel: 43
+    needExperience: 173630
+    totalExperience: 1041375
+  - characterLevel: 44
+    needExperience: 208355
+    totalExperience: 1249730
+  - characterLevel: 45
+    needExperience: 250025
+    totalExperience: 1499755
+  - characterLevel: 46
+    needExperience: 300030
+    totalExperience: 1799785
+  - characterLevel: 47
+    needExperience: 360035
+    totalExperience: 2159820
+  - characterLevel: 48
+    needExperience: 432040
+    totalExperience: 2591860
+  - characterLevel: 49
+    needExperience: 518450
+    totalExperience: 3110310
+  - characterLevel: 50
+    needExperience: 622140
+    totalExperience: 3732450
+  - characterLevel: 51
+    needExperience: 746570
+    totalExperience: 4479020
+  - characterLevel: 52
+    needExperience: 895880
+    totalExperience: 5374900
+  - characterLevel: 53
+    needExperience: 1075050
+    totalExperience: 6449950
+  - characterLevel: 54
+    needExperience: 1290060
+    totalExperience: 7740010
+  - characterLevel: 55
+    needExperience: 1548070
+    totalExperience: 9288080
+  - characterLevel: 56
+    needExperience: 1857680
+    totalExperience: 11145760
+  - characterLevel: 57
+    needExperience: 2229210
+    totalExperience: 13374970
+  - characterLevel: 58
+    needExperience: 2675050
+    totalExperience: 16050020
+  - characterLevel: 59
+    needExperience: 3210060
+    totalExperience: 19260080
+  - characterLevel: 60
+    needExperience: 3852070
+    totalExperience: 23112150
+  - characterLevel: 61
+    needExperience: 4622480
+    totalExperience: 27734630
+  - characterLevel: 62
+    needExperience: 5546980
+    totalExperience: 33281610
+  - characterLevel: 63
+    needExperience: 6656380
+    totalExperience: 39937990
+  - characterLevel: 64
+    needExperience: 7987650
+    totalExperience: 47925640
+  - characterLevel: 65
+    needExperience: 9585180
+    totalExperience: 57510820
+  - characterLevel: 66
+    needExperience: 11502210
+    totalExperience: 69013030
+  - characterLevel: 67
+    needExperience: 13802650
+    totalExperience: 82815680
+  - characterLevel: 68
+    needExperience: 16563180
+    totalExperience: 99378860
+  - characterLevel: 69
+    needExperience: 19875820
+    totalExperience: 119254680
+  - characterLevel: 70
+    needExperience: 23851000
+    totalExperience: 143105680
+  - characterLevel: 71
+    needExperience: 28621200
+    totalExperience: 171726880
+  - characterLevel: 72
+    needExperience: 34345440
+    totalExperience: 206072320
+  - characterLevel: 73
+    needExperience: 41214530
+    totalExperience: 247286850
+  - characterLevel: 74
+    needExperience: 49457430
+    totalExperience: 296744280
+  - characterLevel: 75
+    needExperience: 59348920
+    totalExperience: 356093200
+  - characterLevel: 76
+    needExperience: 71218710
+    totalExperience: 427311910
+  - characterLevel: 77
+    needExperience: 85462450
+    totalExperience: 512774360
+  - characterLevel: 78
+    needExperience: 102554940
+    totalExperience: 615329300
+  - characterLevel: 79
+    needExperience: 123065930
+    totalExperience: 738395230
+  - characterLevel: 80
+    needExperience: 147679120
+    totalExperience: 886074350
+  - characterLevel: 81
+    needExperience: 177214940
+    totalExperience: 1063289290
+  - characterLevel: 82
+    needExperience: 212657930
+    totalExperience: 1275947220
+  - characterLevel: 83
+    needExperience: 255189520
+    totalExperience: 1531136740
+  - characterLevel: 84
+    needExperience: 306227420
+    totalExperience: 1837364160
+  - characterLevel: 85
+    needExperience: 367472900
+    totalExperience: 0
+  - characterLevel: 86
+    needExperience: 440967480
+    totalExperience: 0
+  - characterLevel: 87
+    needExperience: 529160980
+    totalExperience: 0
+  - characterLevel: 88
+    needExperience: 635000000
+    totalExperience: 0
+  - characterLevel: 89
+    needExperience: 762000000
+    totalExperience: 0
+  - characterLevel: 90
+    needExperience: 914000000
+    totalExperience: 0
+  - characterLevel: 91
+    needExperience: 1100000000
+    totalExperience: 0
+  - characterLevel: 92
+    needExperience: 1320000000
+    totalExperience: 0
+  - characterLevel: 93
+    needExperience: 1584000000
+    totalExperience: 0
+  - characterLevel: 94
+    needExperience: 1900000000
+    totalExperience: 0
+  - characterLevel: 95
+    needExperience: 0
+    totalExperience: 0
+  - characterLevel: 96
+    needExperience: 0
+    totalExperience: 0
+  - characterLevel: 97
+    needExperience: 0
+    totalExperience: 0
+  - characterLevel: 98
+    needExperience: 0
+    totalExperience: 0
+  - characterLevel: 99
+    needExperience: 0
+    totalExperience: 0

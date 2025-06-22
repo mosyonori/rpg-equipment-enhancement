@@ -1,0 +1,11 @@
+{
+  "quest_progress": [
+    {
+      "quest_id": 1,
+      "clear_count": 3,
+      "is_first_cleared": true,
+      "first_clear_time": "2025-06-22T10:00:00Z",
+      "last_clear_time": "2025-06-22T12:00:00Z"
+    }
+  ]
+}

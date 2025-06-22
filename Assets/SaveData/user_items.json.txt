@@ -1,0 +1,14 @@
+{
+  "enhancement_items": [
+    {
+      "item_id": 1,
+      "quantity": 50
+    }
+  ],
+  "support_items": [
+    {
+      "item_id": 1, 
+      "quantity": 20
+    }
+  ]
+}

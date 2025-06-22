@@ -1,0 +1,11 @@
+{
+  "user_id": "string",
+  "user_name": "string", 
+  "player_level": 1,
+  "current_exp": 0,
+  "total_gold": 1000,
+  "stamina": 100,
+  "max_stamina": 100,
+  "last_login_time": "2025-06-22T10:00:00Z",
+  "create_time": "2025-06-22T10:00:00Z"
+}

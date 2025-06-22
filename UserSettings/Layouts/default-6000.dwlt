@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 1920
     height: 989
   m_ShowMode: 4
-  m_Title: Project
+  m_Title: Game
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -219,8 +219,8 @@ MonoBehaviour:
     y: 0
     width: 538
     height: 639
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 202, y: 226}
+  m_MaxSize: {x: 4002, y: 4026}
   m_ActualView: {fileID: 18}
   m_Panes:
   - {fileID: 18}
@@ -352,7 +352,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scripts/QuestBattle
+    - Assets/Gamedata/Equipment
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -362,16 +362,16 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/Scripts/QuestBattle
+  - Assets/Gamedata/Equipment
   m_LastFoldersGridSize: -1
   m_LastProjectPath: C:\Users\aax62\blacksmith
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 56}
-    m_SelectedIDs: b2aa0000
-    m_LastClickedID: 43698
-    m_ExpandedIDs: 0000000004aa000072aa000000ca9a3bffffff7f
+    scrollPos: {x: 0, y: 88}
+    m_SelectedIDs: fcb00000
+    m_LastClickedID: 45308
+    m_ExpandedIDs: 00000000c2ab000028ac000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -400,7 +400,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 3}
     m_SelectedIDs: 72aa0000
     m_LastClickedID: 43634
-    m_ExpandedIDs: 0000000004aa0000
+    m_ExpandedIDs: 00000000c2ab0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -497,9 +497,9 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: 
+      m_SelectedIDs: b2bcffff
       m_LastClickedID: 0
-      m_ExpandedIDs: 6a32ffff103cffff1245ffff1846ffff2247ffff1048ffffce48ffff1457ffff5275ffff7a89ffff26a8ffffe2a8ffffbebcffff64d0ffff1cfbfffff4ffffffa8a70000baa7000006a800000ca800005ac20000eace00006ad6000022d7000004e40000cae40000f4030100fe030100f8120100f0130100
+      m_ExpandedIDs: 0cf6ffffb0faffff
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 

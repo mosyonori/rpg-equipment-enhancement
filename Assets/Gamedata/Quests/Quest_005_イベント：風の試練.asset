@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: "Quest_005_\u30A4\u30D9\u30F3\u30C8\uFF1A\u98A8\u306E\u8A66\u7DF4"
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::QuestData
+  questId: 5
+  questName: "\u30A4\u30D9\u30F3\u30C8\uFF1A\u98A8\u306E\u8A66\u7DF4"
+  description: "\u30A6\u30A3\u30F3\u30C9\u30A6\u30EB\u30D5\u306B\u6311\u6226\uFF01"
+  questType: Event
+  needLevel: 10
+  requiredClearQuest: 0
+  clearLimit: 3
+  requiredStamina: 3
+  recommendedPower: 300
+  monsterCount: 1
+  spawnMonsterId1: 4
+  spawnPriorityMonsterId1: 100
+  spawnMonsterId2: 0
+  spawnPriorityMonsterId2: 0
+  spawnMonsterId3: 0
+  spawnPriorityMonsterId3: 0
+  turnLimit: 50
+  rewardExp: 100
+  rewardGold: 1000
+  itemDropQuantity: 10
+  dropItemType1: enhance
+  itemId1: 1
+  itemDropPriority1: 100
+  dropItemType2: enhance
+  itemId2: 2
+  itemDropPriority2: 30
+  dropItemType3: enhance
+  itemDropId3: 3
+  itemDropPriority3: 5
+  dropItemType4: equipment
+  itemId4: 1
+  itemDropPriority4: 1
+  dropItemType5: support
+  itemId5: 1
+  itemDropPriority5: 30
+  dropItemType6: support
+  itemId6: 2
+  itemDropPriority6: 10
+  firstClearItemId: 1
+  firstClearItemType: enhancement
+  firstClearItemIdAlt: 8
+  firstClearItemQuantity: 10
+  backgroundPath: 1
+  bgmPath: 1

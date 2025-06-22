@@ -9,27 +9,50 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3f6d14d6af3d493449b2cd859d1ed865, type: 3}
+  m_Script: {fileID: 0}
   m_Name: "Quest_001_\u521D\u5FC3\u8005\u306E\u8A66\u7DF4"
-  m_EditorClassIdentifier: 
-  questId: 0
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::QuestData
+  questId: 1
   questName: "\u521D\u5FC3\u8005\u306E\u8A66\u7DF4"
-  questDescription: "\u5192\u967A\u306E\u7B2C\u4E00\u6B69\u3092\u8E0F\u307F\u51FA\u305D\u3046"
-  requiredLevel: 1
-  prerequisiteQuestIds: 
-  questType: 0
+  description: "\u5192\u967A\u306E\u7B2C\u4E00\u6B69\u3092\u8E0F\u307F\u51FA\u305D\u3046"
+  questType: Normal
+  needLevel: 1
+  requiredClearQuest: 0
   clearLimit: -1
-  requiredStamina: 10
-  recommendedPower: 0
-  monsterSpawnCSV: 1:100
-  monsterCount: 3
+  requiredStamina: 1
+  recommendedPower: 100
+  monsterCount: 1
+  spawnMonsterId1: 1
+  spawnPriorityMonsterId1: 100
+  spawnMonsterId2: 0
+  spawnPriorityMonsterId2: 0
+  spawnMonsterId3: 0
+  spawnPriorityMonsterId3: 0
   turnLimit: 30
-  rewardExp: 0
-  rewardGold: 0
-  itemDropCSV: enhancement_1:30,equipment_1:10
-  hasFirstClearReward: 0
-  firstClearItemType: 0
-  firstClearItemId: 0
-  firstClearItemQuantity: 0
-  backgroundId: 0
-  bgmId: 0
+  rewardExp: 10
+  rewardGold: 100
+  itemDropQuantity: 3
+  dropItemType1: enhance
+  itemId1: 1
+  itemDropPriority1: 100
+  dropItemType2: enhance
+  itemId2: 2
+  itemDropPriority2: 30
+  dropItemType3: enhance
+  itemDropId3: 3
+  itemDropPriority3: 5
+  dropItemType4: equipment
+  itemId4: 1
+  itemDropPriority4: 1
+  dropItemType5: support
+  itemId5: 1
+  itemDropPriority5: 30
+  dropItemType6: support
+  itemId6: 2
+  itemDropPriority6: 10
+  firstClearItemId: 1
+  firstClearItemType: enhance
+  firstClearItemIdAlt: 1
+  firstClearItemQuantity: 5
+  backgroundPath: 1
+  bgmPath: 1

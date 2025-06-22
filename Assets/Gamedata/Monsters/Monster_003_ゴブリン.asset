@@ -9,24 +9,30 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1fcf74994ddc8244da897b61d21cfb57, type: 3}
+  m_Script: {fileID: 11500000, guid: 41e3fcaeb1eb11c41afca11303678930, type: 3}
   m_Name: "Monster_003_\u30B4\u30D6\u30EA\u30F3"
   m_EditorClassIdentifier: 
   monsterId: 3
+  monsterType: normal
+  attributeType: normal
+  rarity: common
   monsterName: "\u30B4\u30D6\u30EA\u30F3"
-  monsterDescription: "\u72E1\u733E\u306A\u5C0F\u9B3C"
-  level: 5
-  maxHP: 120
-  attackPower: 25
-  defensePower: 12
-  speed: 12
-  criticalRate: 10
-  fireAttack: 0
-  waterAttack: 0
-  windAttack: 0
-  earthAttack: 0
-  skill1Id: skill_quick_strike
-  skill2Id: skill_guard
-  iconId: icon_goblin
-  rarity: Common
-  monsterType: Humanoid
+  description: "\u7121\u5C5E\u6027\u30B4\u30D6\u30EA\u30F3"
+  hp: 40
+  offense: 20
+  defense: 5
+  speed: 3
+  criticalRate: 25
+  criticalDamageRate: 150
+  fireOffence: 0
+  waterOffence: 0
+  windOffence: 0
+  earthOffence: 0
+  usedSkill1: 0
+  usedSkill2: 
+  usedSkill3: 
+  monsterIcon: {fileID: 0}
+  monsterModel: {fileID: 0}
+  animations: []
+  completionFlag: 1
+  collectionFlag: 1

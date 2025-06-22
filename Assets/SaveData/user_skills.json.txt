@@ -1,0 +1,20 @@
+{
+  "owned_skills": [
+    {
+      "skill_id": "skill_normal_attack",
+      "acquired_time": "2025-06-22T10:00:00Z",
+      "unlock_source": "default"  // default, equipment, character
+    },
+    {
+      "skill_id": "skill_fire_ball", 
+      "acquired_time": "2025-06-22T12:00:00Z",
+      "unlock_source": "equipment",
+      "unlock_equipment_id": 1
+    }
+  ],
+  "equipped_skills": {
+    "skill_slot_1": "skill_normal_attack",  // キャラ固定スキル（変更不可）
+    "skill_slot_2": "skill_fire_ball",      // 自由スロット
+    "skill_slot_3": ""                      // 自由スロット（空き）
+  }
+}

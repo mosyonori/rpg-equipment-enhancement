@@ -1,0 +1,4 @@
+{
+  "unlocked_characters": ["player_001"],
+  "unlocked_skills": ["skill_normal_attack", "skill_fire_ball"]
+}

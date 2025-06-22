@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: "SkillEffect_001_\u653B\u6483\u529B\u4F4E\u4E0B"
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::SkillEffectData
+  statusEffectId: 1
+  statusEffectType: attack_down
+  statusEffectName: "\u653B\u6483\u529B\u4F4E\u4E0B"
+  description: "\u653B\u6483\u529B\u3068\u5404\u5C5E\u6027\u653B\u6483\u304C30%\u4F4E\u4E0B\u3059\u308B"
+  effectType: debuff
+  stackable: 0
+  offenseModifier: 0
+  defenseModifier: 0
+  offenseMultiplier: 0.7
+  defenseMultiplier: 1
+  fireOffenseMultiplier: 0.7
+  waterOffenseMultiplier: 0.7
+  windOffenseMultiplier: 0.7
+  earthOffenseMultiplier: 0.7
+  preventAction: 0
+  turnStartDamagePercent: 0
+  turnStartHealPercent: 0
+  skillEffectIconId: 
+  colorCode: '#4169e1'
+  skillEffectPriority: 100

@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7be07e68ebc7bf849a71f33750b94bc7, type: 3}
+  m_Name: "EnhancementItem_007_\u571F\u306E\u30C8\u30D1\u30FC\u30BA"
+  m_EditorClassIdentifier: 
+  enhanceItemId: 7
+  enhanceItemName: "\u571F\u306E\u30C8\u30D1\u30FC\u30BA"
+  attributeType: earth
+  rarity: epic
+  description: "\u6A59\u8272\u306E\u5B9D\u77F3\u3002\u571F\u5C5E\u6027\u88C5\u5099\u3084\u9632\u5177\u306B\u4F7F\u3046\u3068\u826F\u3044\u3002"
+  maxStackValue: 999
+  addEnhancedValue: 2
+  reduceEnhancedValue: 0
+  addEnhanceStamina: 0
+  reduceEnhanceStamina: 1
+  enhanceSuccessRate: 70
+  hp: 15
+  offense: 2
+  defense: 6
+  speed: 0
+  criticalRate: 0
+  criticalDamageRate: 0
+  fireOffence: 0
+  waterOffence: 0
+  windOffence: 0
+  earthOffence: 10
+  enhanceItemIcon: {fileID: 0}
+  completionFlag: 1
+  collectionFlag: 1
