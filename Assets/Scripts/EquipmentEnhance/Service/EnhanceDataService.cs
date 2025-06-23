@@ -584,6 +584,7 @@ public class EnhanceItemMasterData
                 };
 
             default:
+                Debug.LogWarning($"EnhanceItemMasterData: 未対応の装備タイプです {equipmentType}");
                 return new EnhanceStatusValues();
         }
     }
@@ -643,4 +644,14 @@ public class EnhanceStatusValues
     public int water_offence;
     public int wind_offence;
     public int earth_offence;
+
+    /// <summary>
+    /// デバッグ用文字列表現
+    /// </summary>
+    public override string ToString()
+    {
+        return $"HP:{hp}, 攻撃:{offense}, 防御:{defense}, 速度:{speed}, " +
+               $"クリ率:{critical_rate}, クリダメ:{critical_damage_rate}, " +
+               $"火:{fire_offence}, 水:{water_offence}, 風:{wind_offence}, 土:{earth_offence}";
+    }
 }
