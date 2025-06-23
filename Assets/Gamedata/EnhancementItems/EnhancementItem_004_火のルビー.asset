@@ -16,23 +16,43 @@ MonoBehaviour:
   enhanceItemName: "\u706B\u306E\u30EB\u30D3\u30FC"
   attributeType: fire
   rarity: epic
-  description: "\u8D64\u3044\u5B9D\u77F3\u3002\u706B\u5C5E\u6027\u88C5\u5099\u3084\u6B66\u5668\u5F37\u5316\u306B\u4F7F\u3046\u3068\u826F\u3044\u3002"
+  description: "\u8D64\u3044\u5B9D\u77F3\u3002\u706B\u5C5E\u6027\u653B\u6483\u304C\u5897\u52A0\u3059\u308B\u3002"
   maxStackValue: 999
   addEnhancedValue: 2
   reduceEnhancedValue: 0
   addEnhanceStamina: 0
   reduceEnhanceStamina: 1
-  enhanceSuccessRate: 70
-  hp: 0
-  offense: 4
-  defense: 2
-  speed: 0
-  criticalRate: 0
-  criticalDamageRate: 5
-  fireOffence: 10
-  waterOffence: 0
-  windOffence: 0
-  earthOffence: 0
+  enhanceSuccessRate: 50
+  weaponHp: 0
+  weaponOffense: 5
+  weaponDefense: 0
+  weaponSpeed: 0
+  weaponCriticalRate: 4
+  weaponCriticalDamageRate: 3
+  weaponFireOffence: 5
+  weaponWaterOffence: 0
+  weaponWindOffence: 0
+  weaponEarthOffence: 0
+  armorHp: 15
+  armorOffense: 0
+  armorDefense: 7
+  armorSpeed: 0
+  armorCriticalRate: 0
+  armorCriticalDamageRate: 0
+  armorFireOffence: 5
+  armorWaterOffence: 0
+  armorWindOffence: 0
+  armorEarthOffence: 0
+  accessoryHp: 8
+  accessoryOffense: 3
+  accessoryDefense: 3
+  accessorySpeed: 0
+  accessoryCriticalRate: 0
+  accessoryCriticalDamageRate: 0
+  accessoryFireOffence: 5
+  accessoryWaterOffence: 0
+  accessoryWindOffence: 0
+  accessoryEarthOffence: 0
   enhanceItemIcon: {fileID: 0}
   completionFlag: 1
   collectionFlag: 1

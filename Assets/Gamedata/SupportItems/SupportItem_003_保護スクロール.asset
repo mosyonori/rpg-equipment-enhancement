@@ -16,8 +16,9 @@ MonoBehaviour:
   supportItemName: "\u4FDD\u8B77\u30B9\u30AF\u30ED\u30FC\u30EB"
   attributeType: normal
   rarity: epic
-  maxStackValue: 999
   description: "\u5F37\u5316\u8010\u4E45\u306E\u6E1B\u5C11\u3092\u6291\u3048\u308B\u7279\u6B8A\u306A\u30B9\u30AF\u30ED\u30FC\u30EB\u3002\u8CB4\u91CD\u54C1\u3002"
+  infiniteUse: 0
+  maxStackValue: 999
   addEnhancedValue: 0
   multiplEnhancedValue: 1
   reduceEnhancedValue: 0
@@ -36,6 +37,6 @@ MonoBehaviour:
   waterOffence: 0
   windOffence: 0
   earthOffence: 0
-  itemIcon: {fileID: 0}
+  supportItemIcon: {fileID: 0}
   completionFlag: 1
   collectionFlag: 1

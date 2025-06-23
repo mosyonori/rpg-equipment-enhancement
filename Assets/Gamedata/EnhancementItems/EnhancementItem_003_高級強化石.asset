@@ -23,16 +23,36 @@ MonoBehaviour:
   addEnhanceStamina: 0
   reduceEnhanceStamina: 1
   enhanceSuccessRate: 60
-  hp: 15
-  offense: 5
-  defense: 5
-  speed: 1
-  criticalRate: 3
-  criticalDamageRate: 2
-  fireOffence: 0
-  waterOffence: 0
-  windOffence: 0
-  earthOffence: 0
+  weaponHp: 0
+  weaponOffense: 5
+  weaponDefense: 0
+  weaponSpeed: 0
+  weaponCriticalRate: 2
+  weaponCriticalDamageRate: 4
+  weaponFireOffence: 0
+  weaponWaterOffence: 0
+  weaponWindOffence: 0
+  weaponEarthOffence: 0
+  armorHp: 10
+  armorOffense: 0
+  armorDefense: 5
+  armorSpeed: 0
+  armorCriticalRate: 0
+  armorCriticalDamageRate: 0
+  armorFireOffence: 0
+  armorWaterOffence: 0
+  armorWindOffence: 0
+  armorEarthOffence: 0
+  accessoryHp: 5
+  accessoryOffense: 3
+  accessoryDefense: 3
+  accessorySpeed: 1
+  accessoryCriticalRate: 0
+  accessoryCriticalDamageRate: 0
+  accessoryFireOffence: 0
+  accessoryWaterOffence: 0
+  accessoryWindOffence: 0
+  accessoryEarthOffence: 0
   enhanceItemIcon: {fileID: 0}
   completionFlag: 1
   collectionFlag: 1

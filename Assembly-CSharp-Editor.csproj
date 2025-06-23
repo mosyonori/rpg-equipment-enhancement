@@ -65,6 +65,7 @@
     <Compile Include="Assets\TutorialInfo\Scripts\Editor\ReadmeEditor.cs" />
     <Compile Include="Assets\Editor\MonsterDataImporter.cs" />
     <Compile Include="Assets\Editor\EnhancementItemDataImporter.cs" />
+    <Compile Include="Assets\Editor\SupportItemImporter.cs" />
     <Compile Include="Assets\Editor\EquipmentDataImporter.cs" />
   </ItemGroup>
   <ItemGroup>

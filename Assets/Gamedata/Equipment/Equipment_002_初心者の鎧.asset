@@ -29,7 +29,7 @@ MonoBehaviour:
   defense: 1
   speed: 0
   criticalRate: 0
-  criticalDamageRate: 150
+  criticalDamageRate: 0
   fireOffence: 0
   waterOffence: 0
   windOffence: 0

@@ -14,10 +14,11 @@ public class SupportItemData : ScriptableObject
     public string supportItemName;
     public string attributeType;
     public string rarity;
-    public int maxStackValue;
     public string description;
 
-    [Header("強化値効果")]
+    [Header("スタック・効果設定")]
+    public bool infiniteUse;            // 🔴 NEW: 無限使用可能
+    public int maxStackValue;
     public int addEnhancedValue;
     public int multiplEnhancedValue;
     public int reduceEnhancedValue;
@@ -27,7 +28,7 @@ public class SupportItemData : ScriptableObject
     public int reduceEnhanceSuccessRate;
     public int multiplStatusUp;
 
-    [Header("ステータス")]
+    [Header("ステータスボーナス")]
     public int hp;
     public int offense;
     public int defense;
@@ -35,18 +36,19 @@ public class SupportItemData : ScriptableObject
     public int criticalRate;
     public int criticalDamageRate;
 
-    [Header("属性攻撃")]
+    [Header("属性攻撃ボーナス")]
     public int fireOffence;
     public int waterOffence;
     public int windOffence;
     public int earthOffence;
 
     [Header("Unityアセット（手動割り当て）")]
-    public Sprite itemIcon;
+    public Sprite supportItemIcon;      // 🔴 NEW: Inspector上で手動割り当て
 
     [Header("フラグ")]
     public bool completionFlag;
     public bool collectionFlag;
+    internal object itemIcon;
 }
 
 /// <summary>

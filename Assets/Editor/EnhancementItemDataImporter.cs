@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 
 /// <summary>
-/// 強化アイテムデータ（ScriptableObject版）
+/// 強化アイテムデータ（ScriptableObject版）- 装備種類別対応
 /// </summary>
 [CreateAssetMenu(fileName = "EnhancementItemData", menuName = "GameData/EnhancementItemData")]
 public class EnhancementItemData : ScriptableObject
@@ -24,19 +24,41 @@ public class EnhancementItemData : ScriptableObject
     public int reduceEnhanceStamina;
     public int enhanceSuccessRate;
 
-    [Header("ステータスボーナス")]
-    public int hp;
-    public int offense;
-    public int defense;
-    public int speed;
-    public int criticalRate;
-    public int criticalDamageRate;
+    [Header("武器用ステータスボーナス")]
+    public int weaponHp;
+    public int weaponOffense;
+    public int weaponDefense;
+    public int weaponSpeed;
+    public int weaponCriticalRate;
+    public int weaponCriticalDamageRate;
+    public int weaponFireOffence;
+    public int weaponWaterOffence;
+    public int weaponWindOffence;
+    public int weaponEarthOffence;
 
-    [Header("属性攻撃ボーナス")]
-    public int fireOffence;
-    public int waterOffence;
-    public int windOffence;
-    public int earthOffence;
+    [Header("防具用ステータスボーナス")]
+    public int armorHp;
+    public int armorOffense;
+    public int armorDefense;
+    public int armorSpeed;
+    public int armorCriticalRate;
+    public int armorCriticalDamageRate;
+    public int armorFireOffence;
+    public int armorWaterOffence;
+    public int armorWindOffence;
+    public int armorEarthOffence;
+
+    [Header("アクセサリー用ステータスボーナス")]
+    public int accessoryHp;
+    public int accessoryOffense;
+    public int accessoryDefense;
+    public int accessorySpeed;
+    public int accessoryCriticalRate;
+    public int accessoryCriticalDamageRate;
+    public int accessoryFireOffence;
+    public int accessoryWaterOffence;
+    public int accessoryWindOffence;
+    public int accessoryEarthOffence;
 
     [Header("Unityアセット（手動割り当て）")]
     public Sprite enhanceItemIcon;      // Inspector上で手動割り当て
@@ -82,10 +104,10 @@ public class EnhancementItemCSVImporter
         {
             string[] values = ParseCSVLine(lines[i]);
 
-            // 必要な列数をチェック（24列想定）
-            if (values.Length < 24)
+            // 必要な列数をチェック（44列想定 - 装備種類別対応）
+            if (values.Length < 44)
             {
-                Debug.LogWarning($"行 {i + 1}: 列数が不足しています（{values.Length}/24列）");
+                Debug.LogWarning($"行 {i + 1}: 列数が不足しています（{values.Length}/44列）");
                 continue;
             }
 
@@ -105,20 +127,47 @@ public class EnhancementItemCSVImporter
                 item.addEnhanceStamina = ParseInt(values[7], $"行{i + 1} addEnhanceStamina");
                 item.reduceEnhanceStamina = ParseInt(values[8], $"行{i + 1} reduceEnhanceStamina");
                 item.enhanceSuccessRate = ParseInt(values[9], $"行{i + 1} enhanceSuccessRate");
-                item.hp = ParseInt(values[10], $"行{i + 1} hp");
-                item.offense = ParseInt(values[11], $"行{i + 1} offense");
-                item.defense = ParseInt(values[12], $"行{i + 1} defense");
-                item.speed = ParseInt(values[13], $"行{i + 1} speed");
-                item.criticalRate = ParseInt(values[14], $"行{i + 1} criticalRate");
-                item.criticalDamageRate = ParseInt(values[15], $"行{i + 1} criticalDamageRate");
-                item.fireOffence = ParseInt(values[16], $"行{i + 1} fireOffence");
-                item.waterOffence = ParseInt(values[17], $"行{i + 1} waterOffence");
-                item.windOffence = ParseInt(values[18], $"行{i + 1} windOffence");
-                item.earthOffence = ParseInt(values[19], $"行{i + 1} earthOffence");
-                // values[20] = enhance_item_icon_path (空欄)
-                item.description = values[21];
-                item.completionFlag = values[22] == "1";
-                item.collectionFlag = values[23] == "1";
+
+                // 武器用ステータス
+                item.weaponHp = ParseInt(values[10], $"行{i + 1} weaponHp");
+                item.weaponOffense = ParseInt(values[11], $"行{i + 1} weaponOffense");
+                item.weaponDefense = ParseInt(values[12], $"行{i + 1} weaponDefense");
+                item.weaponSpeed = ParseInt(values[13], $"行{i + 1} weaponSpeed");
+                item.weaponCriticalRate = ParseInt(values[14], $"行{i + 1} weaponCriticalRate");
+                item.weaponCriticalDamageRate = ParseInt(values[15], $"行{i + 1} weaponCriticalDamageRate");
+                item.weaponFireOffence = ParseInt(values[16], $"行{i + 1} weaponFireOffence");
+                item.weaponWaterOffence = ParseInt(values[17], $"行{i + 1} weaponWaterOffence");
+                item.weaponWindOffence = ParseInt(values[18], $"行{i + 1} weaponWindOffence");
+                item.weaponEarthOffence = ParseInt(values[19], $"行{i + 1} weaponEarthOffence");
+
+                // 防具用ステータス
+                item.armorHp = ParseInt(values[20], $"行{i + 1} armorHp");
+                item.armorOffense = ParseInt(values[21], $"行{i + 1} armorOffense");
+                item.armorDefense = ParseInt(values[22], $"行{i + 1} armorDefense");
+                item.armorSpeed = ParseInt(values[23], $"行{i + 1} armorSpeed");
+                item.armorCriticalRate = ParseInt(values[24], $"行{i + 1} armorCriticalRate");
+                item.armorCriticalDamageRate = ParseInt(values[25], $"行{i + 1} armorCriticalDamageRate");
+                item.armorFireOffence = ParseInt(values[26], $"行{i + 1} armorFireOffence");
+                item.armorWaterOffence = ParseInt(values[27], $"行{i + 1} armorWaterOffence");
+                item.armorWindOffence = ParseInt(values[28], $"行{i + 1} armorWindOffence");
+                item.armorEarthOffence = ParseInt(values[29], $"行{i + 1} armorEarthOffence");
+
+                // アクセサリー用ステータス
+                item.accessoryHp = ParseInt(values[30], $"行{i + 1} accessoryHp");
+                item.accessoryOffense = ParseInt(values[31], $"行{i + 1} accessoryOffense");
+                item.accessoryDefense = ParseInt(values[32], $"行{i + 1} accessoryDefense");
+                item.accessorySpeed = ParseInt(values[33], $"行{i + 1} accessorySpeed");
+                item.accessoryCriticalRate = ParseInt(values[34], $"行{i + 1} accessoryCriticalRate");
+                item.accessoryCriticalDamageRate = ParseInt(values[35], $"行{i + 1} accessoryCriticalDamageRate");
+                item.accessoryFireOffence = ParseInt(values[36], $"行{i + 1} accessoryFireOffence");
+                item.accessoryWaterOffence = ParseInt(values[37], $"行{i + 1} accessoryWaterOffence");
+                item.accessoryWindOffence = ParseInt(values[38], $"行{i + 1} accessoryWindOffence");
+                item.accessoryEarthOffence = ParseInt(values[39], $"行{i + 1} accessoryEarthOffence");
+
+                // values[40] = enhance_item_icon_path (空欄)
+                item.description = values[41];
+                item.completionFlag = values[42] == "1";
+                item.collectionFlag = values[43] == "1";
 
                 // アセットとして保存
                 string folderPath = "Assets/GameData/EnhancementItems";
