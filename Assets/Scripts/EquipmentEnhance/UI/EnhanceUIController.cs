@@ -3,8 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 装備強化画面のメイン制御クラス
-/// 各UI Controllerの統括、Service層との連携、選択状態管理を担当
+/// 装備強化画面のメイン制御クラス - 全Controller対応版
+/// 各UI Controllerの統合、Service層との連携、選択状態管理を全般
 /// </summary>
 public class EnhanceUIController : MonoBehaviour
 {
@@ -24,6 +24,7 @@ public class EnhanceUIController : MonoBehaviour
     [Header("Colors")]
     [SerializeField] private Color enabledButtonColor = Color.white;
     [SerializeField] private Color disabledButtonColor = Color.gray;
+    [SerializeField] private Color normalTextColor = Color.white;
 
     // Service層（完成済み）
     private EquipmentEnhanceService enhanceService = new EquipmentEnhanceService();
@@ -67,6 +68,12 @@ public class EnhanceUIController : MonoBehaviour
         // 強化アイテム選択を無効化（装備選択まで）
         enhanceItemSelectUI.SetInteractable(false);
 
+        // ステータス表示も初期化
+        if (statusDisplayUI != null)
+        {
+            statusDisplayUI.ResetDisplay();
+        }
+
         Debug.Log("[EnhanceUIController] UI初期化完了");
     }
 
@@ -76,13 +83,18 @@ public class EnhanceUIController : MonoBehaviour
     private void SetupEventListeners()
     {
         // 各UI Controllerのイベント購読
-        equipmentSelectUI.OnEquipmentSelected += OnEquipmentSelected;
-        enhanceItemSelectUI.OnEnhanceItemSelected += OnEnhanceItemSelected;
-        supportItemSelectUI.OnSupportItemSelected += OnSupportItemSelected;
+        if (equipmentSelectUI != null)
+            equipmentSelectUI.OnEquipmentSelected += OnEquipmentSelected;
+        if (enhanceItemSelectUI != null)
+            enhanceItemSelectUI.OnEnhanceItemSelected += OnEnhanceItemSelected;
+        if (supportItemSelectUI != null)
+            supportItemSelectUI.OnSupportItemSelected += OnSupportItemSelected;
 
         // ボタンイベント設定
-        enhanceExecuteButton.onClick.AddListener(OnEnhanceExecuteButtonClicked);
-        homeButton.onClick.AddListener(OnHomeButtonClicked);
+        if (enhanceExecuteButton != null)
+            enhanceExecuteButton.onClick.AddListener(OnEnhanceExecuteButtonClicked);
+        if (homeButton != null)
+            homeButton.onClick.AddListener(OnHomeButtonClicked);
     }
 
     /// <summary>
@@ -97,8 +109,10 @@ public class EnhanceUIController : MonoBehaviour
         if (supportItemSelectUI != null)
             supportItemSelectUI.OnSupportItemSelected -= OnSupportItemSelected;
 
-        enhanceExecuteButton.onClick.RemoveAllListeners();
-        homeButton.onClick.RemoveAllListeners();
+        if (enhanceExecuteButton != null)
+            enhanceExecuteButton.onClick.RemoveAllListeners();
+        if (homeButton != null)
+            homeButton.onClick.RemoveAllListeners();
     }
 
     #endregion
@@ -114,7 +128,7 @@ public class EnhanceUIController : MonoBehaviour
 
         // 装備選択後は強化アイテム選択を有効化
         enhanceItemSelectUI.SetInteractable(true);
-        enhanceItemSelectUI.SetCurrentEquipment(equipment);
+        enhanceItemSelectUI.SetSelectedEquipment(equipment);
 
         // 強化アイテムの選択状態をリセット（装備変更時）
         selectedEnhanceItem = null;
@@ -177,6 +191,8 @@ public class EnhanceUIController : MonoBehaviour
     /// </summary>
     private void UpdateSuccessRateDisplay()
     {
+        if (successRateText == null) return;
+
         if (selectedEquipment != null && selectedEnhanceItem != null)
         {
             try
@@ -205,6 +221,8 @@ public class EnhanceUIController : MonoBehaviour
     /// </summary>
     private void UpdateInstructionText()
     {
+        if (instructionText == null) return;
+
         if (selectedEquipment == null || selectedEnhanceItem == null)
         {
             // 選択未完了の場合
@@ -229,6 +247,7 @@ public class EnhanceUIController : MonoBehaviour
                 if (string.IsNullOrEmpty(warning))
                 {
                     instructionText.text = ""; // 警告なし
+                    instructionText.color = normalTextColor;
                 }
                 else
                 {
@@ -240,6 +259,7 @@ public class EnhanceUIController : MonoBehaviour
             {
                 Debug.LogWarning($"[EnhanceUIController] 属性警告チェックエラー: {e.Message}");
                 instructionText.text = "";
+                instructionText.color = normalTextColor;
             }
         }
     }
@@ -249,6 +269,8 @@ public class EnhanceUIController : MonoBehaviour
     /// </summary>
     private void UpdateEnhanceButtonState()
     {
+        if (enhanceExecuteButton == null) return;
+
         bool canEnhance = selectedEquipment != null && selectedEnhanceItem != null && !isProcessing;
 
         enhanceExecuteButton.interactable = canEnhance;
@@ -284,7 +306,23 @@ public class EnhanceUIController : MonoBehaviour
         if (!isProcessing)
         {
             Debug.Log("[EnhanceUIController] ホーム画面に遷移");
-            SceneManager.Instance.LoadHomeScene();
+
+            // カスタムSceneManagerを優先、なければUnity標準を使用
+            try
+            {
+                if (SceneManager.Instance != null)
+                {
+                    SceneManager.Instance.LoadHomeScene();
+                }
+                else
+                {
+                    UnityEngine.SceneManagement.SceneManager.LoadScene("HomeScene");
+                }
+            }
+            catch
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadScene("HomeScene");
+            }
         }
     }
 
@@ -317,6 +355,14 @@ public class EnhanceUIController : MonoBehaviour
                 selectedEnhanceItem.enhance_item_id,
                 supportItemId
             );
+
+            // 結果メッセージの設定
+            if (result != null && string.IsNullOrEmpty(result.ResultMessage))
+            {
+                result.ResultMessage = result.IsSuccess ?
+                    "装備の強化に成功しました！" :
+                    "装備の強化に失敗しました...";
+            }
         }
         catch (System.Exception e)
         {
@@ -327,7 +373,10 @@ public class EnhanceUIController : MonoBehaviour
             result = new EnhanceResultData
             {
                 IsSuccess = false,
-                ResultMessage = "強化処理中にエラーが発生しました"
+                ResultMessage = "強化処理中にエラーが発生しました",
+                EnhancedEquipment = selectedEquipment,
+                ConsumedEnhanceItemId = selectedEnhanceItem.enhance_item_id,
+                ConsumedSupportItemId = selectedSupportItem?.support_item_id ?? -1
             };
         }
 
@@ -363,9 +412,27 @@ public class EnhanceUIController : MonoBehaviour
         }
         else
         {
-            // 結果表示UIがない場合は簡易表示
+            // フォールバック：簡易表示
             Debug.Log($"[EnhanceUIController] 強化結果: {result.ResultMessage}");
-            yield return new WaitForSeconds(2f);
+
+            if (instructionText != null)
+            {
+                string originalText = instructionText.text;
+                Color originalColor = instructionText.color;
+
+                instructionText.text = result.ResultMessage;
+                instructionText.color = result.IsSuccess ? Color.green : Color.red;
+
+                yield return new WaitForSeconds(2f);
+
+                // 元のテキストに戻す
+                instructionText.text = originalText;
+                instructionText.color = originalColor;
+            }
+            else
+            {
+                yield return new WaitForSeconds(2f);
+            }
         }
     }
 
@@ -387,6 +454,12 @@ public class EnhanceUIController : MonoBehaviour
         enhanceItemSelectUI?.ResetSelection();
         supportItemSelectUI?.ResetSelection();
 
+        // ステータス表示もリセット
+        if (statusDisplayUI != null)
+        {
+            statusDisplayUI.ResetDisplay();
+        }
+
         // 強化アイテム選択を再度無効化
         enhanceItemSelectUI?.SetInteractable(false);
 
@@ -398,10 +471,27 @@ public class EnhanceUIController : MonoBehaviour
     /// </summary>
     private void SetUIInteractable(bool interactable)
     {
-        equipmentSelectUI?.SetInteractable(interactable);
-        enhanceItemSelectUI?.SetInteractable(interactable && selectedEquipment != null);
-        supportItemSelectUI?.SetInteractable(interactable);
-        homeButton.interactable = interactable;
+        // 各Controllerの操作可能状態設定
+        if (equipmentSelectUI != null)
+        {
+            equipmentSelectUI.SetInteractable(interactable);
+        }
+
+        if (enhanceItemSelectUI != null)
+        {
+            enhanceItemSelectUI.SetInteractable(interactable && selectedEquipment != null);
+        }
+
+        if (supportItemSelectUI != null)
+        {
+            supportItemSelectUI.SetInteractable(interactable);
+        }
+
+        // ホームボタン
+        if (homeButton != null)
+        {
+            homeButton.interactable = interactable;
+        }
 
         // 強化実行ボタンは別途UpdateUI()で制御
     }
@@ -426,6 +516,22 @@ public class EnhanceUIController : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// 現在の選択状態取得
+    /// </summary>
+    public (UserEquipment equipment, EnhanceItemMasterData enhanceItem, SupportItemMasterData supportItem) GetCurrentSelections()
+    {
+        return (selectedEquipment, selectedEnhanceItem, selectedSupportItem);
+    }
+
+    /// <summary>
+    /// 強化処理中かどうか
+    /// </summary>
+    public bool IsProcessing()
+    {
+        return isProcessing;
+    }
+
     #endregion
 
     #region Debug Methods
@@ -437,6 +543,63 @@ public class EnhanceUIController : MonoBehaviour
         Debug.Log($"  装備: {(selectedEquipment != null ? selectedEquipment.equipment_id.ToString() : "未選択")}");
         Debug.Log($"  強化アイテム: {(selectedEnhanceItem != null ? selectedEnhanceItem.enhance_item_id.ToString() : "未選択")}");
         Debug.Log($"  補助材料: {(selectedSupportItem != null ? selectedSupportItem.support_item_name : "使用しない")}");
+    }
+
+    /// <summary>
+    /// エディタ用：強化成功テスト
+    /// </summary>
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    public void TestSuccessEnhance()
+    {
+        if (resultUI != null)
+        {
+            resultUI.TestSuccessResult();
+        }
+    }
+
+    /// <summary>
+    /// エディタ用：強化失敗テスト
+    /// </summary>
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    public void TestFailureEnhance()
+    {
+        if (resultUI != null)
+        {
+            resultUI.TestFailureResult();
+        }
+    }
+
+    #endregion
+
+    #region Inspector Validation
+
+    private void OnValidate()
+    {
+        // Inspector設定の検証
+        if (enhanceExecuteButton == null)
+        {
+            Debug.LogWarning("[EnhanceUIController] 強化実行ボタンが設定されていません");
+        }
+
+        if (successRateText == null)
+        {
+            Debug.LogWarning("[EnhanceUIController] 成功率テキストが設定されていません");
+        }
+
+        if (instructionText == null)
+        {
+            Debug.LogWarning("[EnhanceUIController] 指示テキストが設定されていません");
+        }
+
+        if (statusDisplayUI == null)
+        {
+            Debug.LogWarning("[EnhanceUIController] ステータス表示UIが設定されていません");
+        }
+
+        if (resultUI == null)
+        {
+            Debug.LogWarning("[EnhanceUIController] 結果表示UIが設定されていません");
+        }
     }
 
     #endregion
