@@ -2,16 +2,17 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
-/// 強化アイテム選択UI制御クラス
+/// 強化アイテム選択UI制御クラス - プロパティ名修正版
 /// 
 /// 【責任】
 /// - 強化アイテム選択UI制御
 /// - 装備種類に応じた強化内容表示
-/// - 装備未選択時はボタン無効化
+/// - 装備未選択時ボタン無効化
 /// 
-/// 【主要機能】
+/// 【重要機能】
 /// - 所持強化アイテム一覧表示
 /// - 強化アイテム選択処理  
 /// - 装備種類別強化内容表示（武器・防具・アクセサリで異なる）
@@ -42,13 +43,27 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
     // イベント
     public event System.Action<EnhanceItemMasterData> OnEnhanceItemSelected;
 
+    #region Unity Lifecycle
+
     private void Start()
     {
         SetupButtons();
         ResetSelection();
-        SetInteractable(false); // 初期状態は無効
+        SetInteractable(false); // 装備選択まで無効
     }
 
+    private void OnDestroy()
+    {
+        RemoveEventListeners();
+    }
+
+    #endregion
+
+    #region Initialization
+
+    /// <summary>
+    /// ボタンイベント設定
+    /// </summary>
     private void SetupButtons()
     {
         if (enhanceItemSelectButton != null)
@@ -56,6 +71,21 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
             enhanceItemSelectButton.onClick.AddListener(OnEnhanceItemSelectButtonClicked);
         }
     }
+
+    /// <summary>
+    /// イベントリスナー削除
+    /// </summary>
+    private void RemoveEventListeners()
+    {
+        if (enhanceItemSelectButton != null)
+        {
+            enhanceItemSelectButton.onClick.RemoveAllListeners();
+        }
+    }
+
+    #endregion
+
+    #region Public Methods
 
     /// <summary>
     /// 装備選択状態の更新
@@ -91,49 +121,165 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 強化アイテム選択ボタンクリック処理
+    /// </summary>
     public void OnEnhanceItemSelectButtonClicked()
     {
         if (currentSelectedEquipment == null)
         {
-            Debug.LogWarning("装備が選択されていません");
+            Debug.LogWarning("[Enhance_EnhanceItemSelectUIController] 装備が選択されていません");
             return;
         }
 
         ShowEnhanceItemList();
     }
 
+    /// <summary>
+    /// 選択状態リセット
+    /// </summary>
+    public void ResetSelection()
+    {
+        selectedEnhanceItem = null;
+        currentSelectedEquipment = null;
+
+        UpdateEnhanceItemDisplay();
+        ClearEnhanceContentDisplay();
+
+        // ボタンを無効化
+        SetInteractable(false);
+    }
+
+    /// <summary>
+    /// 現在選択中の強化アイテム取得
+    /// </summary>
+    public EnhanceItemMasterData GetSelectedEnhanceItem()
+    {
+        return selectedEnhanceItem;
+    }
+
+    /// <summary>
+    /// 強化アイテムが選択されているかどうか
+    /// </summary>
+    public bool HasSelectedItem()
+    {
+        return selectedEnhanceItem != null;
+    }
+
+    #endregion
+
+    #region Enhance Item List Management
+
+    /// <summary>
+    /// 強化アイテム一覧表示
+    /// </summary>
     private void ShowEnhanceItemList()
     {
-        List<UserItem> ownedEnhanceItems = dataService.GetOwnedEnhanceItems();
-
-        // 既存のアイテムを削除
-        foreach (Transform child in enhanceItemListContent)
+        try
         {
-            Destroy(child.gameObject);
-        }
+            List<UserItem> ownedEnhanceItems = dataService.GetOwnedEnhanceItems();
 
-        // 強化アイテム生成
+            if (ownedEnhanceItems == null || ownedEnhanceItems.Count == 0)
+            {
+                Debug.LogWarning("[Enhance_EnhanceItemSelectUIController] 所持強化アイテムが見つかりません");
+                return;
+            }
+
+            // 既存のアイテムを削除
+            ClearEnhanceItemList();
+
+            // 強化アイテム生成
+            CreateEnhanceItemListItems(ownedEnhanceItems);
+
+            // パネル表示
+            if (enhanceItemListPanel != null)
+            {
+                enhanceItemListPanel.SetActive(true);
+            }
+
+            Debug.Log($"[Enhance_EnhanceItemSelectUIController] 強化アイテム一覧表示: {ownedEnhanceItems.Count}個");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Enhance_EnhanceItemSelectUIController] 強化アイテム一覧表示エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 強化アイテムリストアイテム生成
+    /// </summary>
+    private void CreateEnhanceItemListItems(List<UserItem> ownedEnhanceItems)
+    {
         foreach (var userItem in ownedEnhanceItems)
         {
             if (userItem.quantity <= 0) continue; // 所持数0のアイテムはスキップ
 
-            EnhanceItemMasterData masterData = dataService.GetEnhanceItemMaster(userItem.item_id);
-            if (masterData == null) continue;
-
-            GameObject itemObj = Instantiate(enhanceItemPrefab, enhanceItemListContent);
-            EnhanceItemListItemUI itemUI = itemObj.GetComponent<EnhanceItemListItemUI>();
-
-            if (itemUI != null)
+            try
             {
-                itemUI.Setup(masterData, userItem.quantity, OnEnhanceItemClicked);
+                EnhanceItemMasterData masterData = dataService.GetEnhanceItemMaster(userItem.item_id);
+                if (masterData == null)
+                {
+                    Debug.LogWarning($"[Enhance_EnhanceItemSelectUIController] 強化アイテムマスターデータが見つかりません: {userItem.item_id}");
+                    continue;
+                }
+
+                GameObject itemObj = Instantiate(enhanceItemPrefab, enhanceItemListContent);
+                EnhanceItemListItemUI itemUI = itemObj.GetComponent<EnhanceItemListItemUI>();
+
+                if (itemUI != null)
+                {
+                    itemUI.Setup(masterData, userItem.quantity, OnEnhanceItemClicked);
+                }
+                else
+                {
+                    Debug.LogWarning($"[Enhance_EnhanceItemSelectUIController] EnhanceItemListItemUIコンポーネントが見つかりません");
+
+                    // フォールバック: 基本的なボタン設定
+                    Button itemButton = itemObj.GetComponent<Button>();
+                    if (itemButton != null)
+                    {
+                        itemButton.onClick.AddListener(() => OnEnhanceItemClicked(masterData));
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[Enhance_EnhanceItemSelectUIController] 強化アイテム生成エラー: {userItem.item_id}, {e.Message}");
             }
         }
-
-        enhanceItemListPanel.SetActive(true);
     }
 
+    /// <summary>
+    /// 強化アイテムリストクリア
+    /// </summary>
+    private void ClearEnhanceItemList()
+    {
+        if (enhanceItemListContent == null) return;
+
+        foreach (Transform child in enhanceItemListContent)
+        {
+            if (child != null)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+    }
+
+    #endregion
+
+    #region Enhance Item Selection
+
+    /// <summary>
+    /// 強化アイテムクリック処理
+    /// </summary>
     private void OnEnhanceItemClicked(EnhanceItemMasterData enhanceItem)
     {
+        if (enhanceItem == null)
+        {
+            Debug.LogWarning("[Enhance_EnhanceItemSelectUIController] 無効な強化アイテムが選択されました");
+            return;
+        }
+
         selectedEnhanceItem = enhanceItem;
 
         // UI更新
@@ -141,29 +287,49 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
         UpdateEnhanceContent();
 
         // パネルを閉じる
-        enhanceItemListPanel.SetActive(false);
+        if (enhanceItemListPanel != null)
+        {
+            enhanceItemListPanel.SetActive(false);
+        }
 
         // イベント通知
         OnEnhanceItemSelected?.Invoke(enhanceItem);
+
+        Debug.Log($"[Enhance_EnhanceItemSelectUIController] 強化アイテム選択: {enhanceItem.enhance_item_name}");
     }
 
+    #endregion
+
+    #region Display Update
+
+    /// <summary>
+    /// 強化アイテム表示更新
+    /// </summary>
     private void UpdateEnhanceItemDisplay()
     {
+        if (enhanceItemIconImage == null) return;
+
         if (selectedEnhanceItem != null)
         {
-            // アイコン表示
-            enhanceItemIconImage.sprite = LoadEnhanceItemIcon(selectedEnhanceItem.enhance_item_icon_path);
+            // Unity上のマスターデータからアイコンを取得
+            enhanceItemIconImage.sprite = LoadEnhanceItemIcon(selectedEnhanceItem.enhance_item_id);
             enhanceItemIconImage.color = Color.white;
+        }
+        else
+        {
+            // 未選択の場合
+            enhanceItemIconImage.sprite = null;
+            enhanceItemIconImage.color = Color.gray;
         }
     }
 
+    /// <summary>
+    /// 強化内容表示更新
+    /// </summary>
     private void UpdateEnhanceContent()
     {
         // 強化内容表示をクリア
-        foreach (Transform child in enhanceContentDisplay)
-        {
-            Destroy(child.gameObject);
-        }
+        ClearEnhanceContentDisplay();
 
         if (selectedEnhanceItem != null && currentSelectedEquipment != null)
         {
@@ -172,28 +338,49 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 装備種類別強化内容表示
+    /// </summary>
     private void DisplayEnhanceContentByEquipmentType()
     {
-        EquipmentMasterData equipmentMaster = dataService.GetEquipmentMaster(currentSelectedEquipment.equipment_id);
-
-        switch (equipmentMaster.equipment_type)
+        try
         {
-            case EquipmentType.Weapon:
-                DisplayWeaponEnhanceContent();
-                break;
-            case EquipmentType.Armor:
-                DisplayArmorEnhanceContent();
-                break;
-            case EquipmentType.Accessory:
-                DisplayAccessoryEnhanceContent();
-                break;
+            EquipmentMasterData equipmentMaster = dataService.GetEquipmentMaster(currentSelectedEquipment.equipment_id);
+
+            if (equipmentMaster == null)
+            {
+                Debug.LogWarning($"[Enhance_EnhanceItemSelectUIController] 装備マスターデータが見つかりません: {currentSelectedEquipment.equipment_id}");
+                return;
+            }
+
+            switch (equipmentMaster.equipment_type)
+            {
+                case EquipmentType.Weapon:
+                    DisplayWeaponEnhanceContent();
+                    break;
+                case EquipmentType.Armor:
+                    DisplayArmorEnhanceContent();
+                    break;
+                case EquipmentType.Accessory:
+                    DisplayAccessoryEnhanceContent();
+                    break;
+                default:
+                    Debug.LogWarning($"[Enhance_EnhanceItemSelectUIController] 未対応の装備種類: {equipmentMaster.equipment_type}");
+                    break;
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Enhance_EnhanceItemSelectUIController] 強化内容表示エラー: {e.Message}");
         }
     }
 
+    /// <summary>
+    /// 武器強化内容表示
+    /// 仕様：武器：強化値+1、攻撃+1、クリティカルダメージ+1%
+    /// </summary>
     private void DisplayWeaponEnhanceContent()
     {
-        // 武器強化内容表示
-        // 仕様：武器：強化値+1、攻撃+1、クリティカルダメージ+1%
         CreateContentText($"強化値: +{selectedEnhanceItem.add_enhanced_value}");
 
         if (selectedEnhanceItem.weapon_hp > 0)
@@ -218,10 +405,12 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
         DisplayWeaponAttributeContent();
     }
 
+    /// <summary>
+    /// 防具強化内容表示
+    /// 仕様：防具：強化値+1、HP+3、防御+1
+    /// </summary>
     private void DisplayArmorEnhanceContent()
     {
-        // 防具強化内容表示
-        // 仕様：防具：強化値+1、HP+3、防御+1
         CreateContentText($"強化値: +{selectedEnhanceItem.add_enhanced_value}");
 
         if (selectedEnhanceItem.armor_hp > 0)
@@ -246,10 +435,12 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
         DisplayArmorAttributeContent();
     }
 
+    /// <summary>
+    /// アクセサリ強化内容表示
+    /// 仕様：アクセ：強化値+1、HP+1、攻撃+1、防御+1
+    /// </summary>
     private void DisplayAccessoryEnhanceContent()
     {
-        // アクセサリ強化内容表示
-        // 仕様：アクセ：強化値+1、HP+1、攻撃+1、防御+1
         CreateContentText($"強化値: +{selectedEnhanceItem.add_enhanced_value}");
 
         if (selectedEnhanceItem.accessory_hp > 0)
@@ -274,6 +465,9 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
         DisplayAccessoryAttributeContent();
     }
 
+    /// <summary>
+    /// 武器用属性攻撃内容表示
+    /// </summary>
     private void DisplayWeaponAttributeContent()
     {
         if (selectedEnhanceItem.weapon_fire_offence > 0)
@@ -286,6 +480,9 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
             CreateContentText($"土属性攻撃: +{selectedEnhanceItem.weapon_earth_offence}");
     }
 
+    /// <summary>
+    /// 防具用属性攻撃内容表示
+    /// </summary>
     private void DisplayArmorAttributeContent()
     {
         if (selectedEnhanceItem.armor_fire_offence > 0)
@@ -298,6 +495,9 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
             CreateContentText($"土属性攻撃: +{selectedEnhanceItem.armor_earth_offence}");
     }
 
+    /// <summary>
+    /// アクセサリ用属性攻撃内容表示
+    /// </summary>
     private void DisplayAccessoryAttributeContent()
     {
         if (selectedEnhanceItem.accessory_fire_offence > 0)
@@ -310,67 +510,72 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
             CreateContentText($"土属性攻撃: +{selectedEnhanceItem.accessory_earth_offence}");
     }
 
+    /// <summary>
+    /// 強化内容テキスト生成
+    /// </summary>
     private void CreateContentText(string content)
     {
         if (enhanceContentTextPrefab == null || enhanceContentDisplay == null) return;
 
-        GameObject textObj = Instantiate(enhanceContentTextPrefab, enhanceContentDisplay);
-        Text textComponent = textObj.GetComponent<Text>();
-
-        if (textComponent != null)
+        try
         {
-            textComponent.text = content;
+            GameObject textObj = Instantiate(enhanceContentTextPrefab, enhanceContentDisplay);
+            Text textComponent = textObj.GetComponent<Text>();
+
+            if (textComponent != null)
+            {
+                textComponent.text = content;
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Enhance_EnhanceItemSelectUIController] 強化内容テキスト生成エラー: {e.Message}");
         }
     }
 
-    public void ResetSelection()
+    /// <summary>
+    /// 強化内容表示クリア
+    /// </summary>
+    private void ClearEnhanceContentDisplay()
     {
-        selectedEnhanceItem = null;
-        currentSelectedEquipment = null;
+        if (enhanceContentDisplay == null) return;
 
-        if (enhanceItemIconImage != null)
-        {
-            enhanceItemIconImage.sprite = null;
-            enhanceItemIconImage.color = Color.gray;
-        }
-
-        // 強化内容表示をクリア
         foreach (Transform child in enhanceContentDisplay)
         {
-            Destroy(child.gameObject);
+            if (child != null)
+            {
+                Destroy(child.gameObject);
+            }
         }
-
-        // ボタンを無効化
-        SetInteractable(false);
     }
 
-    private Sprite LoadEnhanceItemIcon(string iconPath)
-    {
-        // TODO: アイコン読み込み実装
-        // Resources.Loadやアドレサブルアセットシステムを使用
-        return null;
-    }
+    #endregion
+
+    #region Utility Methods
 
     /// <summary>
-    /// 現在選択されている強化アイテムを取得
+    /// 強化アイテムアイコン読み込み
     /// </summary>
-    public EnhanceItemMasterData GetSelectedEnhanceItem()
+    private Sprite LoadEnhanceItemIcon(int enhanceItemId)
     {
-        return selectedEnhanceItem;
+        try
+        {
+            // Unity上のマスターデータからアイコンを読み込み（IDベース）
+            return Resources.Load<Sprite>($"Icons/EnhanceItems/enhance_item_{enhanceItemId:D3}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[Enhance_EnhanceItemSelectUIController] アイコン読み込み失敗: enhance_item_{enhanceItemId:D3}, {e.Message}");
+            return null;
+        }
     }
 
-    /// <summary>
-    /// 強化アイテムが選択されているかどうか
-    /// </summary>
-    public bool HasSelectedItem()
-    {
-        return selectedEnhanceItem != null;
-    }
+    #endregion
 }
 
 /// <summary>
-/// 強化アイテムリストの個別アイテムUI
-/// EnhanceItemListItemUIクラスの参考実装
+/// 強化アイテムリストの個別アイテムUI - プロパティ名修正版
+/// EnhanceItemListItemUIクラスの参照実装
 /// </summary>
 public class EnhanceItemListItemUI : MonoBehaviour
 {
@@ -384,29 +589,59 @@ public class EnhanceItemListItemUI : MonoBehaviour
     private EnhanceItemMasterData itemData;
     private System.Action<EnhanceItemMasterData> onClickCallback;
 
+    #region Public Methods
+
+    /// <summary>
+    /// 強化アイテムセットアップ
+    /// </summary>
     public void Setup(EnhanceItemMasterData masterData, int quantity, System.Action<EnhanceItemMasterData> onClick)
     {
         itemData = masterData;
         onClickCallback = onClick;
 
         // UI更新
-        if (itemNameText != null)
-            itemNameText.text = masterData.enhance_item_name;
+        UpdateDisplay(quantity);
 
+        // ボタンイベント設定
+        SetupButton();
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    /// <summary>
+    /// 表示更新
+    /// </summary>
+    private void UpdateDisplay(int quantity)
+    {
+        if (itemData == null) return;
+
+        // アイテム名表示
+        if (itemNameText != null)
+            itemNameText.text = itemData.enhance_item_name;
+
+        // 所持数表示
         if (quantityText != null)
             quantityText.text = $"所持数: {quantity}";
 
+        // レアリティ表示
         if (rarityText != null)
-            rarityText.text = GetRarityText(masterData.rarity);
+            rarityText.text = GetRarityText(itemData.rarity);
 
         // アイコン設定
         if (itemIcon != null)
         {
-            // TODO: アイコン読み込み実装
-            // itemIcon.sprite = LoadIcon(masterData.enhance_item_icon_path);
+            // Unity上のマスターデータからアイコンを読み込み（IDベース）
+            itemIcon.sprite = LoadIcon(itemData.enhance_item_id);
         }
+    }
 
-        // ボタンイベント設定
+    /// <summary>
+    /// ボタン設定
+    /// </summary>
+    private void SetupButton()
+    {
         if (itemButton != null)
         {
             itemButton.onClick.RemoveAllListeners();
@@ -414,11 +649,17 @@ public class EnhanceItemListItemUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// アイテムクリック処理
+    /// </summary>
     private void OnItemClicked()
     {
         onClickCallback?.Invoke(itemData);
     }
 
+    /// <summary>
+    /// レアリティテキスト取得
+    /// </summary>
     private string GetRarityText(string rarity)
     {
         switch (rarity.ToLower())
@@ -430,4 +671,23 @@ public class EnhanceItemListItemUI : MonoBehaviour
             default: return rarity;
         }
     }
+
+    /// <summary>
+    /// アイコン読み込み
+    /// </summary>
+    private Sprite LoadIcon(int enhanceItemId)
+    {
+        try
+        {
+            // Unity上のマスターデータからアイコンを読み込み（IDベース）
+            return Resources.Load<Sprite>($"Icons/EnhanceItems/enhance_item_{enhanceItemId:D3}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[EnhanceItemListItemUI] アイコン読み込み失敗: enhance_item_{enhanceItemId:D3}, {e.Message}");
+            return null;
+        }
+    }
+
+    #endregion
 }

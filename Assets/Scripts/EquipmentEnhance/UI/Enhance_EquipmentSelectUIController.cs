@@ -1,17 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+using System.Collections;
 
 /// <summary>
-/// 装備選択UI制御クラス
-/// 所持装備一覧表示、装備選択処理、選択装備の表示を担当
+/// 装備選択UI制御クラス - プロパティ名修正版
+/// 所持装備一覧表示、装備選択処理、選択装備の表示を全担当
 /// </summary>
 public class Enhance_EquipmentSelectUIController : MonoBehaviour
 {
     [Header("UI Elements - Main")]
     [SerializeField] private Button equipmentSelectButton;
     [SerializeField] private Image equipmentIconImage;
-    [SerializeField] private Text equipmentNameText;
+    [SerializeField] private TextMeshProUGUI equipmentNameText;
     [SerializeField] private Transform equipmentOptionsDisplay;
 
     [Header("UI Elements - Equipment List")]
@@ -79,7 +81,10 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
     /// </summary>
     private void SetupEventListeners()
     {
-        equipmentSelectButton.onClick.AddListener(OnEquipmentSelectButtonClicked);
+        if (equipmentSelectButton != null)
+        {
+            equipmentSelectButton.onClick.AddListener(OnEquipmentSelectButtonClicked);
+        }
 
         if (listCloseButton != null)
         {
@@ -92,7 +97,10 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
     /// </summary>
     private void RemoveEventListeners()
     {
-        equipmentSelectButton.onClick.RemoveAllListeners();
+        if (equipmentSelectButton != null)
+        {
+            equipmentSelectButton.onClick.RemoveAllListeners();
+        }
 
         if (listCloseButton != null)
         {
@@ -110,7 +118,11 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
     public void SetInteractable(bool interactable)
     {
         isInteractable = interactable;
-        equipmentSelectButton.interactable = interactable;
+
+        if (equipmentSelectButton != null)
+        {
+            equipmentSelectButton.interactable = interactable;
+        }
 
         Debug.Log($"[Enhance_EquipmentSelectUIController] 操作可能状態: {interactable}");
     }
@@ -125,6 +137,22 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
         UpdateEquipmentOptions();
 
         Debug.Log("[Enhance_EquipmentSelectUIController] 選択状態をリセット");
+    }
+
+    /// <summary>
+    /// 現在選択中の装備取得
+    /// </summary>
+    public UserEquipment GetSelectedEquipment()
+    {
+        return selectedEquipment;
+    }
+
+    /// <summary>
+    /// 装備が選択されているか確認
+    /// </summary>
+    public bool HasSelection()
+    {
+        return selectedEquipment != null;
     }
 
     #endregion
@@ -183,7 +211,7 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
                 equipmentListScrollRect.verticalNormalizedPosition = 1f;
             }
 
-            Debug.Log($"[Enhance_EquipmentSelectUIController] 装備一覧表示: {ownedEquipments.Count}件");
+            Debug.Log($"[Enhance_EquipmentSelectUIController] 装備一覧表示: {ownedEquipments.Count}個");
         }
         catch (System.Exception e)
         {
@@ -259,10 +287,64 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
 
     #endregion
 
-    #region Equipment Selection
-
     /// <summary>
-    /// 装備アイテムクリック処理
+    /// 遅延レイアウト強制更新 - シンプル版
+    /// </summary>
+    private IEnumerator ForceLayoutUpdateAfterDelay()
+    {
+        // 1フレーム待機（UI生成完了を待つ）
+        yield return null;
+
+        // さらに少し待機（確実にUI生成が完了するまで）
+        yield return new WaitForSeconds(0.1f);
+
+        // 親レイアウトの強制更新
+        Transform parentLayout = transform; // EquipmentObject
+        RectTransform parentRect = parentLayout as RectTransform;
+
+        if (parentRect != null)
+        {
+            Debug.Log("レイアウト強制更新開始");
+
+            // Layout Groupを一度無効化
+            LayoutGroup[] layoutGroups = parentRect.GetComponentsInChildren<LayoutGroup>();
+
+            // 無効化
+            foreach (var layoutGroup in layoutGroups)
+            {
+                if (layoutGroup != null)
+                {
+                    layoutGroup.enabled = false;
+                }
+            }
+
+            // 1フレーム待機
+            yield return null;
+
+            // 再有効化
+            foreach (var layoutGroup in layoutGroups)
+            {
+                if (layoutGroup != null)
+                {
+                    layoutGroup.enabled = true;
+                }
+            }
+
+            // 強制的にレイアウト再計算
+            if (parentRect != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
+            }
+
+            Debug.Log("レイアウト強制更新完了");
+        }
+        else
+        {
+            Debug.LogWarning("RectTransform が見つかりません");
+        }
+    }
+    /// <summary>
+    /// 装備アイテムクリック処理 - レイアウト更新制御版
     /// </summary>
     private void OnEquipmentItemClicked(UserEquipment equipment)
     {
@@ -274,20 +356,21 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
 
         selectedEquipment = equipment;
 
-        // UI更新
+        // UI更新（まず通常の更新）
         UpdateEquipmentDisplay();
         UpdateEquipmentOptions();
 
         // パネルを閉じる
         CloseEquipmentList();
 
+        // レイアウト強制更新をコルーチンで実行
+        StartCoroutine(ForceLayoutUpdateAfterDelay());
+
         // イベント通知
         OnEquipmentSelected?.Invoke(equipment);
 
         Debug.Log($"[Enhance_EquipmentSelectUIController] 装備選択: {equipment.equipment_id} (ユニークID: {equipment.unique_id})");
     }
-
-    #endregion
 
     #region Display Update
 
@@ -305,10 +388,10 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
 
                 if (masterData != null)
                 {
-                    // アイコン表示
+                    // アイコン表示（IDベース）
                     if (equipmentIconImage != null)
                     {
-                        Sprite icon = LoadEquipmentIcon(masterData.equipment_icon_path);
+                        Sprite icon = LoadEquipmentIcon(masterData.equipment_id);
                         equipmentIconImage.sprite = icon;
                         equipmentIconImage.color = selectedColor;
                     }
@@ -383,6 +466,15 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
     /// </summary>
     private void CreateEquipmentStatusDisplay()
     {
+
+        Debug.Log($"装備ステータス表示開始: {selectedEquipment.equipment_id}");
+
+        Debug.Log($"HP: {selectedEquipment.hp}");
+        Debug.Log($"攻撃力: {selectedEquipment.offense}");
+        Debug.Log($"防御力: {selectedEquipment.defense}");
+        Debug.Log($"速度: {selectedEquipment.speed}");
+
+
         // 基本ステータス表示
         if (selectedEquipment.hp > 0)
         {
@@ -414,7 +506,7 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
             CreateStatusText($"クリティカルダメージ: {selectedEquipment.critical_damage_rate}%");
         }
 
-        // 属性攻撃表示
+        // 属性ステータス表示
         CreateAttributeStatusDisplay();
 
         // 強化値表示
@@ -457,13 +549,28 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
     {
         if (equipmentStatusTextPrefab != null && equipmentOptionsDisplay != null)
         {
-            GameObject statusObj = Instantiate(equipmentStatusTextPrefab, equipmentOptionsDisplay);
-            createdStatusTexts.Add(statusObj);
-
-            Text textComponent = statusObj.GetComponent<Text>();
-            if (textComponent != null)
+            try
             {
-                textComponent.text = statusText;
+                GameObject statusObj = Instantiate(equipmentStatusTextPrefab, equipmentOptionsDisplay);
+                createdStatusTexts.Add(statusObj);
+
+                // TextMeshPro対応
+                TextMeshProUGUI tmpComponent = statusObj.GetComponent<TextMeshProUGUI>();
+                if (tmpComponent != null)
+                {
+                    tmpComponent.text = statusText;
+                    Debug.Log($"TextMeshPro設定完了: {statusText}");  // ← 追加
+                }
+
+                Text textComponent = statusObj.GetComponent<Text>();
+                if (textComponent != null)
+                {
+                    textComponent.text = statusText;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[Enhance_EquipmentSelectUIController] ステータステキスト生成エラー: {statusText}, {e.Message}");
             }
         }
         else
@@ -494,40 +601,18 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
     /// <summary>
     /// 装備アイコン読み込み
     /// </summary>
-    private Sprite LoadEquipmentIcon(string iconPath)
+    private Sprite LoadEquipmentIcon(int equipmentId)
     {
-        if (string.IsNullOrEmpty(iconPath))
-        {
-            return null;
-        }
-
         try
         {
-            // TODO: 実際のアイコン読み込み実装
-            // Resources.Load<Sprite>(iconPath) などを使用
-            return null;
+            // Unity上のマスターデータからアイコンを読み込み（IDベース）
+            return Resources.Load<Sprite>($"Icons/Equipments/equipment_{equipmentId:D3}");
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[Enhance_EquipmentSelectUIController] アイコン読み込み失敗: {iconPath}, {e.Message}");
+            Debug.LogWarning($"[Enhance_EquipmentSelectUIController] アイコン読み込み失敗: equipment_{equipmentId:D3}, {e.Message}");
             return null;
         }
-    }
-
-    /// <summary>
-    /// 現在選択中の装備取得
-    /// </summary>
-    public UserEquipment GetSelectedEquipment()
-    {
-        return selectedEquipment;
-    }
-
-    /// <summary>
-    /// 装備が選択されているか確認
-    /// </summary>
-    public bool HasSelection()
-    {
-        return selectedEquipment != null;
     }
 
     #endregion

@@ -123,7 +123,7 @@ public class SupportItemCSVImporter
                 item.waterOffence = ParseInt(values[21], $"行{i + 1} waterOffence");
                 item.windOffence = ParseInt(values[22], $"行{i + 1} windOffence");
                 item.earthOffence = ParseInt(values[23], $"行{i + 1} earthOffence");
-                // values[24] = enhance_item_icon_path (空欄)
+                // values[24] = support_item_icon_path (空欄)
                 item.description = values[25];
                 item.completionFlag = values[26] == "1";
                 item.collectionFlag = values[27] == "1";

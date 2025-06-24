@@ -36,7 +36,7 @@ MonoBehaviour:
   earthOffence: 0
   equipmentOpenSkillId: 0
   equipmentOpenCharacterId: 
-  equipmentIcon: {fileID: 0}
+  equipmentIcon: {fileID: 1368620923, guid: f5f199f04c2cd674ab2ca2f1bebd59d3, type: 3}
   equipmentModel: {fileID: 0}
   completionFlag: 0
   collectionFlag: 0

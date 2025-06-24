@@ -1,21 +1,22 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
-/// ‘•”õ‹­‰»Œ‹‰Ê•\¦UI§ŒäƒNƒ‰ƒX
+/// è£…å‚™å¼·åŒ–çµæœè¡¨ç¤ºUIã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚¯ãƒ©ã‚¹ - IDãƒ™ãƒ¼ã‚¹ä¿®æ­£ç‰ˆ
 /// 
-/// yÓ”Cz
-/// - ‹­‰»Œ‹‰Ê‚Ì‰‰o•\¦
-/// - ¬Œ÷/¸”s‚ÌƒrƒWƒ…ƒAƒ‹‰‰o
-/// - Œ‹‰ÊÚ×î•ñ‚Ì•\¦
-/// - ƒ†[ƒU[‚É‘Î‚·‚é•ª‚©‚è‚â‚·‚¢Œ‹‰Ê’Ê’m
+/// ã€è²¬ä»»ã€‘
+/// - å¼·åŒ–çµæœã®æ¼”å‡ºè¡¨ç¤º
+/// - æˆåŠŸ/å¤±æ•—ã®ãƒ“ã‚¸ãƒ¥ã‚¢ãƒ«æ¼”å‡º
+/// - çµæœè©³ç´°æƒ…å ±ã®è¡¨ç¤º
+/// - ãƒ¦ãƒ¼ã‚¶ãƒ¼ã«å¯¾ã™ã‚‹åˆ†ã‹ã‚Šã‚„ã™ã„çµæœé€šçŸ¥
 /// 
-/// yå—v‹@”\z
-/// - ¬Œ÷/¸”sƒAƒjƒ[ƒVƒ‡ƒ“
-/// - ƒXƒe[ƒ^ƒX•Ï‰»‚Ì•\¦
-/// - Œ‹‰ÊƒƒbƒZ[ƒW•\¦
-/// - Œ‹‰Ê‰æ–Ê‚Ì•\¦ŠÔ§Œä
+/// ã€é‡è¦æ©Ÿèƒ½ã€‘
+/// - æˆåŠŸ/å¤±æ•—ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
+/// - ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–ã®è¡¨ç¤º
+/// - çµæœãƒ¡ãƒƒã‚»ãƒ¼ã‚¸è¡¨ç¤º
+/// - çµæœç”»é¢ã®è¡¨ç¤ºåˆ¶å¾¡
 /// </summary>
 public class Enhance_ResultUIController : MonoBehaviour
 {
@@ -24,15 +25,15 @@ public class Enhance_ResultUIController : MonoBehaviour
     [SerializeField] private CanvasGroup resultCanvasGroup;
 
     [Header("Result Display")]
-    [SerializeField] private Text resultTitleText;
-    [SerializeField] private Text resultMessageText;
+    [SerializeField] private TextMeshProUGUI resultTitleText;
+    [SerializeField] private TextMeshProUGUI resultMessageText;
     [SerializeField] private Image resultBackgroundImage;
     [SerializeField] private Image resultIconImage;
 
     [Header("Equipment Display")]
     [SerializeField] private Image equipmentIconImage;
-    [SerializeField] private Text equipmentNameText;
-    [SerializeField] private Text equipmentLevelText;
+    [SerializeField] private TextMeshProUGUI equipmentNameText;
+    [SerializeField] private TextMeshProUGUI equipmentLevelText;
 
     [Header("Status Change Display")]
     [SerializeField] private Transform statusChangeContainer;
@@ -61,53 +62,53 @@ public class Enhance_ResultUIController : MonoBehaviour
     [SerializeField] private Color decreaseColor = Color.red;
     [SerializeField] private Color noChangeColor = Color.gray;
 
-    // Service‘w
+    // Serviceå±¤
     private EnhanceDataService dataService = new EnhanceDataService();
 
-    // “à•”ó‘Ô
+    // å†…éƒ¨çŠ¶æ…‹
     private bool isDisplaying = false;
 
     #region Public Methods
 
     /// <summary>
-    /// ‹­‰»Œ‹‰Ê•\¦iƒRƒ‹[ƒ`ƒ“j
-    /// EnhanceUIController‚©‚çŒÄ‚Ño‚³‚ê‚é
+    /// å¼·åŒ–çµæœè¡¨ç¤ºï¼ˆã‚³ãƒ«ãƒ¼ãƒãƒ³ï¼‰
+    /// EnhanceUIControllerã‹ã‚‰å‘¼ã³å‡ºã•ã‚Œã‚‹
     /// </summary>
     public IEnumerator ShowResult(EnhanceResultData resultData)
     {
         if (isDisplaying)
         {
-            Debug.LogWarning("[Enhance_ResultUIController] Šù‚ÉŒ‹‰Ê•\¦’†‚Å‚·");
+            Debug.LogWarning("[Enhance_ResultUIController] æ—¢ã«çµæœè¡¨ç¤ºä¸­ã§ã™");
             yield break;
         }
 
         isDisplaying = true;
 
-        // Œ‹‰Êƒf[ƒ^‚ÌŒŸØ
+        // çµæœãƒ‡ãƒ¼ã‚¿ã®æ¤œè¨¼
         if (resultData == null)
         {
-            Debug.LogError("[Enhance_ResultUIController] Œ‹‰Êƒf[ƒ^‚ªnull‚Å‚·");
+            Debug.LogError("[Enhance_ResultUIController] çµæœãƒ‡ãƒ¼ã‚¿ãŒnullã§ã™");
             isDisplaying = false;
             yield break;
         }
 
-        // Œ‹‰Ê•\¦‚Ì€”õ
+        // çµæœè¡¨ç¤ºã®æº–å‚™
         PrepareResultDisplay(resultData);
 
-        // ƒtƒF[ƒhƒCƒ“‰‰o
+        // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³æ¼”å‡º
         yield return StartCoroutine(FadeIn());
 
-        // Œ‹‰Ê•\¦ŠÔ
+        // çµæœè¡¨ç¤ºä¿æŒ
         yield return new WaitForSeconds(displayDuration);
 
-        // ƒtƒF[ƒhƒAƒEƒg‰‰o
+        // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆæ¼”å‡º
         yield return StartCoroutine(FadeOut());
 
         isDisplaying = false;
     }
 
     /// <summary>
-    /// Œ‹‰Ê•\¦‚ğ‹­§I—¹
+    /// çµæœè¡¨ç¤ºã‚’å¼·åˆ¶çµ‚äº†
     /// </summary>
     public void ForceClose()
     {
@@ -124,34 +125,34 @@ public class Enhance_ResultUIController : MonoBehaviour
     #region Result Display Preparation
 
     /// <summary>
-    /// Œ‹‰Ê•\¦‚Ì€”õ
+    /// çµæœè¡¨ç¤ºã®æº–å‚™
     /// </summary>
     private void PrepareResultDisplay(EnhanceResultData resultData)
     {
-        // Šî–{Œ‹‰Êî•ñİ’è
+        // åŸºæœ¬çµæœæƒ…å ±è¨­å®š
         SetupBasicResultInfo(resultData);
 
-        // ‘•”õî•ñİ’è
+        // è£…å‚™æƒ…å ±è¨­å®š
         SetupEquipmentInfo(resultData);
 
-        // ƒXƒe[ƒ^ƒX•Ï‰»•\¦İ’è
+        // ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–è¡¨ç¤ºè¨­å®š
         SetupStatusChangeDisplay(resultData);
 
-        // ¬Œ÷/¸”s‚É‰‚¶‚½Œ©‚½–Úİ’è
+        // æˆåŠŸ/å¤±æ•—ã«å¿œã˜ãŸè¦‹ãŸç›®è¨­å®š
         SetupResultAppearance(resultData.IsSuccess);
 
-        // ƒTƒEƒ“ƒhÄ¶
+        // ã‚µã‚¦ãƒ³ãƒ‰å†ç”Ÿ
         PlayResultSound(resultData.IsSuccess);
     }
 
     /// <summary>
-    /// Šî–{Œ‹‰Êî•ñİ’è
+    /// åŸºæœ¬çµæœæƒ…å ±è¨­å®š
     /// </summary>
     private void SetupBasicResultInfo(EnhanceResultData resultData)
     {
         if (resultTitleText != null)
         {
-            resultTitleText.text = resultData.IsSuccess ? "‹­‰»¬Œ÷I" : "‹­‰»¸”s...";
+            resultTitleText.text = resultData.IsSuccess ? "å¼·åŒ–æˆåŠŸï¼" : "å¼·åŒ–å¤±æ•—...";
         }
 
         if (resultMessageText != null)
@@ -161,7 +162,7 @@ public class Enhance_ResultUIController : MonoBehaviour
     }
 
     /// <summary>
-    /// ‘•”õî•ñİ’è
+    /// è£…å‚™æƒ…å ±è¨­å®š - IDãƒ™ãƒ¼ã‚¹ä¿®æ­£ç‰ˆ
     /// </summary>
     private void SetupEquipmentInfo(EnhanceResultData resultData)
     {
@@ -171,54 +172,54 @@ public class Enhance_ResultUIController : MonoBehaviour
 
             if (masterData != null)
             {
-                // ‘•”õ–¼
+                // è£…å‚™å
                 if (equipmentNameText != null)
                 {
                     equipmentNameText.text = masterData.equipment_name;
                 }
 
-                // ‹­‰»ƒŒƒxƒ‹
+                // å¼·åŒ–ãƒ¬ãƒ™ãƒ«
                 if (equipmentLevelText != null)
                 {
                     equipmentLevelText.text = $"+{resultData.EnhancedEquipment.current_enhanced_value}";
                 }
 
-                // ‘•”õƒAƒCƒRƒ“
+                // âœ… è£…å‚™ã‚¢ã‚¤ã‚³ãƒ³ - IDãƒ™ãƒ¼ã‚¹èª­ã¿è¾¼ã¿
                 if (equipmentIconImage != null)
                 {
-                    equipmentIconImage.sprite = LoadEquipmentIcon(masterData.equipment_icon_path);
+                    equipmentIconImage.sprite = LoadEquipmentIcon(masterData.equipment_id);
                 }
             }
         }
     }
 
     /// <summary>
-    /// ƒXƒe[ƒ^ƒX•Ï‰»•\¦İ’è
+    /// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–è¡¨ç¤ºè¨­å®š
     /// </summary>
     private void SetupStatusChangeDisplay(EnhanceResultData resultData)
     {
-        // Šù‘¶‚Ì•\¦‚ğƒNƒŠƒA
+        // æ—¢å­˜ã®è¡¨ç¤ºã‚’ã‚¯ãƒªã‚¢
         ClearStatusChangeDisplay();
 
         if (!resultData.IsSuccess || resultData.EnhancedEquipment == null)
         {
-            // ¸”s‚ÍƒXƒe[ƒ^ƒX•Ï‰»‚È‚µ
+            // å¤±æ•—æ™‚ã¯ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–ãªã—
             return;
         }
 
-        // ¬Œ÷‚ÌƒXƒe[ƒ^ƒX•Ï‰»‚ğ•\¦
+        // æˆåŠŸæ™‚ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–ã‚’è¡¨ç¤º
         DisplayStatusChanges(resultData);
     }
 
     /// <summary>
-    /// ƒXƒe[ƒ^ƒX•Ï‰»‚ÌÚ×•\¦
+    /// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–ã®è©³ç´°è¡¨ç¤º
     /// </summary>
     private void DisplayStatusChanges(EnhanceResultData resultData)
     {
-        // ‹­‰»’l‘‰Á‚Í•K‚¸•\¦
-        CreateStatusChangeItem("‹­‰»’l", "+1", increaseColor);
+        // å¼·åŒ–å€¤å¢—åŠ ã¯å¿…ãšè¡¨ç¤º
+        CreateStatusChangeItem("å¼·åŒ–å€¤", "+1", increaseColor);
 
-        // g—p‚µ‚½ƒAƒCƒeƒ€î•ñ•\¦i‘•”õí—Ş•ÊƒvƒƒpƒeƒB‚ğg—pj
+        // ä½¿ç”¨ã—ãŸã‚¢ã‚¤ãƒ†ãƒ æƒ…å ±è¡¨ç¤ºï¼ˆè£…å‚™ç¨®é¡åˆ¥ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’ä½¿ç”¨ï¼‰
         if (resultData.ConsumedEnhanceItemId > 0 && resultData.EnhancedEquipment != null)
         {
             EnhanceItemMasterData enhanceItem = dataService.GetEnhanceItemMaster(resultData.ConsumedEnhanceItemId);
@@ -226,7 +227,7 @@ public class Enhance_ResultUIController : MonoBehaviour
 
             if (enhanceItem != null && equipmentMaster != null)
             {
-                // ‘•”õí—Ş‚É‰‚¶‚½ƒXƒe[ƒ^ƒX•Ï‰»•\¦
+                // è£…å‚™ç¨®é¡ã«å¿œã˜ãŸã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–è¡¨ç¤º
                 switch (equipmentMaster.equipment_type)
                 {
                     case EquipmentType.Weapon:
@@ -244,94 +245,94 @@ public class Enhance_ResultUIController : MonoBehaviour
     }
 
     /// <summary>
-    /// •ŠíƒXƒe[ƒ^ƒX•Ï‰»•\¦
+    /// æ­¦å™¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–è¡¨ç¤º
     /// </summary>
     private void DisplayWeaponStatusChanges(EnhanceItemMasterData enhanceItem)
     {
         if (enhanceItem.weapon_hp > 0)
             CreateStatusChangeItem("HP", $"+{enhanceItem.weapon_hp}", increaseColor);
         if (enhanceItem.weapon_offense > 0)
-            CreateStatusChangeItem("UŒ‚—Í", $"+{enhanceItem.weapon_offense}", increaseColor);
+            CreateStatusChangeItem("æ”»æ’ƒåŠ›", $"+{enhanceItem.weapon_offense}", increaseColor);
         if (enhanceItem.weapon_defense > 0)
-            CreateStatusChangeItem("–hŒä—Í", $"+{enhanceItem.weapon_defense}", increaseColor);
+            CreateStatusChangeItem("é˜²å¾¡åŠ›", $"+{enhanceItem.weapon_defense}", increaseColor);
         if (enhanceItem.weapon_speed > 0)
-            CreateStatusChangeItem("‘¬“x", $"+{enhanceItem.weapon_speed}", increaseColor);
+            CreateStatusChangeItem("é€Ÿåº¦", $"+{enhanceItem.weapon_speed}", increaseColor);
         if (enhanceItem.weapon_critical_rate > 0)
-            CreateStatusChangeItem("ƒNƒŠƒeƒBƒJƒ‹—¦", $"+{enhanceItem.weapon_critical_rate}%", increaseColor);
+            CreateStatusChangeItem("ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ç‡", $"+{enhanceItem.weapon_critical_rate}%", increaseColor);
         if (enhanceItem.weapon_critical_damage_rate > 0)
-            CreateStatusChangeItem("ƒNƒŠƒeƒBƒJƒ‹ƒ_ƒ[ƒW", $"+{enhanceItem.weapon_critical_damage_rate}%", increaseColor);
+            CreateStatusChangeItem("ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸", $"+{enhanceItem.weapon_critical_damage_rate}%", increaseColor);
 
-        // •Ší‘®«UŒ‚
+        // æ­¦å™¨å±æ€§æ”»æ’ƒ
         if (enhanceItem.weapon_fire_offence > 0)
-            CreateStatusChangeItem("‰Î‘®«UŒ‚", $"+{enhanceItem.weapon_fire_offence}", increaseColor);
+            CreateStatusChangeItem("ç«å±æ€§æ”»æ’ƒ", $"+{enhanceItem.weapon_fire_offence}", increaseColor);
         if (enhanceItem.weapon_water_offence > 0)
-            CreateStatusChangeItem("…‘®«UŒ‚", $"+{enhanceItem.weapon_water_offence}", increaseColor);
+            CreateStatusChangeItem("æ°´å±æ€§æ”»æ’ƒ", $"+{enhanceItem.weapon_water_offence}", increaseColor);
         if (enhanceItem.weapon_wind_offence > 0)
-            CreateStatusChangeItem("•—‘®«UŒ‚", $"+{enhanceItem.weapon_wind_offence}", increaseColor);
+            CreateStatusChangeItem("é¢¨å±æ€§æ”»æ’ƒ", $"+{enhanceItem.weapon_wind_offence}", increaseColor);
         if (enhanceItem.weapon_earth_offence > 0)
-            CreateStatusChangeItem("“y‘®«UŒ‚", $"+{enhanceItem.weapon_earth_offence}", increaseColor);
+            CreateStatusChangeItem("åœŸå±æ€§æ”»æ’ƒ", $"+{enhanceItem.weapon_earth_offence}", increaseColor);
     }
 
     /// <summary>
-    /// –h‹ïƒXƒe[ƒ^ƒX•Ï‰»•\¦
+    /// é˜²å…·ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–è¡¨ç¤º
     /// </summary>
     private void DisplayArmorStatusChanges(EnhanceItemMasterData enhanceItem)
     {
         if (enhanceItem.armor_hp > 0)
             CreateStatusChangeItem("HP", $"+{enhanceItem.armor_hp}", increaseColor);
         if (enhanceItem.armor_offense > 0)
-            CreateStatusChangeItem("UŒ‚—Í", $"+{enhanceItem.armor_offense}", increaseColor);
+            CreateStatusChangeItem("æ”»æ’ƒåŠ›", $"+{enhanceItem.armor_offense}", increaseColor);
         if (enhanceItem.armor_defense > 0)
-            CreateStatusChangeItem("–hŒä—Í", $"+{enhanceItem.armor_defense}", increaseColor);
+            CreateStatusChangeItem("é˜²å¾¡åŠ›", $"+{enhanceItem.armor_defense}", increaseColor);
         if (enhanceItem.armor_speed > 0)
-            CreateStatusChangeItem("‘¬“x", $"+{enhanceItem.armor_speed}", increaseColor);
+            CreateStatusChangeItem("é€Ÿåº¦", $"+{enhanceItem.armor_speed}", increaseColor);
         if (enhanceItem.armor_critical_rate > 0)
-            CreateStatusChangeItem("ƒNƒŠƒeƒBƒJƒ‹—¦", $"+{enhanceItem.armor_critical_rate}%", increaseColor);
+            CreateStatusChangeItem("ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ç‡", $"+{enhanceItem.armor_critical_rate}%", increaseColor);
         if (enhanceItem.armor_critical_damage_rate > 0)
-            CreateStatusChangeItem("ƒNƒŠƒeƒBƒJƒ‹ƒ_ƒ[ƒW", $"+{enhanceItem.armor_critical_damage_rate}%", increaseColor);
+            CreateStatusChangeItem("ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸", $"+{enhanceItem.armor_critical_damage_rate}%", increaseColor);
 
-        // –h‹ï‘®«UŒ‚
+        // é˜²å…·å±æ€§æ”»æ’ƒ
         if (enhanceItem.armor_fire_offence > 0)
-            CreateStatusChangeItem("‰Î‘®«UŒ‚", $"+{enhanceItem.armor_fire_offence}", increaseColor);
+            CreateStatusChangeItem("ç«å±æ€§æ”»æ’ƒ", $"+{enhanceItem.armor_fire_offence}", increaseColor);
         if (enhanceItem.armor_water_offence > 0)
-            CreateStatusChangeItem("…‘®«UŒ‚", $"+{enhanceItem.armor_water_offence}", increaseColor);
+            CreateStatusChangeItem("æ°´å±æ€§æ”»æ’ƒ", $"+{enhanceItem.armor_water_offence}", increaseColor);
         if (enhanceItem.armor_wind_offence > 0)
-            CreateStatusChangeItem("•—‘®«UŒ‚", $"+{enhanceItem.armor_wind_offence}", increaseColor);
+            CreateStatusChangeItem("é¢¨å±æ€§æ”»æ’ƒ", $"+{enhanceItem.armor_wind_offence}", increaseColor);
         if (enhanceItem.armor_earth_offence > 0)
-            CreateStatusChangeItem("“y‘®«UŒ‚", $"+{enhanceItem.armor_earth_offence}", increaseColor);
+            CreateStatusChangeItem("åœŸå±æ€§æ”»æ’ƒ", $"+{enhanceItem.armor_earth_offence}", increaseColor);
     }
 
     /// <summary>
-    /// ƒAƒNƒZƒTƒŠ[ƒXƒe[ƒ^ƒX•Ï‰»•\¦
+    /// ã‚¢ã‚¯ã‚»ã‚µãƒªãƒ¼ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–è¡¨ç¤º
     /// </summary>
     private void DisplayAccessoryStatusChanges(EnhanceItemMasterData enhanceItem)
     {
         if (enhanceItem.accessory_hp > 0)
             CreateStatusChangeItem("HP", $"+{enhanceItem.accessory_hp}", increaseColor);
         if (enhanceItem.accessory_offense > 0)
-            CreateStatusChangeItem("UŒ‚—Í", $"+{enhanceItem.accessory_offense}", increaseColor);
+            CreateStatusChangeItem("æ”»æ’ƒåŠ›", $"+{enhanceItem.accessory_offense}", increaseColor);
         if (enhanceItem.accessory_defense > 0)
-            CreateStatusChangeItem("–hŒä—Í", $"+{enhanceItem.accessory_defense}", increaseColor);
+            CreateStatusChangeItem("é˜²å¾¡åŠ›", $"+{enhanceItem.accessory_defense}", increaseColor);
         if (enhanceItem.accessory_speed > 0)
-            CreateStatusChangeItem("‘¬“x", $"+{enhanceItem.accessory_speed}", increaseColor);
+            CreateStatusChangeItem("é€Ÿåº¦", $"+{enhanceItem.accessory_speed}", increaseColor);
         if (enhanceItem.accessory_critical_rate > 0)
-            CreateStatusChangeItem("ƒNƒŠƒeƒBƒJƒ‹—¦", $"+{enhanceItem.accessory_critical_rate}%", increaseColor);
+            CreateStatusChangeItem("ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ç‡", $"+{enhanceItem.accessory_critical_rate}%", increaseColor);
         if (enhanceItem.accessory_critical_damage_rate > 0)
-            CreateStatusChangeItem("ƒNƒŠƒeƒBƒJƒ‹ƒ_ƒ[ƒW", $"+{enhanceItem.accessory_critical_damage_rate}%", increaseColor);
+            CreateStatusChangeItem("ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸", $"+{enhanceItem.accessory_critical_damage_rate}%", increaseColor);
 
-        // ƒAƒNƒZƒTƒŠ[‘®«UŒ‚
+        // ã‚¢ã‚¯ã‚»ã‚µãƒªãƒ¼å±æ€§æ”»æ’ƒ
         if (enhanceItem.accessory_fire_offence > 0)
-            CreateStatusChangeItem("‰Î‘®«UŒ‚", $"+{enhanceItem.accessory_fire_offence}", increaseColor);
+            CreateStatusChangeItem("ç«å±æ€§æ”»æ’ƒ", $"+{enhanceItem.accessory_fire_offence}", increaseColor);
         if (enhanceItem.accessory_water_offence > 0)
-            CreateStatusChangeItem("…‘®«UŒ‚", $"+{enhanceItem.accessory_water_offence}", increaseColor);
+            CreateStatusChangeItem("æ°´å±æ€§æ”»æ’ƒ", $"+{enhanceItem.accessory_water_offence}", increaseColor);
         if (enhanceItem.accessory_wind_offence > 0)
-            CreateStatusChangeItem("•—‘®«UŒ‚", $"+{enhanceItem.accessory_wind_offence}", increaseColor);
+            CreateStatusChangeItem("é¢¨å±æ€§æ”»æ’ƒ", $"+{enhanceItem.accessory_wind_offence}", increaseColor);
         if (enhanceItem.accessory_earth_offence > 0)
-            CreateStatusChangeItem("“y‘®«UŒ‚", $"+{enhanceItem.accessory_earth_offence}", increaseColor);
+            CreateStatusChangeItem("åœŸå±æ€§æ”»æ’ƒ", $"+{enhanceItem.accessory_earth_offence}", increaseColor);
     }
 
     /// <summary>
-    /// ƒXƒe[ƒ^ƒX•Ï‰»€–Úì¬
+    /// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–é …ç›®ä½œæˆ
     /// </summary>
     private void CreateStatusChangeItem(string statusName, string changeValue, Color textColor)
     {
@@ -346,7 +347,7 @@ public class Enhance_ResultUIController : MonoBehaviour
         }
         else
         {
-            // ƒtƒH[ƒ‹ƒoƒbƒNF’¼ÚƒeƒLƒXƒgƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ’T‚·
+            // ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ï¼šç›´æ¥ãƒ†ã‚­ã‚¹ãƒˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’æ¢ã™
             Text[] texts = itemObj.GetComponentsInChildren<Text>();
             if (texts.Length >= 2)
             {
@@ -358,7 +359,7 @@ public class Enhance_ResultUIController : MonoBehaviour
     }
 
     /// <summary>
-    /// Œ‹‰Ê•\¦‚ÌŒ©‚½–Úİ’è
+    /// çµæœè¡¨ç¤ºã®è¦‹ãŸç›®è¨­å®š
     /// </summary>
     private void SetupResultAppearance(bool isSuccess)
     {
@@ -366,19 +367,19 @@ public class Enhance_ResultUIController : MonoBehaviour
         Color textColor = isSuccess ? successTextColor : failureTextColor;
         Sprite iconSprite = isSuccess ? successIconSprite : failureIconSprite;
 
-        // ”wŒiFİ’è
+        // èƒŒæ™¯è‰²è¨­å®š
         if (resultBackgroundImage != null)
         {
             resultBackgroundImage.color = backgroundColor;
         }
 
-        // ƒAƒCƒRƒ“İ’è
+        // ã‚¢ã‚¤ã‚³ãƒ³è¨­å®š
         if (resultIconImage != null)
         {
             resultIconImage.sprite = iconSprite;
         }
 
-        // ƒeƒLƒXƒgFİ’è
+        // ãƒ†ã‚­ã‚¹ãƒˆè‰²è¨­å®š
         if (resultTitleText != null)
         {
             resultTitleText.color = textColor;
@@ -395,7 +396,7 @@ public class Enhance_ResultUIController : MonoBehaviour
     #region Animation
 
     /// <summary>
-    /// ƒtƒF[ƒhƒCƒ“‰‰o
+    /// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³æ¼”å‡º
     /// </summary>
     private IEnumerator FadeIn()
     {
@@ -419,13 +420,13 @@ public class Enhance_ResultUIController : MonoBehaviour
         }
         else
         {
-            // CanvasGroup‚ª‚È‚¢ê‡‚Í’Pƒ‚É•\¦
+            // CanvasGroupãŒãªã„å ´åˆã¯å˜ç´”ã«è¡¨ç¤º
             yield return new WaitForSeconds(0.1f);
         }
     }
 
     /// <summary>
-    /// ƒtƒF[ƒhƒAƒEƒg‰‰o
+    /// ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆæ¼”å‡º
     /// </summary>
     private IEnumerator FadeOut()
     {
@@ -454,7 +455,7 @@ public class Enhance_ResultUIController : MonoBehaviour
     #region UI Control
 
     /// <summary>
-    /// Œ‹‰Êƒpƒlƒ‹•\¦
+    /// çµæœãƒ‘ãƒãƒ«è¡¨ç¤º
     /// </summary>
     private void ShowResultPanel()
     {
@@ -465,7 +466,7 @@ public class Enhance_ResultUIController : MonoBehaviour
     }
 
     /// <summary>
-    /// Œ‹‰Êƒpƒlƒ‹”ñ•\¦
+    /// çµæœãƒ‘ãƒãƒ«éè¡¨ç¤º
     /// </summary>
     private void HideResultPanel()
     {
@@ -476,7 +477,7 @@ public class Enhance_ResultUIController : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒXƒe[ƒ^ƒX•Ï‰»•\¦ƒNƒŠƒA
+    /// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–è¡¨ç¤ºã‚¯ãƒªã‚¢
     /// </summary>
     private void ClearStatusChangeDisplay()
     {
@@ -493,7 +494,7 @@ public class Enhance_ResultUIController : MonoBehaviour
     #region Audio
 
     /// <summary>
-    /// Œ‹‰Ê‰¹Ä¶
+    /// çµæœéŸ³å†ç”Ÿ
     /// </summary>
     private void PlayResultSound(bool isSuccess)
     {
@@ -501,7 +502,7 @@ public class Enhance_ResultUIController : MonoBehaviour
 
         if (soundClip != null)
         {
-            // AudioSource‚ªƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚éê‡
+            // AudioSourceãŒã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ã‚‹å ´åˆ
             AudioSource audioSource = GetComponent<AudioSource>();
             if (audioSource != null)
             {
@@ -509,13 +510,13 @@ public class Enhance_ResultUIController : MonoBehaviour
             }
             else
             {
-                // ˆê“I‚ÈAudioSource‚ğì¬‚µ‚ÄÄ¶
+                // ä¸€æ™‚çš„ãªAudioSourceã‚’ä½œæˆã—ã¦å†ç”Ÿ
                 GameObject audioObj = new GameObject("TempAudio");
                 AudioSource tempAudioSource = audioObj.AddComponent<AudioSource>();
                 tempAudioSource.clip = soundClip;
                 tempAudioSource.Play();
 
-                // ‰¹ºÄ¶Œã‚ÉƒIƒuƒWƒFƒNƒg‚ğíœ
+                // éŸ³å£°å†ç”Ÿå¾Œã«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å‰Šé™¤
                 Destroy(audioObj, soundClip.length + 0.1f);
             }
         }
@@ -526,16 +527,24 @@ public class Enhance_ResultUIController : MonoBehaviour
     #region Utility
 
     /// <summary>
-    /// ‘•”õƒAƒCƒRƒ““Ç‚İ‚İ
+    /// è£…å‚™ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿ - IDãƒ™ãƒ¼ã‚¹ä¿®æ­£ç‰ˆ
+    /// âœ… Phase 1ãƒ‘ã‚¿ãƒ¼ãƒ³é©ç”¨ï¼šCSVãƒ‘ã‚¹ä¾å­˜ã‹ã‚‰IDãƒ™ãƒ¼ã‚¹ã«å¤‰æ›´
     /// </summary>
-    private Sprite LoadEquipmentIcon(string iconPath)
+    private Sprite LoadEquipmentIcon(int equipmentId)
     {
-        if (string.IsNullOrEmpty(iconPath)) return null;
-        return Resources.Load<Sprite>($"Icons/Equipment/{iconPath}");
+        try
+        {
+            return Resources.Load<Sprite>($"Icons/Equipments/equipment_{equipmentId:D3}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[Enhance_ResultUIController] ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿å¤±æ•—: equipment_{equipmentId:D3}, {e.Message}");
+            return null;
+        }
     }
 
     /// <summary>
-    /// Œ»İ•\¦’†‚©‚Ç‚¤‚©
+    /// ç¾åœ¨è¡¨ç¤ºä¸­ã‹ã©ã†ã‹
     /// </summary>
     public bool IsDisplaying()
     {
@@ -547,7 +556,7 @@ public class Enhance_ResultUIController : MonoBehaviour
     #region Debug
 
     /// <summary>
-    /// ƒfƒoƒbƒO—pF¬Œ÷Œ‹‰ÊƒeƒXƒg
+    /// ãƒ‡ãƒãƒƒã‚°ç”¨ï¼šæˆåŠŸçµæœãƒ†ã‚¹ãƒˆ
     /// </summary>
     [System.Diagnostics.Conditional("UNITY_EDITOR")]
     public void TestSuccessResult()
@@ -555,7 +564,7 @@ public class Enhance_ResultUIController : MonoBehaviour
         EnhanceResultData testData = new EnhanceResultData
         {
             IsSuccess = true,
-            ResultMessage = "‘•”õ‚ª‹­—Í‚É‚È‚è‚Ü‚µ‚½I",
+            ResultMessage = "è£…å‚™ãŒå¼·åŠ›ã«ãªã‚Šã¾ã—ãŸï¼",
             ConsumedEnhanceItemId = 1
         };
 
@@ -563,7 +572,7 @@ public class Enhance_ResultUIController : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒfƒoƒbƒO—pF¸”sŒ‹‰ÊƒeƒXƒg
+    /// ãƒ‡ãƒãƒƒã‚°ç”¨ï¼šå¤±æ•—çµæœãƒ†ã‚¹ãƒˆ
     /// </summary>
     [System.Diagnostics.Conditional("UNITY_EDITOR")]
     public void TestFailureResult()
@@ -571,7 +580,7 @@ public class Enhance_ResultUIController : MonoBehaviour
         EnhanceResultData testData = new EnhanceResultData
         {
             IsSuccess = false,
-            ResultMessage = "‹­‰»‚É¸”s‚µ‚Ü‚µ‚½...",
+            ResultMessage = "å¼·åŒ–ã«å¤±æ•—ã—ã¾ã—ãŸ...",
             ConsumedEnhanceItemId = 1
         };
 
@@ -584,7 +593,7 @@ public class Enhance_ResultUIController : MonoBehaviour
 #region Supporting Classes
 
 /// <summary>
-/// ƒXƒe[ƒ^ƒX•Ï‰»€–ÚUIiƒvƒŒƒnƒu—pj
+/// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–é …ç›®UIï¼ˆãƒ—ãƒ¬ãƒãƒ–ç”¨ï¼‰
 /// </summary>
 public class StatusChangeItem : MonoBehaviour
 {
@@ -610,7 +619,7 @@ public class StatusChangeItem : MonoBehaviour
             changeValueText.color = textColor;
         }
 
-        // •Ï‰»ƒAƒCƒRƒ“‚Ìİ’è
+        // å¤‰åŒ–ã‚¢ã‚¤ã‚³ãƒ³ã®è¨­å®š
         if (changeIcon != null)
         {
             if (changeValue.StartsWith("+"))

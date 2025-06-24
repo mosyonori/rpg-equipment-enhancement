@@ -1,21 +1,22 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
-/// ‘•”õ‹­‰»ƒXƒe[ƒ^ƒX•\¦EƒvƒŒƒrƒ…[UI§ŒäƒNƒ‰ƒX
+/// è£…å‚™å¼·åŒ–ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤ºãƒ»ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼UIã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚¯ãƒ©ã‚¹ - IDãƒ™ãƒ¼ã‚¹ä¿®æ­£ç‰ˆ
 /// 
-/// yÓ”Cz
-/// - Œ»İ‚ÌƒXƒe[ƒ^ƒX•\¦
-/// - ‹­‰»Œã‚ÌƒvƒŒƒrƒ…[•\¦
-/// - Œ»İ’l¨‹­‰»Œã‚Ì•Ï‰»•\¦
-/// - ‘•”õí—Ş‚É‰‚¶‚½“KØ‚ÈƒXƒe[ƒ^ƒX€–Ú•\¦
+/// ã€è²¬ä»»ã€‘
+/// - ç¾åœ¨ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤º
+/// - å¼·åŒ–å¾Œã®ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼è¡¨ç¤º
+/// - ç¾åœ¨å€¤ãƒ»å¼·åŒ–å¾Œã®å¤‰åŒ–è¡¨ç¤º
+/// - è£…å‚™ç¨®é¡ã«å¿œã˜ãŸé©åˆ‡ãªã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹é …ç›®è¡¨ç¤º
 /// 
-/// yå—v‹@”\z
-/// - ‘•”õ‚ÌŒ»İƒXƒe[ƒ^ƒX•\¦
-/// - ‹­‰»ƒAƒCƒeƒ€E•â•Ş—¿‚É‚æ‚é•Ï‰»—\‘z
-/// - ‘®«•Ï‰»‚ÌŒx•\¦
-/// - ƒŠƒAƒ‹ƒ^ƒCƒ€UIXV
+/// ã€é‡è¦æ©Ÿèƒ½ã€‘
+/// - è£…å‚™ã®ç¾åœ¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤º
+/// - å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒ»è£œåŠ©ææ–™ã«ã‚ˆã‚‹å¤‰åŒ–äºˆæ¸¬
+/// - å±æ€§å¤‰åŒ–ã®è­¦å‘Šè¡¨ç¤º
+/// - ãƒªã‚¢ãƒ«ã‚¿ã‚¤ãƒ UIæ›´æ–°
 /// </summary>
 public class Enhance_StatusDisplayController : MonoBehaviour
 {
@@ -32,8 +33,8 @@ public class Enhance_StatusDisplayController : MonoBehaviour
     [SerializeField] private Image changeArrowImage;
 
     [Header("Equipment Info")]
-    [SerializeField] private Text equipmentNameText;
-    [SerializeField] private Text equipmentLevelText;
+    [SerializeField] private TextMeshProUGUI equipmentNameText;
+    [SerializeField] private TextMeshProUGUI equipmentLevelText;
     [SerializeField] private Image equipmentIconImage;
 
     [Header("Colors")]
@@ -42,10 +43,10 @@ public class Enhance_StatusDisplayController : MonoBehaviour
     [SerializeField] private Color noChangeColor = Color.gray;
     [SerializeField] private Color normalTextColor = Color.white;
 
-    // Service‘w
+    // Serviceå±¤
     private EnhanceDataService dataService = new EnhanceDataService();
 
-    // Œ»İ‚Ì•\¦ó‘Ô
+    // ç¾åœ¨ã®è¡¨ç¤ºçŠ¶æ…‹
     private UserEquipment currentEquipment;
     private EnhanceItemMasterData currentEnhanceItem;
     private SupportItemMasterData currentSupportItem;
@@ -53,8 +54,8 @@ public class Enhance_StatusDisplayController : MonoBehaviour
     #region Public Methods
 
     /// <summary>
-    /// ƒXƒe[ƒ^ƒX•\¦‚ğXV
-    /// ŠO•”‚ÌEnhanceUIController‚©‚çŒÄ‚Ño‚³‚ê‚é
+    /// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤ºã‚’æ›´æ–°
+    /// å¤–éƒ¨ã®EnhanceUIControllerã‹ã‚‰å‘¼ã³å‡ºã•ã‚Œã‚‹
     /// </summary>
     public void UpdateDisplay(UserEquipment equipment, EnhanceItemMasterData enhanceItem, SupportItemMasterData supportItem)
     {
@@ -64,33 +65,33 @@ public class Enhance_StatusDisplayController : MonoBehaviour
 
         if (equipment == null)
         {
-            // ‘•”õ–¢‘I‘ğ‚Í•\¦‚ğƒNƒŠƒA
+            // è£…å‚™æœªé¸æŠæ™‚ã¯è¡¨ç¤ºã‚’ã‚¯ãƒªã‚¢
             ClearAllDisplays();
             return;
         }
 
-        // ‘•”õî•ñ•\¦
+        // è£…å‚™æƒ…å ±è¡¨ç¤º
         UpdateEquipmentInfo(equipment);
 
-        // Œ»İƒXƒe[ƒ^ƒX•\¦
+        // ç¾åœ¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤º
         UpdateCurrentStatusDisplay(equipment);
 
         if (enhanceItem != null)
         {
-            // ƒvƒŒƒrƒ…[•\¦
+            // ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼è¡¨ç¤º
             UpdatePreviewDisplay(equipment, enhanceItem, supportItem);
             ShowChangeArrow(true);
         }
         else
         {
-            // ‹­‰»ƒAƒCƒeƒ€–¢‘I‘ğ‚ÍƒvƒŒƒrƒ…[‚ğ”ñ•\¦
+            // å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ æœªé¸æŠæ™‚ã¯ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã‚’éè¡¨ç¤º
             ClearPreviewDisplay();
             ShowChangeArrow(false);
         }
     }
 
     /// <summary>
-    /// •\¦‚ğŠ®‘S‚ÉƒŠƒZƒbƒg
+    /// è¡¨ç¤ºã‚’å®Œå…¨ã«ãƒªã‚»ãƒƒãƒˆ
     /// </summary>
     public void ResetDisplay()
     {
@@ -105,31 +106,59 @@ public class Enhance_StatusDisplayController : MonoBehaviour
     #region Equipment Info Display
 
     /// <summary>
-    /// ‘•”õŠî–{î•ñ•\¦XV
+    /// è£…å‚™åŸºæœ¬æƒ…å ±è¡¨ç¤ºæ›´æ–° - IDãƒ™ãƒ¼ã‚¹ä¿®æ­£ç‰ˆ
     /// </summary>
     private void UpdateEquipmentInfo(UserEquipment equipment)
     {
-        EquipmentMasterData masterData = dataService.GetEquipmentMaster(equipment.equipment_id);
-
-        if (masterData != null)
+        try
         {
-            // ‘•”õ–¼•\¦
-            if (equipmentNameText != null)
-            {
-                equipmentNameText.text = masterData.equipment_name;
-            }
+            EquipmentMasterData masterData = dataService.GetEquipmentMaster(equipment.equipment_id);
 
-            // ‹­‰»ƒŒƒxƒ‹•\¦
-            if (equipmentLevelText != null)
+            if (masterData != null)
             {
-                equipmentLevelText.text = $"+{equipment.current_enhanced_value}";
-            }
+                // è£…å‚™åè¡¨ç¤º
+                if (equipmentNameText != null)
+                {
+                    equipmentNameText.text = masterData.equipment_name;
+                }
 
-            // ƒAƒCƒRƒ“•\¦
-            if (equipmentIconImage != null)
-            {
-                equipmentIconImage.sprite = LoadEquipmentIcon(masterData.equipment_icon_path);
+                // å¼·åŒ–ãƒ¬ãƒ™ãƒ«è¡¨ç¤º
+                if (equipmentLevelText != null)
+                {
+                    equipmentLevelText.text = $"+{equipment.current_enhanced_value}";
+                }
+
+                // âœ… ã‚¢ã‚¤ã‚³ãƒ³è¡¨ç¤º - IDãƒ™ãƒ¼ã‚¹èª­ã¿è¾¼ã¿
+                if (equipmentIconImage != null)
+                {
+                    equipmentIconImage.sprite = LoadEquipmentIcon(masterData.equipment_id);
+                    equipmentIconImage.color = equipmentIconImage.sprite != null ? Color.white : Color.gray;
+                }
             }
+            else
+            {
+                Debug.LogWarning($"[Enhance_StatusDisplayController] è£…å‚™ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: ID={equipment.equipment_id}");
+                ClearEquipmentInfo();
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Enhance_StatusDisplayController] è£…å‚™æƒ…å ±æ›´æ–°ã‚¨ãƒ©ãƒ¼: {e.Message}");
+            ClearEquipmentInfo();
+        }
+    }
+
+    /// <summary>
+    /// è£…å‚™æƒ…å ±ã‚’ã‚¯ãƒªã‚¢
+    /// </summary>
+    private void ClearEquipmentInfo()
+    {
+        if (equipmentNameText != null) equipmentNameText.text = "";
+        if (equipmentLevelText != null) equipmentLevelText.text = "";
+        if (equipmentIconImage != null)
+        {
+            equipmentIconImage.sprite = null;
+            equipmentIconImage.color = Color.gray;
         }
     }
 
@@ -138,36 +167,43 @@ public class Enhance_StatusDisplayController : MonoBehaviour
     #region Current Status Display
 
     /// <summary>
-    /// Œ»İƒXƒe[ƒ^ƒX•\¦XV
+    /// ç¾åœ¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤ºæ›´æ–°
     /// </summary>
     private void UpdateCurrentStatusDisplay(UserEquipment equipment)
     {
-        // Šù‘¶•\¦‚ğƒNƒŠƒA
+        // æ—¢å­˜è¡¨ç¤ºã‚’ã‚¯ãƒªã‚¢
         ClearContainer(currentStatusContainer);
 
-        EquipmentMasterData masterData = dataService.GetEquipmentMaster(equipment.equipment_id);
-        if (masterData == null) return;
-
-        // ‘•”õí—Ş‚É‰‚¶‚½ƒXƒe[ƒ^ƒX€–Ú‚ğ•\¦
-        List<StatusDisplayData> statusList = GetCurrentStatusList(equipment, masterData);
-
-        foreach (var status in statusList)
+        try
         {
-            CreateStatusItem(currentStatusContainer, status.name, status.value.ToString(), normalTextColor);
+            EquipmentMasterData masterData = dataService.GetEquipmentMaster(equipment.equipment_id);
+            if (masterData == null) return;
+
+            // è£…å‚™ç¨®é¡ã«å¿œã˜ãŸã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹é …ç›®ã‚’è¡¨ç¤º
+            List<StatusDisplayData> statusList = GetCurrentStatusList(equipment, masterData);
+
+            foreach (var status in statusList)
+            {
+                CreateStatusItem(currentStatusContainer, status.name, status.value.ToString(), normalTextColor);
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Enhance_StatusDisplayController] ç¾åœ¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤ºã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
     /// <summary>
-    /// Œ»İƒXƒe[ƒ^ƒXˆê——æ“¾
+    /// ç¾åœ¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ä¸€è¦§å–å¾—
     /// </summary>
     private List<StatusDisplayData> GetCurrentStatusList(UserEquipment equipment, EquipmentMasterData masterData)
     {
         List<StatusDisplayData> statusList = new List<StatusDisplayData>();
 
-        // Šî–{ƒXƒe[ƒ^ƒXi‘S‘•”õ‹¤’Êj
-        statusList.Add(new StatusDisplayData("‹­‰»’l", equipment.current_enhanced_value));
+        // åŸºæœ¬ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ï¼ˆå…¨è£…å‚™å…±é€šï¼‰
+        statusList.Add(new StatusDisplayData("å¼·åŒ–å€¤", equipment.current_enhanced_value));
 
-        // ‘•”õí—Ş•ÊƒXƒe[ƒ^ƒX•\¦
+        // è£…å‚™ç¨®é¡åˆ¥ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤º
         switch (masterData.equipment_type)
         {
             case EquipmentType.Weapon:
@@ -181,7 +217,7 @@ public class Enhance_StatusDisplayController : MonoBehaviour
                 break;
         }
 
-        // ‘®«UŒ‚•\¦
+        // å±æ€§æ”»æ’ƒè¡¨ç¤º
         AddAttributeStatusList(statusList, equipment);
 
         return statusList;
@@ -192,15 +228,15 @@ public class Enhance_StatusDisplayController : MonoBehaviour
         if (equipment.hp > 0)
             statusList.Add(new StatusDisplayData("HP", equipment.hp));
         if (equipment.offense > 0)
-            statusList.Add(new StatusDisplayData("UŒ‚—Í", equipment.offense));
+            statusList.Add(new StatusDisplayData("æ”»æ’ƒåŠ›", equipment.offense));
         if (equipment.defense > 0)
-            statusList.Add(new StatusDisplayData("–hŒä—Í", equipment.defense));
+            statusList.Add(new StatusDisplayData("é˜²å¾¡åŠ›", equipment.defense));
         if (equipment.speed > 0)
-            statusList.Add(new StatusDisplayData("‘¬“x", equipment.speed));
+            statusList.Add(new StatusDisplayData("é€Ÿåº¦", equipment.speed));
         if (equipment.critical_rate > 0)
-            statusList.Add(new StatusDisplayData("ƒNƒŠƒeƒBƒJƒ‹—¦", equipment.critical_rate));
+            statusList.Add(new StatusDisplayData("ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ç‡", equipment.critical_rate));
         if (equipment.critical_damage_rate > 0)
-            statusList.Add(new StatusDisplayData("ƒNƒŠƒeƒBƒJƒ‹ƒ_ƒ[ƒW", equipment.critical_damage_rate));
+            statusList.Add(new StatusDisplayData("ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸", equipment.critical_damage_rate));
     }
 
     private void AddArmorStatusList(List<StatusDisplayData> statusList, UserEquipment equipment)
@@ -208,9 +244,9 @@ public class Enhance_StatusDisplayController : MonoBehaviour
         if (equipment.hp > 0)
             statusList.Add(new StatusDisplayData("HP", equipment.hp));
         if (equipment.defense > 0)
-            statusList.Add(new StatusDisplayData("–hŒä—Í", equipment.defense));
+            statusList.Add(new StatusDisplayData("é˜²å¾¡åŠ›", equipment.defense));
         if (equipment.offense > 0)
-            statusList.Add(new StatusDisplayData("UŒ‚—Í", equipment.offense));
+            statusList.Add(new StatusDisplayData("æ”»æ’ƒåŠ›", equipment.offense));
     }
 
     private void AddAccessoryStatusList(List<StatusDisplayData> statusList, UserEquipment equipment)
@@ -218,23 +254,23 @@ public class Enhance_StatusDisplayController : MonoBehaviour
         if (equipment.hp > 0)
             statusList.Add(new StatusDisplayData("HP", equipment.hp));
         if (equipment.offense > 0)
-            statusList.Add(new StatusDisplayData("UŒ‚—Í", equipment.offense));
+            statusList.Add(new StatusDisplayData("æ”»æ’ƒåŠ›", equipment.offense));
         if (equipment.defense > 0)
-            statusList.Add(new StatusDisplayData("–hŒä—Í", equipment.defense));
+            statusList.Add(new StatusDisplayData("é˜²å¾¡åŠ›", equipment.defense));
         if (equipment.speed > 0)
-            statusList.Add(new StatusDisplayData("‘¬“x", equipment.speed));
+            statusList.Add(new StatusDisplayData("é€Ÿåº¦", equipment.speed));
     }
 
     private void AddAttributeStatusList(List<StatusDisplayData> statusList, UserEquipment equipment)
     {
         if (equipment.fire_offence > 0)
-            statusList.Add(new StatusDisplayData("‰Î‘®«UŒ‚", equipment.fire_offence));
+            statusList.Add(new StatusDisplayData("ç«å±æ€§æ”»æ’ƒ", equipment.fire_offence));
         if (equipment.water_offence > 0)
-            statusList.Add(new StatusDisplayData("…‘®«UŒ‚", equipment.water_offence));
+            statusList.Add(new StatusDisplayData("æ°´å±æ€§æ”»æ’ƒ", equipment.water_offence));
         if (equipment.wind_offence > 0)
-            statusList.Add(new StatusDisplayData("•—‘®«UŒ‚", equipment.wind_offence));
+            statusList.Add(new StatusDisplayData("é¢¨å±æ€§æ”»æ’ƒ", equipment.wind_offence));
         if (equipment.earth_offence > 0)
-            statusList.Add(new StatusDisplayData("“y‘®«UŒ‚", equipment.earth_offence));
+            statusList.Add(new StatusDisplayData("åœŸå±æ€§æ”»æ’ƒ", equipment.earth_offence));
     }
 
     #endregion
@@ -242,32 +278,38 @@ public class Enhance_StatusDisplayController : MonoBehaviour
     #region Preview Display
 
     /// <summary>
-    /// ƒvƒŒƒrƒ…[•\¦XV
+    /// ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼è¡¨ç¤ºæ›´æ–°
     /// </summary>
     private void UpdatePreviewDisplay(UserEquipment equipment, EnhanceItemMasterData enhanceItem, SupportItemMasterData supportItem)
     {
-        // Šù‘¶•\¦‚ğƒNƒŠƒA
+        // æ—¢å­˜è¡¨ç¤ºã‚’ã‚¯ãƒªã‚¢
         ClearContainer(previewStatusContainer);
 
-        EquipmentMasterData masterData = dataService.GetEquipmentMaster(equipment.equipment_id);
-        if (masterData == null) return;
-
-        // ‹­‰»Œã—\‘z’l‚ğŒvZ
-        StatusPreviewCalculator calculator = new StatusPreviewCalculator(equipment, enhanceItem, supportItem, masterData);
-        List<StatusPreviewData> previewList = calculator.CalculatePreviewList();
-
-        foreach (var status in previewList)
+        try
         {
-            Color textColor = GetChangeColor(status.change);
-            string displayText = status.afterValue.ToString();
+            EquipmentMasterData masterData = dataService.GetEquipmentMaster(equipment.equipment_id);
+            if (masterData == null) return;
 
-            if (status.change != 0)
+            // å¼·åŒ–å¾Œäºˆæ¸¬å€¤ã‚’è¨ˆç®—
+            List<StatusPreviewData> previewList = CalculateStatusPreview(equipment, enhanceItem, supportItem, masterData);
+
+            foreach (var status in previewList)
             {
-                string changeText = status.change > 0 ? $"(+{status.change})" : $"({status.change})";
-                displayText += " " + changeText;
-            }
+                Color textColor = GetChangeColor(status.change);
+                string displayText = status.afterValue.ToString();
 
-            CreateStatusItem(previewStatusContainer, status.name, displayText, textColor);
+                if (status.change != 0)
+                {
+                    string changeText = status.change > 0 ? $"(+{status.change})" : $"({status.change})";
+                    displayText += " " + changeText;
+                }
+
+                CreateStatusItem(previewStatusContainer, status.name, displayText, textColor);
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Enhance_StatusDisplayController] ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼è¡¨ç¤ºã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
@@ -276,34 +318,46 @@ public class Enhance_StatusDisplayController : MonoBehaviour
     #region UI Utility Methods
 
     /// <summary>
-    /// ƒXƒe[ƒ^ƒX€–ÚUI¶¬
+    /// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹é …ç›®UIä½œæˆ
     /// </summary>
     private void CreateStatusItem(Transform container, string name, string value, Color textColor)
     {
         if (statusItemPrefab == null || container == null) return;
 
-        GameObject itemObj = Instantiate(statusItemPrefab, container);
-        StatusDisplayItem displayItem = itemObj.GetComponent<StatusDisplayItem>();
+        try
+        {
+            GameObject itemObj = Instantiate(statusItemPrefab, container);
+            StatusDisplayItemUI displayItem = itemObj.GetComponent<StatusDisplayItemUI>();
 
-        if (displayItem != null)
-        {
-            displayItem.Setup(name, value, textColor);
-        }
-        else
-        {
-            // ƒtƒH[ƒ‹ƒoƒbƒNF’¼ÚƒeƒLƒXƒgƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ’T‚·
-            Text[] texts = itemObj.GetComponentsInChildren<Text>();
-            if (texts.Length >= 2)
+            if (displayItem != null)
             {
-                texts[0].text = name;
-                texts[1].text = value;
-                texts[1].color = textColor;
+                displayItem.Setup(name, value, textColor);
             }
+            else
+            {
+                // ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ï¼šç›´æ¥ãƒ†ã‚­ã‚¹ãƒˆã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’æ¢ã™
+                Text[] texts = itemObj.GetComponentsInChildren<Text>();
+                if (texts.Length >= 2)
+                {
+                    texts[0].text = name;
+                    texts[1].text = value;
+                    texts[1].color = textColor;
+                }
+                else if (texts.Length == 1)
+                {
+                    texts[0].text = $"{name}: {value}";
+                    texts[0].color = textColor;
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Enhance_StatusDisplayController] ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹é …ç›®ä½œæˆã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
     /// <summary>
-    /// •Ï‰»—Ê‚É‰‚¶‚½Fæ“¾
+    /// å¤‰åŒ–é‡ã«å¿œã˜ãŸè‰²å–å¾—
     /// </summary>
     private Color GetChangeColor(int change)
     {
@@ -313,7 +367,7 @@ public class Enhance_StatusDisplayController : MonoBehaviour
     }
 
     /// <summary>
-    /// •Ï‰»–îˆó•\¦§Œä
+    /// å¤‰åŒ–çŸ¢å°è¡¨ç¤ºåˆ¶å¾¡
     /// </summary>
     private void ShowChangeArrow(bool show)
     {
@@ -324,7 +378,7 @@ public class Enhance_StatusDisplayController : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒRƒ“ƒeƒi“à—eƒNƒŠƒA
+    /// ã‚³ãƒ³ãƒ†ãƒŠå†…å®¹ã‚¯ãƒªã‚¢
     /// </summary>
     private void ClearContainer(Transform container)
     {
@@ -337,21 +391,18 @@ public class Enhance_StatusDisplayController : MonoBehaviour
     }
 
     /// <summary>
-    /// ‘S•\¦ƒNƒŠƒA
+    /// å…¨è¡¨ç¤ºã‚¯ãƒªã‚¢
     /// </summary>
     private void ClearAllDisplays()
     {
         ClearContainer(currentStatusContainer);
         ClearPreviewDisplay();
         ShowChangeArrow(false);
-
-        if (equipmentNameText != null) equipmentNameText.text = "";
-        if (equipmentLevelText != null) equipmentLevelText.text = "";
-        if (equipmentIconImage != null) equipmentIconImage.sprite = null;
+        ClearEquipmentInfo();
     }
 
     /// <summary>
-    /// ƒvƒŒƒrƒ…[•\¦ƒNƒŠƒA
+    /// ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼è¡¨ç¤ºã‚¯ãƒªã‚¢
     /// </summary>
     private void ClearPreviewDisplay()
     {
@@ -359,13 +410,214 @@ public class Enhance_StatusDisplayController : MonoBehaviour
     }
 
     /// <summary>
-    /// ‘•”õƒAƒCƒRƒ““Ç‚İ‚İ
+    /// è£…å‚™ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿ - IDãƒ™ãƒ¼ã‚¹ä¿®æ­£ç‰ˆ
+    /// âœ… Phase 1ãƒ‘ã‚¿ãƒ¼ãƒ³é©ç”¨ï¼šCSVãƒ‘ã‚¹ä¾å­˜ã‹ã‚‰IDãƒ™ãƒ¼ã‚¹ã«å¤‰æ›´
     /// </summary>
-    private Sprite LoadEquipmentIcon(string iconPath)
+    private Sprite LoadEquipmentIcon(int equipmentId)
     {
-        if (string.IsNullOrEmpty(iconPath)) return null;
-        return Resources.Load<Sprite>($"Icons/Equipment/{iconPath}");
+        try
+        {
+            return Resources.Load<Sprite>($"Icons/Equipments/equipment_{equipmentId:D3}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[Enhance_StatusDisplayController] ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿å¤±æ•—: equipment_{equipmentId:D3}, {e.Message}");
+            return null;
+        }
+    }
+
+    #endregion
+
+    #region Status Preview Calculation
+
+    /// <summary>
+    /// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼è¨ˆç®—
+    /// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã¨è£œåŠ©ææ–™ã«ã‚ˆã‚‹å¤‰åŒ–ã‚’äºˆæ¸¬è¨ˆç®—
+    /// </summary>
+    private List<StatusPreviewData> CalculateStatusPreview(UserEquipment equipment, EnhanceItemMasterData enhanceItem, SupportItemMasterData supportItem, EquipmentMasterData equipmentMaster)
+    {
+        List<StatusPreviewData> previewList = new List<StatusPreviewData>();
+
+        // å¼·åŒ–å€¤ã¯å¿…ãš+1
+        int newEnhanceValue = equipment.current_enhanced_value + (enhanceItem?.add_enhanced_value ?? 1);
+        previewList.Add(new StatusPreviewData("å¼·åŒ–å€¤", equipment.current_enhanced_value, newEnhanceValue));
+
+        if (enhanceItem == null) return previewList;
+
+        // è£…å‚™ç¨®é¡åˆ¥ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–è¨ˆç®—
+        switch (equipmentMaster.equipment_type)
+        {
+            case EquipmentType.Weapon:
+                CalculateWeaponStatusPreview(previewList, equipment, enhanceItem);
+                break;
+            case EquipmentType.Armor:
+                CalculateArmorStatusPreview(previewList, equipment, enhanceItem);
+                break;
+            case EquipmentType.Accessory:
+                CalculateAccessoryStatusPreview(previewList, equipment, enhanceItem);
+                break;
+        }
+
+        // å±æ€§æ”»æ’ƒã®å¤‰åŒ–è¨ˆç®—
+        CalculateAttributeStatusPreview(previewList, equipment, enhanceItem, equipmentMaster);
+
+        return previewList;
+    }
+
+    private void CalculateWeaponStatusPreview(List<StatusPreviewData> previewList, UserEquipment equipment, EnhanceItemMasterData enhanceItem)
+    {
+        // æ­¦å™¨ç”¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–
+        AddPreviewIfChanged(previewList, "HP", equipment.hp, equipment.hp + enhanceItem.weapon_hp);
+        AddPreviewIfChanged(previewList, "æ”»æ’ƒåŠ›", equipment.offense, equipment.offense + enhanceItem.weapon_offense);
+        AddPreviewIfChanged(previewList, "é˜²å¾¡åŠ›", equipment.defense, equipment.defense + enhanceItem.weapon_defense);
+        AddPreviewIfChanged(previewList, "é€Ÿåº¦", equipment.speed, equipment.speed + enhanceItem.weapon_speed);
+        AddPreviewIfChanged(previewList, "ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ç‡", equipment.critical_rate, equipment.critical_rate + enhanceItem.weapon_critical_rate);
+        AddPreviewIfChanged(previewList, "ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸", equipment.critical_damage_rate, equipment.critical_damage_rate + enhanceItem.weapon_critical_damage_rate);
+    }
+
+    private void CalculateArmorStatusPreview(List<StatusPreviewData> previewList, UserEquipment equipment, EnhanceItemMasterData enhanceItem)
+    {
+        // é˜²å…·ç”¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–
+        AddPreviewIfChanged(previewList, "HP", equipment.hp, equipment.hp + enhanceItem.armor_hp);
+        AddPreviewIfChanged(previewList, "æ”»æ’ƒåŠ›", equipment.offense, equipment.offense + enhanceItem.armor_offense);
+        AddPreviewIfChanged(previewList, "é˜²å¾¡åŠ›", equipment.defense, equipment.defense + enhanceItem.armor_defense);
+        AddPreviewIfChanged(previewList, "é€Ÿåº¦", equipment.speed, equipment.speed + enhanceItem.armor_speed);
+    }
+
+    private void CalculateAccessoryStatusPreview(List<StatusPreviewData> previewList, UserEquipment equipment, EnhanceItemMasterData enhanceItem)
+    {
+        // ã‚¢ã‚¯ã‚»ã‚µãƒªãƒ¼ç”¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰åŒ–
+        AddPreviewIfChanged(previewList, "HP", equipment.hp, equipment.hp + enhanceItem.accessory_hp);
+        AddPreviewIfChanged(previewList, "æ”»æ’ƒåŠ›", equipment.offense, equipment.offense + enhanceItem.accessory_offense);
+        AddPreviewIfChanged(previewList, "é˜²å¾¡åŠ›", equipment.defense, equipment.defense + enhanceItem.accessory_defense);
+        AddPreviewIfChanged(previewList, "é€Ÿåº¦", equipment.speed, equipment.speed + enhanceItem.accessory_speed);
+    }
+
+    private void CalculateAttributeStatusPreview(List<StatusPreviewData> previewList, UserEquipment equipment, EnhanceItemMasterData enhanceItem, EquipmentMasterData equipmentMaster)
+    {
+        // å±æ€§æ”»æ’ƒå¤‰åŒ–ï¼ˆè£…å‚™ç¨®é¡åˆ¥ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’ä½¿ç”¨ï¼‰
+        int fireIncrease = GetAttributeIncreaseValue("fire", enhanceItem, equipmentMaster);
+        int waterIncrease = GetAttributeIncreaseValue("water", enhanceItem, equipmentMaster);
+        int windIncrease = GetAttributeIncreaseValue("wind", enhanceItem, equipmentMaster);
+        int earthIncrease = GetAttributeIncreaseValue("earth", enhanceItem, equipmentMaster);
+
+        AddPreviewIfChanged(previewList, "ç«å±æ€§æ”»æ’ƒ", equipment.fire_offence, equipment.fire_offence + fireIncrease);
+        AddPreviewIfChanged(previewList, "æ°´å±æ€§æ”»æ’ƒ", equipment.water_offence, equipment.water_offence + waterIncrease);
+        AddPreviewIfChanged(previewList, "é¢¨å±æ€§æ”»æ’ƒ", equipment.wind_offence, equipment.wind_offence + windIncrease);
+        AddPreviewIfChanged(previewList, "åœŸå±æ€§æ”»æ’ƒ", equipment.earth_offence, equipment.earth_offence + earthIncrease);
+    }
+
+    private int GetAttributeIncreaseValue(string attributeType, EnhanceItemMasterData enhanceItem, EquipmentMasterData equipmentMaster)
+    {
+        switch (equipmentMaster.equipment_type)
+        {
+            case EquipmentType.Weapon:
+                switch (attributeType)
+                {
+                    case "fire": return enhanceItem.weapon_fire_offence;
+                    case "water": return enhanceItem.weapon_water_offence;
+                    case "wind": return enhanceItem.weapon_wind_offence;
+                    case "earth": return enhanceItem.weapon_earth_offence;
+                }
+                break;
+            case EquipmentType.Armor:
+                switch (attributeType)
+                {
+                    case "fire": return enhanceItem.armor_fire_offence;
+                    case "water": return enhanceItem.armor_water_offence;
+                    case "wind": return enhanceItem.armor_wind_offence;
+                    case "earth": return enhanceItem.armor_earth_offence;
+                }
+                break;
+            case EquipmentType.Accessory:
+                switch (attributeType)
+                {
+                    case "fire": return enhanceItem.accessory_fire_offence;
+                    case "water": return enhanceItem.accessory_water_offence;
+                    case "wind": return enhanceItem.accessory_wind_offence;
+                    case "earth": return enhanceItem.accessory_earth_offence;
+                }
+                break;
+        }
+        return 0;
+    }
+
+    private void AddPreviewIfChanged(List<StatusPreviewData> previewList, string name, int before, int after)
+    {
+        if (before > 0 || after > 0) // ã©ã¡ã‚‰ã‹ãŒ0ã‚ˆã‚Šå¤§ãã„å ´åˆã«è¡¨ç¤º
+        {
+            previewList.Add(new StatusPreviewData(name, before, after));
+        }
+    }
+
+    #endregion
+
+    #region Data Classes
+
+    /// <summary>
+    /// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤ºç”¨ãƒ‡ãƒ¼ã‚¿ã‚¯ãƒ©ã‚¹
+    /// </summary>
+    [System.Serializable]
+    public class StatusDisplayData
+    {
+        public string name;
+        public int value;
+
+        public StatusDisplayData(string statusName, int statusValue)
+        {
+            name = statusName;
+            value = statusValue;
+        }
+    }
+
+    /// <summary>
+    /// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ç”¨ãƒ‡ãƒ¼ã‚¿ã‚¯ãƒ©ã‚¹
+    /// </summary>
+    [System.Serializable]
+    public class StatusPreviewData
+    {
+        public string name;
+        public int beforeValue;
+        public int afterValue;
+        public int change;
+
+        public StatusPreviewData(string statusName, int before, int after)
+        {
+            name = statusName;
+            beforeValue = before;
+            afterValue = after;
+            change = after - before;
+        }
     }
 
     #endregion
 }
+
+#region Supporting Classes
+
+/// <summary>
+/// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤ºé …ç›®UIï¼ˆãƒ—ãƒ¬ãƒãƒ–ç”¨ï¼‰
+/// </summary>
+public class StatusDisplayItemUI : MonoBehaviour
+{
+    [Header("UI Elements")]
+    public Text statusNameText;
+    public Text statusValueText;
+    public Image statusIcon;
+
+    public void Setup(string name, string value, Color textColor)
+    {
+        if (statusNameText != null)
+        {
+            statusNameText.text = name;
+        }
+
+        if (statusValueText != null)
+        {
+            statusValueText.text = value;
+            statusValueText.color = textColor;
+        }
+    }
+}
+
+#endregion

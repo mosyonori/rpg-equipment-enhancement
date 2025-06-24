@@ -1,19 +1,20 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
-/// 装備リスト個別アイテムUI制御クラス
-/// 装備一覧での個別装備の表示とクリック処理を担当
+/// 装備リスト個別アイテムUI制御クラス - プロパティ名修正版
+/// 装備一覧での個別装備の表示とクリック処理を全担当
 /// </summary>
 public class EquipmentListItemUI : MonoBehaviour
 {
     [Header("UI Elements")]
     [SerializeField] private Button itemButton;
     [SerializeField] private Image equipmentIcon;
-    [SerializeField] private Text equipmentNameText;
-    [SerializeField] private Text enhanceLevelText;
-    [SerializeField] private Text equipmentTypeText;
-    [SerializeField] private Text powerText;
+    [SerializeField] private TextMeshProUGUI equipmentNameText;
+    [SerializeField] private TextMeshProUGUI enhanceLevelText;
+    [SerializeField] private TextMeshProUGUI equipmentTypeText;
+    [SerializeField] private TextMeshProUGUI powerText;
 
     [Header("Display Settings")]
     [SerializeField] private Color normalColor = Color.white;
@@ -50,6 +51,13 @@ public class EquipmentListItemUI : MonoBehaviour
             // マスターデータ取得
             masterData = dataService.GetEquipmentMaster(equipment.equipment_id);
 
+            if (masterData == null)
+            {
+                Debug.LogWarning($"[EquipmentListItemUI] 装備マスターデータが見つかりません: {equipment.equipment_id}");
+                SetDefaultDisplay();
+                return;
+            }
+
             // UI更新
             UpdateDisplay();
 
@@ -74,7 +82,7 @@ public class EquipmentListItemUI : MonoBehaviour
     /// </summary>
     private void UpdateDisplay()
     {
-        if (equipmentData == null)
+        if (equipmentData == null || masterData == null)
         {
             SetDefaultDisplay();
             return;
@@ -160,7 +168,7 @@ public class EquipmentListItemUI : MonoBehaviour
     {
         if (equipmentIcon != null && masterData != null)
         {
-            Sprite icon = LoadEquipmentIcon(masterData.equipment_icon_path);
+            Sprite icon = LoadEquipmentIcon(masterData.equipment_id);
             equipmentIcon.sprite = icon;
             equipmentIcon.color = normalColor;
         }
@@ -256,6 +264,8 @@ public class EquipmentListItemUI : MonoBehaviour
         if (equipmentData == null) return 0;
 
         int power = 0;
+
+        // 基本ステータスから戦闘力計算
         power += equipmentData.hp / 10; // HPは10分の1で戦闘力に換算
         power += equipmentData.offense;
         power += equipmentData.defense;
@@ -267,28 +277,33 @@ public class EquipmentListItemUI : MonoBehaviour
         power += equipmentData.wind_offence;
         power += equipmentData.earth_offence;
 
+        // クリティカル関連の計算（簡略化）
+        if (equipmentData.critical_rate > 0)
+        {
+            power += equipmentData.critical_rate / 5; // クリティカル率は5分の1で戦闘力に換算
+        }
+
+        if (equipmentData.critical_damage_rate > 100)
+        {
+            power += (equipmentData.critical_damage_rate - 100) / 10; // 基準値100%を超えた分の10分の1
+        }
+
         return power;
     }
 
     /// <summary>
     /// 装備アイコン読み込み
     /// </summary>
-    private Sprite LoadEquipmentIcon(string iconPath)
+    private Sprite LoadEquipmentIcon(int equipmentId)
     {
-        if (string.IsNullOrEmpty(iconPath))
-        {
-            return null;
-        }
-
         try
         {
-            // TODO: 実際のアイコン読み込み実装
-            // Resources.Load<Sprite>(iconPath) などを使用
-            return null;
+            // Unity上のマスターデータからアイコンを読み込み（IDベース）
+            return Resources.Load<Sprite>($"Icons/Equipments/equipment_{equipmentId:D3}");
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[EquipmentListItemUI] アイコン読み込み失敗: {iconPath}, {e.Message}");
+            Debug.LogWarning($"[EquipmentListItemUI] アイコン読み込み失敗: equipment_{equipmentId:D3}, {e.Message}");
             return null;
         }
     }
@@ -303,6 +318,19 @@ public class EquipmentListItemUI : MonoBehaviour
         if (itemButton != null)
         {
             itemButton.onClick.RemoveAllListeners();
+        }
+    }
+
+    #endregion
+
+    #region Debug Methods
+
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    private void LogEquipmentDetails()
+    {
+        if (equipmentData != null)
+        {
+            Debug.Log($"[EquipmentListItemUI] 装備詳細: ID={equipmentData.equipment_id}, 強化値=+{equipmentData.current_enhanced_value}, 戦闘力={CalculateEquipmentPower()}");
         }
     }
 

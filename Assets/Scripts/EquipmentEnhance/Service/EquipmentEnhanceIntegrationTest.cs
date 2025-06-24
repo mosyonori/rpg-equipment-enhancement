@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using TMPro;
 
 /// <summary>
 /// 装備強化Service層の統合テスト

@@ -3,8 +3,8 @@
     {
       "unique_id": "eq_001", // ユニークID
       "equipment_id": 1,     // マスターデータのID
-      "current_enhanced_value": 5,
-      "current_enhance_stamina": 8,
+      "current_enhanced_value": 1,
+      "current_enhance_stamina": 80,
       "is_equipped": true,
       "acquired_time": "2025-06-22T10:00:00Z"
     }

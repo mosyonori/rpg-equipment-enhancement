@@ -1,10 +1,13 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
-/// ‘•”õ‹­‰»‰æ–Ê‚ÌƒƒCƒ“§ŒäƒNƒ‰ƒX - ‘SController‘Î‰”Å
-/// ŠeUI Controller‚Ì“‡AService‘w‚Æ‚Ì˜AŒgA‘I‘ğó‘ÔŠÇ—‚ğ‘S”Ê
+/// è£…å‚™å¼·åŒ–ç”»é¢ã®ãƒ¡ã‚¤ãƒ³åˆ¶å¾¡ã‚¯ãƒ©ã‚¹ - å…¨Controllerçµ±åˆç‰ˆ
+/// å„UI Controllerã®çµ±åˆã€Serviceå±¤ã¨ã®é€£æºã€é¸æŠçŠ¶æ…‹ç®¡ç†ã‚’å…¨èˆ¬
+/// 
+/// âœ… Phase 2å®Œäº†ç‰ˆï¼šãƒ‡ãƒ¼ã‚¿ã‚¢ã‚¯ã‚»ã‚¹çµ±ä¸€ãƒ»ã‚¨ãƒ©ãƒ¼ãƒãƒ³ãƒ‰ãƒªãƒ³ã‚°å¼·åŒ–
 /// </summary>
 public class EnhanceUIController : MonoBehaviour
 {
@@ -17,26 +20,28 @@ public class EnhanceUIController : MonoBehaviour
 
     [Header("UI Elements")]
     [SerializeField] private Button enhanceExecuteButton;
-    [SerializeField] private Text successRateText;
-    [SerializeField] private Text instructionText;
+    [SerializeField] private TextMeshProUGUI successRateText;
+    [SerializeField] private TextMeshProUGUI instructionText;
     [SerializeField] private Button homeButton;
 
     [Header("Colors")]
     [SerializeField] private Color enabledButtonColor = Color.white;
     [SerializeField] private Color disabledButtonColor = Color.gray;
     [SerializeField] private Color normalTextColor = Color.white;
+    [SerializeField] private Color warningTextColor = Color.red;
+    [SerializeField] private Color instructionTextColor = Color.yellow;
 
-    // Service‘wiŠ®¬Ï‚İj
+    // Serviceå±¤ï¼ˆå®Œæˆæ¸ˆã¿ï¼‰
     private EquipmentEnhanceService enhanceService = new EquipmentEnhanceService();
     private SuccessRateService successRateService = new SuccessRateService();
     private AttributeManagementService attributeService = new AttributeManagementService();
 
-    // ‘I‘ğó‘Ô
+    // é¸æŠçŠ¶æ…‹
     private UserEquipment selectedEquipment;
     private EnhanceItemMasterData selectedEnhanceItem;
     private SupportItemMasterData selectedSupportItem;
 
-    // Àsó‘Ô
+    // å®Ÿè¡ŒçŠ¶æ…‹
     private bool isProcessing = false;
 
     #region Unity Lifecycle
@@ -58,61 +63,87 @@ public class EnhanceUIController : MonoBehaviour
     #region Initialization
 
     /// <summary>
-    /// UI‰Šú‰»
+    /// UIåˆæœŸåŒ–
     /// </summary>
     private void InitializeUI()
     {
-        // ‰Šúó‘Ôİ’è
-        ResetAllSelections();
-
-        // ‹­‰»ƒAƒCƒeƒ€‘I‘ğ‚ğ–³Œø‰»i‘•”õ‘I‘ğ‚Ü‚Åj
-        enhanceItemSelectUI.SetInteractable(false);
-
-        // ƒXƒe[ƒ^ƒX•\¦‚à‰Šú‰»
-        if (statusDisplayUI != null)
+        try
         {
-            statusDisplayUI.ResetDisplay();
-        }
+            // åˆæœŸçŠ¶æ…‹è¨­å®š
+            ResetAllSelections();
 
-        Debug.Log("[EnhanceUIController] UI‰Šú‰»Š®—¹");
+            // å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ é¸æŠã‚’ç„¡åŠ¹åŒ–ï¼ˆè£…å‚™é¸æŠã¾ã§ï¼‰
+            if (enhanceItemSelectUI != null)
+            {
+                enhanceItemSelectUI.SetInteractable(false);
+            }
+
+            // ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤ºã‚‚åˆæœŸåŒ–
+            if (statusDisplayUI != null)
+            {
+                statusDisplayUI.ResetDisplay();
+            }
+
+            Debug.Log("[EnhanceUIController] UIåˆæœŸåŒ–å®Œäº†");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[EnhanceUIController] UIåˆæœŸåŒ–ã‚¨ãƒ©ãƒ¼: {e.Message}");
+        }
     }
 
     /// <summary>
-    /// ƒCƒxƒ“ƒgƒŠƒXƒi[İ’è
+    /// ã‚¤ãƒ™ãƒ³ãƒˆãƒªã‚¹ãƒŠãƒ¼è¨­å®š
     /// </summary>
     private void SetupEventListeners()
     {
-        // ŠeUI Controller‚ÌƒCƒxƒ“ƒgw“Ç
-        if (equipmentSelectUI != null)
-            equipmentSelectUI.OnEquipmentSelected += OnEquipmentSelected;
-        if (enhanceItemSelectUI != null)
-            enhanceItemSelectUI.OnEnhanceItemSelected += OnEnhanceItemSelected;
-        if (supportItemSelectUI != null)
-            supportItemSelectUI.OnSupportItemSelected += OnSupportItemSelected;
+        try
+        {
+            // å„UI Controllerã®ã‚¤ãƒ™ãƒ³ãƒˆè³¼èª­
+            if (equipmentSelectUI != null)
+                equipmentSelectUI.OnEquipmentSelected += OnEquipmentSelected;
+            if (enhanceItemSelectUI != null)
+                enhanceItemSelectUI.OnEnhanceItemSelected += OnEnhanceItemSelected;
+            if (supportItemSelectUI != null)
+                supportItemSelectUI.OnSupportItemSelected += OnSupportItemSelected;
 
-        // ƒ{ƒ^ƒ“ƒCƒxƒ“ƒgİ’è
-        if (enhanceExecuteButton != null)
-            enhanceExecuteButton.onClick.AddListener(OnEnhanceExecuteButtonClicked);
-        if (homeButton != null)
-            homeButton.onClick.AddListener(OnHomeButtonClicked);
+            // ãƒœã‚¿ãƒ³ã‚¤ãƒ™ãƒ³ãƒˆè¨­å®š
+            if (enhanceExecuteButton != null)
+                enhanceExecuteButton.onClick.AddListener(OnEnhanceExecuteButtonClicked);
+            if (homeButton != null)
+                homeButton.onClick.AddListener(OnHomeButtonClicked);
+
+            Debug.Log("[EnhanceUIController] ã‚¤ãƒ™ãƒ³ãƒˆãƒªã‚¹ãƒŠãƒ¼è¨­å®šå®Œäº†");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[EnhanceUIController] ã‚¤ãƒ™ãƒ³ãƒˆè¨­å®šã‚¨ãƒ©ãƒ¼: {e.Message}");
+        }
     }
 
     /// <summary>
-    /// ƒCƒxƒ“ƒgƒŠƒXƒi[íœ
+    /// ã‚¤ãƒ™ãƒ³ãƒˆãƒªã‚¹ãƒŠãƒ¼å‰Šé™¤
     /// </summary>
     private void RemoveEventListeners()
     {
-        if (equipmentSelectUI != null)
-            equipmentSelectUI.OnEquipmentSelected -= OnEquipmentSelected;
-        if (enhanceItemSelectUI != null)
-            enhanceItemSelectUI.OnEnhanceItemSelected -= OnEnhanceItemSelected;
-        if (supportItemSelectUI != null)
-            supportItemSelectUI.OnSupportItemSelected -= OnSupportItemSelected;
+        try
+        {
+            if (equipmentSelectUI != null)
+                equipmentSelectUI.OnEquipmentSelected -= OnEquipmentSelected;
+            if (enhanceItemSelectUI != null)
+                enhanceItemSelectUI.OnEnhanceItemSelected -= OnEnhanceItemSelected;
+            if (supportItemSelectUI != null)
+                supportItemSelectUI.OnSupportItemSelected -= OnSupportItemSelected;
 
-        if (enhanceExecuteButton != null)
-            enhanceExecuteButton.onClick.RemoveAllListeners();
-        if (homeButton != null)
-            homeButton.onClick.RemoveAllListeners();
+            if (enhanceExecuteButton != null)
+                enhanceExecuteButton.onClick.RemoveAllListeners();
+            if (homeButton != null)
+                homeButton.onClick.RemoveAllListeners();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[EnhanceUIController] ã‚¤ãƒ™ãƒ³ãƒˆå‰Šé™¤ã‚¨ãƒ©ãƒ¼: {e.Message}");
+        }
     }
 
     #endregion
@@ -120,50 +151,80 @@ public class EnhanceUIController : MonoBehaviour
     #region Selection Event Handlers
 
     /// <summary>
-    /// ‘•”õ‘I‘ğ‚Ìˆ—
+    /// è£…å‚™é¸æŠæ™‚ã®å‡¦ç†
     /// </summary>
     public void OnEquipmentSelected(UserEquipment equipment)
     {
-        selectedEquipment = equipment;
+        try
+        {
+            selectedEquipment = equipment;
 
-        // ‘•”õ‘I‘ğŒã‚Í‹­‰»ƒAƒCƒeƒ€‘I‘ğ‚ğ—LŒø‰»
-        enhanceItemSelectUI.SetInteractable(true);
-        enhanceItemSelectUI.SetSelectedEquipment(equipment);
+            // è£…å‚™é¸æŠå¾Œã¯å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ é¸æŠã‚’æœ‰åŠ¹åŒ–
+            if (enhanceItemSelectUI != null)
+            {
+                enhanceItemSelectUI.SetInteractable(true);
+                enhanceItemSelectUI.SetSelectedEquipment(equipment);
+            }
 
-        // ‹­‰»ƒAƒCƒeƒ€‚Ì‘I‘ğó‘Ô‚ğƒŠƒZƒbƒgi‘•”õ•ÏXj
-        selectedEnhanceItem = null;
-        enhanceItemSelectUI.ResetSelection();
+            // å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã®é¸æŠçŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆï¼ˆè£…å‚™å¤‰æ›´æ™‚ï¼‰
+            selectedEnhanceItem = null;
+            if (enhanceItemSelectUI != null)
+            {
+                enhanceItemSelectUI.ResetSelection();
+            }
 
-        // •â•Ş—¿‚Ì‘I‘ğó‘Ô‚àƒŠƒZƒbƒg
-        selectedSupportItem = null;
-        supportItemSelectUI.ResetSelection();
+            // è£œåŠ©ææ–™ã®é¸æŠçŠ¶æ…‹ã‚‚ãƒªã‚»ãƒƒãƒˆ
+            selectedSupportItem = null;
+            if (supportItemSelectUI != null)
+            {
+                supportItemSelectUI.ResetSelection();
+            }
 
-        UpdateUI();
+            UpdateUI();
 
-        Debug.Log($"[EnhanceUIController] ‘•”õ‘I‘ğ: {equipment.equipment_id}");
+            Debug.Log($"[EnhanceUIController] è£…å‚™é¸æŠ: {equipment.equipment_id}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[EnhanceUIController] è£…å‚™é¸æŠã‚¨ãƒ©ãƒ¼: {e.Message}");
+        }
     }
 
     /// <summary>
-    /// ‹­‰»ƒAƒCƒeƒ€‘I‘ğ‚Ìˆ—
+    /// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ é¸æŠæ™‚ã®å‡¦ç†
     /// </summary>
     public void OnEnhanceItemSelected(EnhanceItemMasterData enhanceItem)
     {
-        selectedEnhanceItem = enhanceItem;
-        UpdateUI();
+        try
+        {
+            selectedEnhanceItem = enhanceItem;
+            UpdateUI();
 
-        Debug.Log($"[EnhanceUIController] ‹­‰»ƒAƒCƒeƒ€‘I‘ğ: {enhanceItem.enhance_item_id}");
+            Debug.Log($"[EnhanceUIController] å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ é¸æŠ: {enhanceItem.enhance_item_id}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[EnhanceUIController] å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ é¸æŠã‚¨ãƒ©ãƒ¼: {e.Message}");
+        }
     }
 
     /// <summary>
-    /// •â•Ş—¿‘I‘ğ‚Ìˆ—
+    /// è£œåŠ©ææ–™é¸æŠæ™‚ã®å‡¦ç†
     /// </summary>
     public void OnSupportItemSelected(SupportItemMasterData supportItem)
     {
-        selectedSupportItem = supportItem; // null‚Ìê‡‚Íug—p‚µ‚È‚¢v
-        UpdateUI();
+        try
+        {
+            selectedSupportItem = supportItem; // nullã®å ´åˆã¯ã€Œä½¿ç”¨ã—ãªã„ã€
+            UpdateUI();
 
-        string itemName = supportItem != null ? supportItem.support_item_name : "g—p‚µ‚È‚¢";
-        Debug.Log($"[EnhanceUIController] •â•Ş—¿‘I‘ğ: {itemName}");
+            string itemName = supportItem != null ? supportItem.support_item_name : "ä½¿ç”¨ã—ãªã„";
+            Debug.Log($"[EnhanceUIController] è£œåŠ©ææ–™é¸æŠ: {itemName}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[EnhanceUIController] è£œåŠ©ææ–™é¸æŠã‚¨ãƒ©ãƒ¼: {e.Message}");
+        }
     }
 
     #endregion
@@ -171,115 +232,129 @@ public class EnhanceUIController : MonoBehaviour
     #region UI Update
 
     /// <summary>
-    /// UI‘S‘ÌXV
+    /// UIå…¨ä½“æ›´æ–°
     /// </summary>
     private void UpdateUI()
     {
-        UpdateSuccessRateDisplay();
-        UpdateInstructionText();
-        UpdateEnhanceButtonState();
-
-        // ƒXƒe[ƒ^ƒX•\¦XV
-        if (statusDisplayUI != null)
+        try
         {
-            statusDisplayUI.UpdateDisplay(selectedEquipment, selectedEnhanceItem, selectedSupportItem);
+            UpdateSuccessRateDisplay();
+            UpdateInstructionText();
+            UpdateEnhanceButtonState();
+
+            // ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤ºæ›´æ–°
+            if (statusDisplayUI != null)
+            {
+                statusDisplayUI.UpdateDisplay(selectedEquipment, selectedEnhanceItem, selectedSupportItem);
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[EnhanceUIController] UIæ›´æ–°ã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
     /// <summary>
-    /// ¬Œ÷—¦•\¦XV
+    /// æˆåŠŸç‡è¡¨ç¤ºæ›´æ–°
     /// </summary>
     private void UpdateSuccessRateDisplay()
     {
         if (successRateText == null) return;
 
-        if (selectedEquipment != null && selectedEnhanceItem != null)
+        try
         {
-            try
+            if (selectedEquipment != null && selectedEnhanceItem != null)
             {
                 string rateText = successRateService.GetSuccessRateDisplayText(
                     selectedEquipment, selectedEnhanceItem, selectedSupportItem);
-                successRateText.text = $"¬Œ÷—¦: {rateText}";
-                successRateText.color = Color.white;
+                successRateText.text = $"æˆåŠŸç‡: {rateText}";
+                successRateText.color = normalTextColor;
             }
-            catch (System.Exception e)
+            else
             {
-                Debug.LogWarning($"[EnhanceUIController] ¬Œ÷—¦ŒvZƒGƒ‰[: {e.Message}");
-                successRateText.text = "¬Œ÷—¦: --%";
-                successRateText.color = Color.red;
+                successRateText.text = "æˆåŠŸç‡: --%";
+                successRateText.color = disabledButtonColor;
             }
         }
-        else
+        catch (System.Exception e)
         {
-            successRateText.text = "¬Œ÷—¦: --%";
-            successRateText.color = disabledButtonColor;
+            Debug.LogWarning($"[EnhanceUIController] æˆåŠŸç‡è¨ˆç®—ã‚¨ãƒ©ãƒ¼: {e.Message}");
+            successRateText.text = "æˆåŠŸç‡: ã‚¨ãƒ©ãƒ¼";
+            successRateText.color = warningTextColor;
         }
     }
 
     /// <summary>
-    /// w¦E’ˆÓƒeƒLƒXƒgXV
+    /// æŒ‡ç¤ºãƒ»æ³¨æ„ãƒ†ã‚­ã‚¹ãƒˆæ›´æ–°
     /// </summary>
     private void UpdateInstructionText()
     {
         if (instructionText == null) return;
 
-        if (selectedEquipment == null || selectedEnhanceItem == null)
+        try
         {
-            // ‘I‘ğ–¢Š®—¹‚Ìê‡
-            if (selectedEquipment == null)
+            if (selectedEquipment == null || selectedEnhanceItem == null)
             {
-                instructionText.text = "‘•”õ‚Æ‹­‰»ƒAƒCƒeƒ€‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢";
-                instructionText.color = Color.yellow;
+                // é¸æŠæœªå®Œäº†ã®å ´åˆ
+                if (selectedEquipment == null)
+                {
+                    instructionText.text = "è£…å‚™ã¨å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚’é¸æŠã—ã¦ãã ã•ã„";
+                    instructionText.color = instructionTextColor;
+                }
+                else
+                {
+                    instructionText.text = "å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚’é¸æŠã—ã¦ãã ã•ã„";
+                    instructionText.color = instructionTextColor;
+                }
             }
             else
             {
-                instructionText.text = "‹­‰»ƒAƒCƒeƒ€‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢";
-                instructionText.color = Color.yellow;
-            }
-        }
-        else
-        {
-            // ‘®«Œxƒ`ƒFƒbƒN
-            try
-            {
+                // å±æ€§è­¦å‘Šãƒã‚§ãƒƒã‚¯
                 string warning = attributeService.GetAttributeChangeWarning(selectedEquipment, selectedEnhanceItem);
 
                 if (string.IsNullOrEmpty(warning))
                 {
-                    instructionText.text = ""; // Œx‚È‚µ
+                    instructionText.text = ""; // è­¦å‘Šãªã—
                     instructionText.color = normalTextColor;
                 }
                 else
                 {
                     instructionText.text = warning;
-                    instructionText.color = Color.red; // Œx‚ÍÔF
+                    instructionText.color = warningTextColor; // è­¦å‘Šã¯èµ¤è‰²
                 }
             }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning($"[EnhanceUIController] ‘®«Œxƒ`ƒFƒbƒNƒGƒ‰[: {e.Message}");
-                instructionText.text = "";
-                instructionText.color = normalTextColor;
-            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[EnhanceUIController] å±æ€§è­¦å‘Šãƒã‚§ãƒƒã‚¯ã‚¨ãƒ©ãƒ¼: {e.Message}");
+            instructionText.text = "";
+            instructionText.color = normalTextColor;
         }
     }
 
     /// <summary>
-    /// ‹­‰»Àsƒ{ƒ^ƒ“ó‘ÔXV
+    /// å¼·åŒ–å®Ÿè¡Œãƒœã‚¿ãƒ³çŠ¶æ…‹æ›´æ–°
     /// </summary>
     private void UpdateEnhanceButtonState()
     {
         if (enhanceExecuteButton == null) return;
 
-        bool canEnhance = selectedEquipment != null && selectedEnhanceItem != null && !isProcessing;
-
-        enhanceExecuteButton.interactable = canEnhance;
-
-        // ƒ{ƒ^ƒ“ƒeƒLƒXƒg‚ÌF•ÏX
-        Text buttonText = enhanceExecuteButton.GetComponentInChildren<Text>();
-        if (buttonText != null)
+        try
         {
-            buttonText.color = canEnhance ? enabledButtonColor : disabledButtonColor;
+            bool canEnhance = selectedEquipment != null && selectedEnhanceItem != null && !isProcessing;
+
+            enhanceExecuteButton.interactable = canEnhance;
+
+            // ãƒœã‚¿ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®è‰²å¤‰æ›´
+            Text buttonText = enhanceExecuteButton.GetComponentInChildren<Text>();
+            if (buttonText != null)
+            {
+                buttonText.color = canEnhance ? enabledButtonColor : disabledButtonColor;
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[EnhanceUIController] ãƒœã‚¿ãƒ³çŠ¶æ…‹æ›´æ–°ã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
@@ -288,7 +363,7 @@ public class EnhanceUIController : MonoBehaviour
     #region Button Event Handlers
 
     /// <summary>
-    /// ‹­‰»Àsƒ{ƒ^ƒ“ƒNƒŠƒbƒNˆ—
+    /// å¼·åŒ–å®Ÿè¡Œãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯å‡¦ç†
     /// </summary>
     public void OnEnhanceExecuteButtonClicked()
     {
@@ -299,17 +374,17 @@ public class EnhanceUIController : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒz[ƒ€ƒ{ƒ^ƒ“ƒNƒŠƒbƒNˆ—
+    /// ãƒ›ãƒ¼ãƒ ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯å‡¦ç†
     /// </summary>
     public void OnHomeButtonClicked()
     {
         if (!isProcessing)
         {
-            Debug.Log("[EnhanceUIController] ƒz[ƒ€‰æ–Ê‚É‘JˆÚ");
+            Debug.Log("[EnhanceUIController] ãƒ›ãƒ¼ãƒ ç”»é¢ã«é·ç§»");
 
-            // ƒJƒXƒ^ƒ€SceneManager‚ğ—DæA‚È‚¯‚ê‚ÎUnity•W€‚ğg—p
             try
             {
+                // ã‚«ã‚¹ã‚¿ãƒ SceneManagerã‚’å„ªå…ˆã€ãªã‘ã‚Œã°Unityæ¨™æº–ã‚’ä½¿ç”¨
                 if (SceneManager.Instance != null)
                 {
                     SceneManager.Instance.LoadHomeScene();
@@ -319,8 +394,10 @@ public class EnhanceUIController : MonoBehaviour
                     UnityEngine.SceneManagement.SceneManager.LoadScene("HomeScene");
                 }
             }
-            catch
+            catch (System.Exception e)
             {
+                Debug.LogWarning($"[EnhanceUIController] ã‚·ãƒ¼ãƒ³é·ç§»ã‚¨ãƒ©ãƒ¼: {e.Message}");
+                // ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯
                 UnityEngine.SceneManagement.SceneManager.LoadScene("HomeScene");
             }
         }
@@ -331,21 +408,21 @@ public class EnhanceUIController : MonoBehaviour
     #region Enhance Process
 
     /// <summary>
-    /// ‹­‰»ˆ—Às
+    /// å¼·åŒ–å‡¦ç†å®Ÿè¡Œ
     /// </summary>
     private IEnumerator ExecuteEnhanceProcess()
     {
         isProcessing = true;
 
-        Debug.Log("[EnhanceUIController] ‹­‰»ˆ—ŠJn");
+        Debug.Log("[EnhanceUIController] å¼·åŒ–å‡¦ç†é–‹å§‹");
 
-        // UI–³Œø‰»
+        // UIç„¡åŠ¹åŒ–
         SetUIInteractable(false);
 
         EnhanceResultData result = null;
         bool hasError = false;
 
-        // ‹­‰»Àsitry-catch‚Íyield return‚ÌŠO‚ÅÀsj
+        // å¼·åŒ–å®Ÿè¡Œï¼ˆtry-catchã¯yield returnã®å¤–ã§å®Ÿè¡Œï¼‰
         try
         {
             int supportItemId = selectedSupportItem != null ? selectedSupportItem.support_item_id : -1;
@@ -356,64 +433,64 @@ public class EnhanceUIController : MonoBehaviour
                 supportItemId
             );
 
-            // Œ‹‰ÊƒƒbƒZ[ƒW‚Ìİ’è
+            // çµæœãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®è¨­å®š
             if (result != null && string.IsNullOrEmpty(result.ResultMessage))
             {
                 result.ResultMessage = result.IsSuccess ?
-                    "‘•”õ‚Ì‹­‰»‚É¬Œ÷‚µ‚Ü‚µ‚½I" :
-                    "‘•”õ‚Ì‹­‰»‚É¸”s‚µ‚Ü‚µ‚½...";
+                    "è£…å‚™ã®å¼·åŒ–ã«æˆåŠŸã—ã¾ã—ãŸï¼" :
+                    "è£…å‚™ã®å¼·åŒ–ã«å¤±æ•—ã—ã¾ã—ãŸ...";
             }
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"[EnhanceUIController] ‹­‰»ˆ—ƒGƒ‰[: {e.Message}");
+            Debug.LogError($"[EnhanceUIController] å¼·åŒ–å‡¦ç†ã‚¨ãƒ©ãƒ¼: {e.Message}");
             hasError = true;
 
-            // ƒGƒ‰[‚ÌŒ‹‰Êƒf[ƒ^ì¬
+            // ã‚¨ãƒ©ãƒ¼æ™‚ã®çµæœãƒ‡ãƒ¼ã‚¿ä½œæˆ
             result = new EnhanceResultData
             {
                 IsSuccess = false,
-                ResultMessage = "‹­‰»ˆ—’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½",
+                ResultMessage = "å¼·åŒ–å‡¦ç†ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ",
                 EnhancedEquipment = selectedEquipment,
                 ConsumedEnhanceItemId = selectedEnhanceItem.enhance_item_id,
                 ConsumedSupportItemId = selectedSupportItem?.support_item_id ?? -1
             };
         }
 
-        // Œ‹‰Ê•\¦iyield return‚ğŠÜ‚Şˆ—j
+        // çµæœè¡¨ç¤ºï¼ˆyield returnã‚’å«ã‚€å‡¦ç†ï¼‰
         if (result != null)
         {
             yield return ShowEnhanceResult(result);
 
-            // ¬Œ÷‚Í‘I‘ğó‘Ô‚ğƒŠƒZƒbƒg
+            // æˆåŠŸæ™‚ã¯é¸æŠçŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆ
             if (result.IsSuccess && !hasError)
             {
                 ResetAllSelections();
             }
         }
 
-        // UIÄ—LŒø‰»
+        // UIå†æœ‰åŠ¹åŒ–
         SetUIInteractable(true);
         UpdateUI();
         isProcessing = false;
 
-        Debug.Log($"[EnhanceUIController] ‹­‰»ˆ—Š®—¹: {(result?.IsSuccess == true ? "¬Œ÷" : "¸”s")}");
+        Debug.Log($"[EnhanceUIController] å¼·åŒ–å‡¦ç†å®Œäº†: {(result?.IsSuccess == true ? "æˆåŠŸ" : "å¤±æ•—")}");
     }
 
     /// <summary>
-    /// ‹­‰»Œ‹‰Ê•\¦
+    /// å¼·åŒ–çµæœè¡¨ç¤º
     /// </summary>
     private IEnumerator ShowEnhanceResult(EnhanceResultData result)
     {
         if (resultUI != null)
         {
-            // Œ‹‰Ê•\¦UI‚ğg—p
+            // çµæœè¡¨ç¤ºUIã‚’ä½¿ç”¨
             yield return resultUI.ShowResult(result);
         }
         else
         {
-            // ƒtƒH[ƒ‹ƒoƒbƒNFŠÈˆÕ•\¦
-            Debug.Log($"[EnhanceUIController] ‹­‰»Œ‹‰Ê: {result.ResultMessage}");
+            // ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ï¼šç°¡æ˜“è¡¨ç¤º
+            Debug.Log($"[EnhanceUIController] å¼·åŒ–çµæœ: {result.ResultMessage}");
 
             if (instructionText != null)
             {
@@ -425,7 +502,7 @@ public class EnhanceUIController : MonoBehaviour
 
                 yield return new WaitForSeconds(2f);
 
-                // Œ³‚ÌƒeƒLƒXƒg‚É–ß‚·
+                // å…ƒã®ãƒ†ã‚­ã‚¹ãƒˆã«æˆ»ã™
                 instructionText.text = originalText;
                 instructionText.color = originalColor;
             }
@@ -441,75 +518,95 @@ public class EnhanceUIController : MonoBehaviour
     #region Utility Methods
 
     /// <summary>
-    /// ‘S‘I‘ğó‘Ô‚ğƒŠƒZƒbƒg
+    /// å…¨é¸æŠçŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆ
     /// </summary>
     private void ResetAllSelections()
     {
-        selectedEquipment = null;
-        selectedEnhanceItem = null;
-        selectedSupportItem = null;
-
-        // ŠeUI Controller‚ÌƒŠƒZƒbƒg
-        equipmentSelectUI?.ResetSelection();
-        enhanceItemSelectUI?.ResetSelection();
-        supportItemSelectUI?.ResetSelection();
-
-        // ƒXƒe[ƒ^ƒX•\¦‚àƒŠƒZƒbƒg
-        if (statusDisplayUI != null)
+        try
         {
-            statusDisplayUI.ResetDisplay();
+            selectedEquipment = null;
+            selectedEnhanceItem = null;
+            selectedSupportItem = null;
+
+            // å„UI Controllerã®ãƒªã‚»ãƒƒãƒˆ
+            if (equipmentSelectUI != null)
+                equipmentSelectUI.ResetSelection();
+            if (enhanceItemSelectUI != null)
+                enhanceItemSelectUI.ResetSelection();
+            if (supportItemSelectUI != null)
+                supportItemSelectUI.ResetSelection();
+
+            // ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤ºã‚‚ãƒªã‚»ãƒƒãƒˆ
+            if (statusDisplayUI != null)
+            {
+                statusDisplayUI.ResetDisplay();
+            }
+
+            // å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ é¸æŠã‚’å†åº¦ç„¡åŠ¹åŒ–
+            if (enhanceItemSelectUI != null)
+            {
+                enhanceItemSelectUI.SetInteractable(false);
+            }
+
+            Debug.Log("[EnhanceUIController] å…¨é¸æŠçŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆ");
         }
-
-        // ‹­‰»ƒAƒCƒeƒ€‘I‘ğ‚ğÄ“x–³Œø‰»
-        enhanceItemSelectUI?.SetInteractable(false);
-
-        Debug.Log("[EnhanceUIController] ‘S‘I‘ğó‘Ô‚ğƒŠƒZƒbƒg");
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[EnhanceUIController] é¸æŠãƒªã‚»ãƒƒãƒˆã‚¨ãƒ©ãƒ¼: {e.Message}");
+        }
     }
 
     /// <summary>
-    /// UI‘€ì‰Â”\ó‘Ôİ’è
+    /// UIæ“ä½œå¯èƒ½çŠ¶æ…‹è¨­å®š
     /// </summary>
     private void SetUIInteractable(bool interactable)
     {
-        // ŠeController‚Ì‘€ì‰Â”\ó‘Ôİ’è
-        if (equipmentSelectUI != null)
+        try
         {
-            equipmentSelectUI.SetInteractable(interactable);
-        }
+            // å„Controllerã®æ“ä½œå¯èƒ½çŠ¶æ…‹è¨­å®š
+            if (equipmentSelectUI != null)
+            {
+                equipmentSelectUI.SetInteractable(interactable);
+            }
 
-        if (enhanceItemSelectUI != null)
+            if (enhanceItemSelectUI != null)
+            {
+                enhanceItemSelectUI.SetInteractable(interactable && selectedEquipment != null);
+            }
+
+            if (supportItemSelectUI != null)
+            {
+                supportItemSelectUI.SetInteractable(interactable);
+            }
+
+            // ãƒ›ãƒ¼ãƒ ãƒœã‚¿ãƒ³
+            if (homeButton != null)
+            {
+                homeButton.interactable = interactable;
+            }
+
+            // å¼·åŒ–å®Ÿè¡Œãƒœã‚¿ãƒ³ã¯åˆ¥é€”UpdateUI()ã§åˆ¶å¾¡
+        }
+        catch (System.Exception e)
         {
-            enhanceItemSelectUI.SetInteractable(interactable && selectedEquipment != null);
+            Debug.LogWarning($"[EnhanceUIController] UIçŠ¶æ…‹è¨­å®šã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
-
-        if (supportItemSelectUI != null)
-        {
-            supportItemSelectUI.SetInteractable(interactable);
-        }
-
-        // ƒz[ƒ€ƒ{ƒ^ƒ“
-        if (homeButton != null)
-        {
-            homeButton.interactable = interactable;
-        }
-
-        // ‹­‰»Àsƒ{ƒ^ƒ“‚Í•Ê“rUpdateUI()‚Å§Œä
     }
 
     /// <summary>
-    /// ‘I‘ğó‘Ô‚ÌŒŸØ
+    /// é¸æŠçŠ¶æ…‹ã®æ¤œè¨¼
     /// </summary>
     public bool ValidateSelections()
     {
         if (selectedEquipment == null)
         {
-            Debug.LogWarning("[EnhanceUIController] ‘•”õ‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+            Debug.LogWarning("[EnhanceUIController] è£…å‚™ãŒé¸æŠã•ã‚Œã¦ã„ã¾ã›ã‚“");
             return false;
         }
 
         if (selectedEnhanceItem == null)
         {
-            Debug.LogWarning("[EnhanceUIController] ‹­‰»ƒAƒCƒeƒ€‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+            Debug.LogWarning("[EnhanceUIController] å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãŒé¸æŠã•ã‚Œã¦ã„ã¾ã›ã‚“");
             return false;
         }
 
@@ -517,7 +614,7 @@ public class EnhanceUIController : MonoBehaviour
     }
 
     /// <summary>
-    /// Œ»İ‚Ì‘I‘ğó‘Ôæ“¾
+    /// ç¾åœ¨ã®é¸æŠçŠ¶æ…‹å–å¾—
     /// </summary>
     public (UserEquipment equipment, EnhanceItemMasterData enhanceItem, SupportItemMasterData supportItem) GetCurrentSelections()
     {
@@ -525,7 +622,7 @@ public class EnhanceUIController : MonoBehaviour
     }
 
     /// <summary>
-    /// ‹­‰»ˆ—’†‚©‚Ç‚¤‚©
+    /// å¼·åŒ–å‡¦ç†ä¸­ã‹ã©ã†ã‹
     /// </summary>
     public bool IsProcessing()
     {
@@ -539,14 +636,14 @@ public class EnhanceUIController : MonoBehaviour
     [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void LogCurrentSelections()
     {
-        Debug.Log($"[EnhanceUIController] Œ»İ‚Ì‘I‘ğó‘Ô:");
-        Debug.Log($"  ‘•”õ: {(selectedEquipment != null ? selectedEquipment.equipment_id.ToString() : "–¢‘I‘ğ")}");
-        Debug.Log($"  ‹­‰»ƒAƒCƒeƒ€: {(selectedEnhanceItem != null ? selectedEnhanceItem.enhance_item_id.ToString() : "–¢‘I‘ğ")}");
-        Debug.Log($"  •â•Ş—¿: {(selectedSupportItem != null ? selectedSupportItem.support_item_name : "g—p‚µ‚È‚¢")}");
+        Debug.Log($"[EnhanceUIController] ç¾åœ¨ã®é¸æŠçŠ¶æ…‹:");
+        Debug.Log($"  è£…å‚™: {(selectedEquipment != null ? selectedEquipment.equipment_id.ToString() : "æœªé¸æŠ")}");
+        Debug.Log($"  å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ : {(selectedEnhanceItem != null ? selectedEnhanceItem.enhance_item_id.ToString() : "æœªé¸æŠ")}");
+        Debug.Log($"  è£œåŠ©ææ–™: {(selectedSupportItem != null ? selectedSupportItem.support_item_name : "ä½¿ç”¨ã—ãªã„")}");
     }
 
     /// <summary>
-    /// ƒGƒfƒBƒ^—pF‹­‰»¬Œ÷ƒeƒXƒg
+    /// ã‚¨ãƒ‡ã‚£ã‚¿ç”¨ï¼šå¼·åŒ–æˆåŠŸãƒ†ã‚¹ãƒˆ
     /// </summary>
     [System.Diagnostics.Conditional("UNITY_EDITOR")]
     public void TestSuccessEnhance()
@@ -558,7 +655,7 @@ public class EnhanceUIController : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒGƒfƒBƒ^—pF‹­‰»¸”sƒeƒXƒg
+    /// ã‚¨ãƒ‡ã‚£ã‚¿ç”¨ï¼šå¼·åŒ–å¤±æ•—ãƒ†ã‚¹ãƒˆ
     /// </summary>
     [System.Diagnostics.Conditional("UNITY_EDITOR")]
     public void TestFailureEnhance()
@@ -575,30 +672,30 @@ public class EnhanceUIController : MonoBehaviour
 
     private void OnValidate()
     {
-        // Inspectorİ’è‚ÌŒŸØ
+        // Inspectorè¨­å®šã®æ¤œè¨¼
         if (enhanceExecuteButton == null)
         {
-            Debug.LogWarning("[EnhanceUIController] ‹­‰»Àsƒ{ƒ^ƒ“‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+            Debug.LogWarning("[EnhanceUIController] å¼·åŒ–å®Ÿè¡Œãƒœã‚¿ãƒ³ãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“");
         }
 
         if (successRateText == null)
         {
-            Debug.LogWarning("[EnhanceUIController] ¬Œ÷—¦ƒeƒLƒXƒg‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+            Debug.LogWarning("[EnhanceUIController] æˆåŠŸç‡ãƒ†ã‚­ã‚¹ãƒˆãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“");
         }
 
         if (instructionText == null)
         {
-            Debug.LogWarning("[EnhanceUIController] w¦ƒeƒLƒXƒg‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+            Debug.LogWarning("[EnhanceUIController] æŒ‡ç¤ºãƒ†ã‚­ã‚¹ãƒˆãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“");
         }
 
         if (statusDisplayUI == null)
         {
-            Debug.LogWarning("[EnhanceUIController] ƒXƒe[ƒ^ƒX•\¦UI‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+            Debug.LogWarning("[EnhanceUIController] ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤ºUIãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“");
         }
 
         if (resultUI == null)
         {
-            Debug.LogWarning("[EnhanceUIController] Œ‹‰Ê•\¦UI‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+            Debug.LogWarning("[EnhanceUIController] çµæœè¡¨ç¤ºUIãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“");
         }
     }
 

@@ -110,8 +110,8 @@
     <Compile Include="Assets\dawnloadAsetts\CaptainCatSparrow\ArmorAndJewelry\Scenes\Scripts\DragObject.cs" />
     <Compile Include="Assets\Scripts\EquipmentEnhance\UI\Enhance_EnhanceItemSelectUIController.cs" />
     <Compile Include="Assets\Scripts\EquipmentEnhance\Data\StatusPreviewCalculator.cs" />
-    <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\CameraController.cs" />
     <Compile Include="Assets\Scripts\EquipmentEnhance\Data\EnhanceResultData.cs" />
+    <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\CameraController.cs" />
     <Compile Include="Assets\Scripts\EquipmentEnhance\Service\EnhanceDataService.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark03.cs" />
     <Compile Include="Assets\Scripts\EquipmentEnhance\Service\EnhanceCalculationServiceTest.cs" />
