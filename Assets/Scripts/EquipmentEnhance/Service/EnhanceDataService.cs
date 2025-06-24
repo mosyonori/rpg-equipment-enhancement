@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System;
 
 /// <summary>
 /// 装備強化関連のデータ取得・保存専用サービス（Phase 1: 基本機能のみ）
@@ -654,4 +655,70 @@ public class EnhanceStatusValues
                $"クリ率:{critical_rate}, クリダメ:{critical_damage_rate}, " +
                $"火:{fire_offence}, 水:{water_offence}, 風:{wind_offence}, 土:{earth_offence}";
     }
+}
+
+/// <summary>
+/// ユーザープロフィール
+/// </summary>
+[System.Serializable]
+public class UserProfile
+{
+    public int userId;
+    public int level;
+    public int experience;
+    public int stamina;
+    public int maxStamina;
+    public int gold;
+    public int gems;
+    public System.DateTime lastLoginTime;
+    public System.DateTime lastStaminaRecoveryTime;
+    public int mainCharacterId;
+}
+
+/// <summary>
+/// ユーザースキル
+/// </summary>
+[System.Serializable]
+public class UserSkill
+{
+    public int skill_id;
+    public System.DateTime acquired_time;
+    public string unlock_source;
+}
+
+/// <summary>
+/// 音響設定データ
+/// </summary>
+[System.Serializable]
+public class AudioSettingsData
+{
+    public float bgmVolume = 1.0f;
+    public float seVolume = 1.0f;
+}
+
+/// <summary>
+/// クエストマスターデータ
+/// </summary>
+[System.Serializable]
+public class QuestMasterData
+{
+    public int questId;
+    public string questName;
+    public string description;
+    public QuestType questType;
+    public int needLevel;
+    public int requiredClearQuest;
+    public int clearLimit;
+    public int requiredStamina;
+    public int recommendedPower;
+}
+
+/// <summary>
+/// クエストタイプ
+/// </summary>
+public enum QuestType
+{
+    Normal,
+    Daily,
+    Event
 }

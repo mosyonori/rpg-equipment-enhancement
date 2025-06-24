@@ -1,6 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 
 /// <summary>
 /// データの読み書き専用Manager（バランス版）
@@ -251,9 +254,9 @@ public class DataManager : MonoBehaviour
 
     // ===== ユーザープロフィール =====
 
-        /// <summary>
-        /// ユーザープロフィール取得
-        /// </summary>
+    /// <summary>
+    /// ユーザープロフィール取得
+    /// </summary>
     public UserProfile GetUserProfile()
     {
         return saveDataContainer.GetUserProfile();
@@ -324,12 +327,11 @@ public class DataManager : MonoBehaviour
         // コルーチンを実行し、例外をキャッチ
         bool completed = false;
         StartCoroutine(ExecuteCoroutineWithErrorCapture(coroutine,
-    (result, ex) => {
-        success = result;
-        caughtException = ex;
-        completed = true;
-    }));
-
+            (result, ex) => {
+                success = result;
+                caughtException = ex;
+                completed = true;
+            }));
 
         // 完了まで待機
         yield return new WaitUntil(() => completed);
@@ -364,7 +366,6 @@ public class DataManager : MonoBehaviour
 
         callback?.Invoke(success, caughtException);
     }
-
 
     // ===== 設定データ =====
 
@@ -428,8 +429,7 @@ public class MasterDataContainer
     /// </summary>
     public IEnumerator LoadAllMasterDataAsync()
     {
-        // CSVファイルからマスターデータを読み込む
-        // TODO: 実際のCSV読み込み処理実装
+        // CSVファイルからマスターデータを読み込み
         yield return LoadEquipmentMasters();
         yield return LoadEnhanceItemMasters();
         yield return LoadSupportItemMasters();
@@ -463,30 +463,189 @@ public class MasterDataContainer
                questMasters.Count > 0;
     }
 
-    // ===== 個別データ読み込み（TODO: 実装） =====
+    // ===== 個別データ読み込み（実装予定） =====
 
     private IEnumerator LoadEquipmentMasters()
     {
         // TODO: m_equipment_data.csv 読み込み
+        // 仮のテストデータを作成
+        CreateTestEquipmentData();
         yield return null;
     }
 
     private IEnumerator LoadEnhanceItemMasters()
     {
         // TODO: m_enhance_item_data.csv 読み込み
+        // 仮のテストデータを作成
+        CreateTestEnhanceItemData();
         yield return null;
     }
 
     private IEnumerator LoadSupportItemMasters()
     {
         // TODO: m_support_item_data.csv 読み込み
+        // 仮のテストデータを作成
+        CreateTestSupportItemData();
         yield return null;
     }
 
     private IEnumerator LoadQuestMasters()
     {
         // TODO: m_quest_data.csv 読み込み
+        // 仮のテストデータを作成
+        CreateTestQuestData();
         yield return null;
+    }
+
+    // ===== テストデータ作成（CSV実装まで） =====
+
+    private void CreateTestEquipmentData()
+    {
+        var equipment1 = new EquipmentMasterData
+        {
+            equipment_id = 1,
+            equipment_name = "初心者の剣",
+            equipment_type = EquipmentType.Weapon,
+            rarity = "common",
+            base_enhanced_value = 0,
+            max_enhanced_value = 999,
+            min_enhanced_value = 0,
+            base_enhance_stamina = 100,
+            equipment_icon_path = "Icons/sword_beginner",
+            description = "初心者が使う剣。最低限の攻撃力がある。",
+            hp = 0,
+            offense = 1,
+            defense = 0,
+            speed = 0,
+            critical_rate = 10,
+            critical_damage_rate = 150,
+            fire_offence = 0,
+            water_offence = 0,
+            wind_offence = 0,
+            earth_offence = 0
+        };
+
+        equipmentMasters[1] = equipment1;
+        Debug.Log("MasterDataContainer: テスト装備データ作成完了");
+    }
+
+    private void CreateTestEnhanceItemData()
+    {
+        var enhanceItem1 = new EnhanceItemMasterData
+        {
+            enhance_item_id = 1,
+            enhance_item_name = "低級強化石",
+            attribute_type = "normal",
+            rarity = "common",
+            max_stack_value = 999,
+            add_enhanced_value = 1,
+            reduce_enhanced_value = 0,
+            add_enhance_stamina = 0,
+            reduce_enhance_stamina = 1,
+            enhance_success_rate = 90,
+            enhance_item_icon_path = "Icons/enhance_stone_low",
+            description = "低品質な強化石。能力の伸びは悪い。",
+            completion_flag = 1,
+            collection_flag = 1,
+
+            // 武器用ステータス増加値
+            weapon_hp = 0,
+            weapon_offense = 1,
+            weapon_defense = 0,
+            weapon_speed = 0,
+            weapon_critical_rate = 0,
+            weapon_critical_damage_rate = 1,
+            weapon_fire_offence = 0,
+            weapon_water_offence = 0,
+            weapon_wind_offence = 0,
+            weapon_earth_offence = 0,
+
+            // 防具用ステータス増加値
+            armor_hp = 3,
+            armor_offense = 0,
+            armor_defense = 1,
+            armor_speed = 0,
+            armor_critical_rate = 0,
+            armor_critical_damage_rate = 0,
+            armor_fire_offence = 0,
+            armor_water_offence = 0,
+            armor_wind_offence = 0,
+            armor_earth_offence = 0,
+
+            // アクセサリ用ステータス増加値
+            accessory_hp = 1,
+            accessory_offense = 1,
+            accessory_defense = 1,
+            accessory_speed = 0,
+            accessory_critical_rate = 0,
+            accessory_critical_damage_rate = 0,
+            accessory_fire_offence = 0,
+            accessory_water_offence = 0,
+            accessory_wind_offence = 0,
+            accessory_earth_offence = 0
+        };
+
+        enhanceItemMasters[1] = enhanceItem1;
+        Debug.Log("MasterDataContainer: テスト強化アイテムデータ作成完了");
+    }
+
+    private void CreateTestSupportItemData()
+    {
+        var supportItem1 = new SupportItemMasterData
+        {
+            support_item_id = 1,
+            support_item_name = "古びたコイン",
+            attribute_type = "normal",
+            rarity = "common",
+            infinite_use = 0,
+            max_stack_value = 999,
+            add_enhanced_value = 0,
+            multipl_enhanced_value = 1,
+            reduce_enhanced_value = 0,
+            add_enhance_stamina = 0,
+            reduce_enhance_stamina = 0,
+            add_enhance_success_rate = 10,
+            reduce_enhance_success_rate = 0,
+            multipl_status_up = 1,
+            enhance_item_icon_path = "Icons/coin_old",
+            description = "古いコイン。成功率が増加する。",
+            completion_flag = 1,
+            collection_flag = 1,
+
+            // 補助材料の直接ステータス効果
+            hp = 0,
+            offense = 0,
+            defense = 0,
+            speed = 0,
+            critical_rate = 0,
+            critical_damage_rate = 0,
+            fire_offence = 0,
+            water_offence = 0,
+            wind_offence = 0,
+            earth_offence = 0
+        };
+
+        supportItemMasters[1] = supportItem1;
+        Debug.Log("MasterDataContainer: テスト補助材料データ作成完了");
+    }
+
+    private void CreateTestQuestData()
+    {
+        var quest1 = new QuestMasterData
+        {
+            questId = 1,
+            questName = "初心者の試練",
+            description = "冒険の第一歩を踏み出そう",
+            questType = QuestType.Normal,
+            needLevel = 1,
+            requiredClearQuest = -1,
+            clearLimit = -1,
+            requiredStamina = 1,
+            recommendedPower = 100
+        };
+
+        questMasters[1] = quest1;
+        Debug.Log("MasterDataContainer: テストクエストデータ作成完了");
     }
 
     // ===== データ取得メソッド =====
@@ -568,18 +727,24 @@ public class SaveDataContainer
     public IEnumerator LoadUserProfileAsync()
     {
         // TODO: user_profile.json 読み込み
+        // 仮のテストデータを作成
+        CreateTestUserProfile();
         yield return null;
     }
 
     public IEnumerator LoadUserEquipmentsAsync()
     {
         // TODO: user_equipment.json 読み込み
+        // 仮のテストデータを作成
+        CreateTestUserEquipments();
         yield return null;
     }
 
     public IEnumerator LoadUserItemsAsync()
     {
         // TODO: user_items.json 読み込み
+        // 仮のテストデータを作成
+        CreateTestUserItems();
         yield return null;
     }
 
@@ -592,7 +757,76 @@ public class SaveDataContainer
     public IEnumerator LoadAudioSettingsAsync()
     {
         // TODO: audio_settings.json 読み込み
+        // デフォルト設定を作成
+        audioSettings = new AudioSettingsData();
         yield return null;
+    }
+
+    // ===== テストデータ作成 =====
+
+    private void CreateTestUserProfile()
+    {
+        userProfile = new UserProfile
+        {
+            userId = 1,
+            level = 1,
+            experience = 0,
+            stamina = 10,
+            maxStamina = 10,
+            gold = 1000,
+            gems = 100,
+            lastLoginTime = DateTime.Now,
+            lastStaminaRecoveryTime = DateTime.Now,
+            mainCharacterId = 1
+        };
+        Debug.Log("SaveDataContainer: テストユーザープロフィール作成完了");
+    }
+
+    private void CreateTestUserEquipments()
+    {
+        var equipment1 = new UserEquipment
+        {
+            unique_id = "eq_001",
+            equipment_id = 1,
+            current_enhanced_value = 0,
+            current_enhance_stamina = 100,
+            is_equipped = true,
+            acquired_time = DateTime.Now,
+            hp = 0,
+            offense = 1,
+            defense = 0,
+            speed = 0,
+            critical_rate = 10,
+            critical_damage_rate = 150,
+            fire_offence = 0,
+            water_offence = 0,
+            wind_offence = 0,
+            earth_offence = 0
+        };
+
+        userEquipments.Add(equipment1);
+        Debug.Log("SaveDataContainer: テストユーザー装備データ作成完了");
+    }
+
+    private void CreateTestUserItems()
+    {
+        var item1 = new UserItem
+        {
+            item_id = 1,
+            item_type = ItemType.EnhanceItem,
+            quantity = 10
+        };
+
+        var item2 = new UserItem
+        {
+            item_id = 1,
+            item_type = ItemType.SupportItem,
+            quantity = 5
+        };
+
+        userItems.Add(item1);
+        userItems.Add(item2);
+        Debug.Log("SaveDataContainer: テストユーザーアイテムデータ作成完了");
     }
 
     // ===== データ取得メソッド =====
@@ -667,70 +901,5 @@ public class SaveDataContainer
     }
 }
 
-// ===== 追加データクラス =====
-
-/// <summary>
-/// ユーザープロフィール
-/// </summary>
-[System.Serializable]
-public class UserProfile
-{
-    public int userId;
-    public int level;
-    public int experience;
-    public int stamina;
-    public int maxStamina;
-    public int gold;
-    public int gems;
-    public System.DateTime lastLoginTime;
-    public System.DateTime lastStaminaRecoveryTime;
-    public int mainCharacterId;
-}
-
-/// <summary>
-/// ユーザースキル
-/// </summary>
-[System.Serializable]
-public class UserSkill
-{
-    public int skill_id;
-    public System.DateTime acquired_time;
-    public string unlock_source;
-}
-
-/// <summary>
-/// 音響設定データ
-/// </summary>
-[System.Serializable]
-public class AudioSettingsData
-{
-    public float bgmVolume = 1.0f;
-    public float seVolume = 1.0f;
-}
-
-/// <summary>
-/// クエストマスターデータ
-/// </summary>
-[System.Serializable]
-public class QuestMasterData
-{
-    public int questId;
-    public string questName;
-    public string description;
-    public QuestType questType;
-    public int needLevel;
-    public int requiredClearQuest;
-    public int clearLimit;
-    public int requiredStamina;
-    public int recommendedPower;
-}
-
-/// <summary>
-/// クエストタイプ
-/// </summary>
-public enum QuestType
-{
-    Normal,
-    Daily,
-    Event
-}
+// ===== データクラス定義はEnhanceDataService.csに移動 =====
+// DataManager.csは軽量化のため、データアクセスメソッドのみを提供

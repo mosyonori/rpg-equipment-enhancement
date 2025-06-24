@@ -4814,6 +4814,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1012912624}
   m_CullTransparentMesh: 1
+--- !u!1 &1024337130
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1024337132}
+  - component: {fileID: 1024337131}
+  m_Layer: 0
+  m_Name: ServiceTestManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1024337131
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1024337130}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6763b9b5b37caef45a27800e2663cb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoRunOnStart: 1
+  initWaitTime: 1
+  enhanceIntegrationTest: {fileID: 1150414593}
+--- !u!4 &1024337132
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1024337130}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 531.6716, y: 947.06744, z: -22.140263}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1026469085
 GameObject:
   m_ObjectHideFlags: 0
@@ -5495,7 +5542,7 @@ GameObject:
   - component: {fileID: 1150414594}
   - component: {fileID: 1150414593}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: EquipmentEnhanceIntegrationTest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5513,7 +5560,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 197f5176ccae8c2488089137a2bffee3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  autoRunOnStart: 1
+  autoRunOnStart: 0
   enableDetailedLogs: 1
 --- !u!4 &1150414594
 Transform:
@@ -9194,6 +9241,65 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1980395360}
   m_CullTransparentMesh: 1
+--- !u!1 &1988658082
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1988658084}
+  - component: {fileID: 1988658083}
+  - component: {fileID: 1988658085}
+  m_Layer: 0
+  m_Name: DataManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1988658083
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1988658082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c11c9ced5cdfd064980cdbfb70a7cfc0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1988658084
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1988658082}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 531.6716, y: 947.06744, z: -22.140263}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1988658085
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1988658082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23557cfb250edbc4f8337fdc3b6a34b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoInitOnStart: 1
+  delayBeforeInit: 0.5
 --- !u!1 &2016931902
 GameObject:
   m_ObjectHideFlags: 0
@@ -9584,3 +9690,5 @@ SceneRoots:
   - {fileID: 1540385077}
   - {fileID: 753773289}
   - {fileID: 1150414594}
+  - {fileID: 1988658084}
+  - {fileID: 1024337132}
