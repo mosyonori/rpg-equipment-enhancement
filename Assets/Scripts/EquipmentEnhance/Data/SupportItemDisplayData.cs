@@ -205,7 +205,7 @@ namespace EquipmentEnhance.Data
                 masterData.support_item_name,
                 ownedQuantity,
                 masterData.description,
-                masterData.enhance_item_icon_path,
+                masterData.support_item_icon_path,
                 masterData.rarity,
                 masterData.add_enhance_success_rate,
                 masterData.reduce_enhance_success_rate,

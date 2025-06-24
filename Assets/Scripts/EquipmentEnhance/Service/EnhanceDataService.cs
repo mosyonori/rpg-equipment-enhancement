@@ -1,36 +1,153 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using System;
 
 /// <summary>
-/// ‘•”õ‹­‰»ŠÖ˜A‚Ìƒf[ƒ^æ“¾E•Û‘¶ê—pƒT[ƒrƒXiPhase 1: Šî–{‹@”\‚Ì‚İj
-/// - C³Fƒf[ƒ^ƒAƒNƒZƒX‚Ì–â‘è‚Í‚±‚±‚¾‚¯ƒ`ƒFƒbƒN
-/// - –ğŠ„FDataManager‚Æ‚Ì‹´“n‚µAŠî–{“I‚Èƒf[ƒ^æ“¾
+/// è£…å‚™å¼·åŒ–é–¢é€£ã®ãƒ‡ãƒ¼ã‚¿å–å¾—ãƒ»ä¿å­˜å°‚ç”¨ã‚µãƒ¼ãƒ“ã‚¹ï¼ˆPhase 1: åŸºæœ¬æ©Ÿèƒ½ã®ã¿ï¼‰
+/// - ä¿®æ­£æ™‚ï¼šãƒ‡ãƒ¼ã‚¿ã‚¢ã‚¯ã‚»ã‚¹ã®å•é¡Œã¯ã“ã“ã ã‘ãƒã‚§ãƒƒã‚¯
+/// - å½¹å‰²ï¼šDataManagerã¨ã®æ©‹æ¸¡ã—ã€åŸºæœ¬çš„ãªãƒ‡ãƒ¼ã‚¿å–å¾—
 /// </summary>
 public class EnhanceDataService
-{
+
+
+
+{/// <summary>
+ /// è£…å‚™ã‚¢ã‚¤ã‚³ãƒ³å–å¾—ï¼ˆãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿å„ªå…ˆã€ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ä»˜ãï¼‰
+ /// </summary>
+    public Sprite GetEquipmentIcon(int equipmentId)
+    {
+        try
+        {
+            // 1. ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‹ã‚‰ãƒ‘ã‚¹å–å¾—
+            EquipmentMasterData masterData = GetEquipmentMaster(equipmentId);
+            if (masterData != null && !string.IsNullOrEmpty(masterData.equipment_icon_path))
+            {
+                Sprite sprite = Resources.Load<Sprite>(masterData.equipment_icon_path);
+                if (sprite != null)
+                {
+                    Debug.Log($"âœ… è£…å‚™ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿æˆåŠŸ(ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿): {masterData.equipment_icon_path}");
+                    return sprite;
+                }
+            }
+
+            // 2. ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯: IDãƒ™ãƒ¼ã‚¹èª­ã¿è¾¼ã¿
+            string fallbackPath = $"Icons/Equipments/equipment_{equipmentId:D3}";
+            Sprite fallbackSprite = Resources.Load<Sprite>(fallbackPath);
+            if (fallbackSprite != null)
+            {
+                Debug.Log($"âœ… è£…å‚™ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿æˆåŠŸ(ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯): {fallbackPath}");
+                return fallbackSprite;
+            }
+
+            Debug.LogWarning($"âš ï¸ è£…å‚™ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿å¤±æ•—: equipment_id={equipmentId}");
+            return null;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"âŒ è£…å‚™ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿ã‚¨ãƒ©ãƒ¼: equipment_id={equipmentId}, {e.Message}");
+            return null;
+        }
+    }
+
     /// <summary>
-    /// Š‚µ‚Ä‚¢‚é‘•”õˆê——‚ğæ“¾
+    /// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚¢ã‚¤ã‚³ãƒ³å–å¾—
     /// </summary>
+    public Sprite GetEnhanceItemIcon(int enhanceItemId)
+    {
+        try
+        {
+            // 1. ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‹ã‚‰ãƒ‘ã‚¹å–å¾—
+            EnhanceItemMasterData masterData = GetEnhanceItemMaster(enhanceItemId);
+            if (masterData != null && !string.IsNullOrEmpty(masterData.enhance_item_icon_path))
+            {
+                Sprite sprite = Resources.Load<Sprite>(masterData.enhance_item_icon_path);
+                if (sprite != null)
+                {
+                    Debug.Log($"âœ… å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿æˆåŠŸ(ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿): {masterData.enhance_item_icon_path}");
+                    return sprite;
+                }
+            }
+
+            // 2. ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯: IDãƒ™ãƒ¼ã‚¹èª­ã¿è¾¼ã¿
+            string fallbackPath = $"Icons/EnhanceItems/enhance_item_{enhanceItemId:D3}";
+            Sprite fallbackSprite = Resources.Load<Sprite>(fallbackPath);
+            if (fallbackSprite != null)
+            {
+                Debug.Log($"âœ… å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿æˆåŠŸ(ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯): {fallbackPath}");
+                return fallbackSprite;
+            }
+
+            Debug.LogWarning($"âš ï¸ å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿å¤±æ•—: enhance_item_id={enhanceItemId}");
+            return null;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"âŒ å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿ã‚¨ãƒ©ãƒ¼: enhance_item_id={enhanceItemId}, {e.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// è£œåŠ©ææ–™ã‚¢ã‚¤ã‚³ãƒ³å–å¾—
+    /// </summary>
+    public Sprite GetSupportItemIcon(int supportItemId)
+    {
+        try
+        {
+            // 1. ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‹ã‚‰ãƒ‘ã‚¹å–å¾—
+            SupportItemMasterData masterData = GetSupportItemMaster(supportItemId);
+            if (masterData != null && !string.IsNullOrEmpty(masterData.support_item_icon_path))
+            {
+                Sprite sprite = Resources.Load<Sprite>(masterData.support_item_icon_path);
+                if (sprite != null)
+                {
+                    Debug.Log($"âœ… è£œåŠ©ææ–™ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿æˆåŠŸ(ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿): {masterData.support_item_icon_path}");
+                    return sprite;
+                }
+            }
+
+            // 2. ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯: IDãƒ™ãƒ¼ã‚¹èª­ã¿è¾¼ã¿
+            string fallbackPath = $"Icons/SupportItems/support_item_{supportItemId:D3}";
+            Sprite fallbackSprite = Resources.Load<Sprite>(fallbackPath);
+            if (fallbackSprite != null)
+            {
+                Debug.Log($"âœ… è£œåŠ©ææ–™ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿æˆåŠŸ(ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯): {fallbackPath}");
+                return fallbackSprite;
+            }
+
+            Debug.LogWarning($"âš ï¸ è£œåŠ©ææ–™ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿å¤±æ•—: support_item_id={supportItemId}");
+            return null;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"âŒ è£œåŠ©ææ–™ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿ã‚¨ãƒ©ãƒ¼: support_item_id={supportItemId}, {e.Message}");
+            return null;
+        }
+    }
+    /// <summary>
+    /// æ‰€æŒã—ã¦ã„ã‚‹è£…å‚™ä¸€è¦§ã‚’å–å¾—
+    /// </summary>
+    /// 
+
     public List<UserEquipment> GetOwnedEquipments()
     {
         try
         {
             List<UserEquipment> allEquipments = DataManager.Instance.GetUserEquipments();
 
-            // Š‚µ‚Ä‚¢‚é‘•”õ‚Ì‚İ‚ğ•Ô‚·i«—ˆ“I‚ÈŠg’£—pj
+            // æ‰€æŒã—ã¦ã„ã‚‹è£…å‚™ã®ã¿ã‚’è¿”ã™ï¼ˆå°†æ¥çš„ãªæ‹¡å¼µç”¨ï¼‰
             return allEquipments.Where(equipment => equipment != null).ToList();
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"‘•”õƒf[ƒ^æ“¾ƒGƒ‰[: {ex.Message}");
-            return new List<UserEquipment>(); // ‹ó‚ÌƒŠƒXƒg‚ğ•Ô‚·
+            Debug.LogError($"è£…å‚™ãƒ‡ãƒ¼ã‚¿å–å¾—ã‚¨ãƒ©ãƒ¼: {ex.Message}");
+            return new List<UserEquipment>(); // ç©ºã®ãƒªã‚¹ãƒˆã‚’è¿”ã™
         }
     }
 
     /// <summary>
-    /// Š‚µ‚Ä‚¢‚é‹­‰»ƒAƒCƒeƒ€ˆê——‚ğæ“¾
+    /// æ‰€æŒã—ã¦ã„ã‚‹å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ä¸€è¦§ã‚’å–å¾—
     /// </summary>
     public List<UserItem> GetOwnedEnhanceItems()
     {
@@ -38,7 +155,7 @@ public class EnhanceDataService
         {
             List<UserItem> allItems = DataManager.Instance.GetUserItems();
 
-            // ‹­‰»ƒAƒCƒeƒ€‚ÅA‚©‚ÂŠ”‚ª1ˆÈã‚Ì‚à‚Ì‚Ì‚İ
+            // å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã§ã€ã‹ã¤æ‰€æŒæ•°ãŒ1ä»¥ä¸Šã®ã‚‚ã®ã®ã¿
             return allItems.Where(item =>
                 item.item_type == ItemType.EnhanceItem &&
                 item.quantity > 0
@@ -46,13 +163,13 @@ public class EnhanceDataService
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"‹­‰»ƒAƒCƒeƒ€ƒf[ƒ^æ“¾ƒGƒ‰[: {ex.Message}");
-            return new List<UserItem>(); // ‹ó‚ÌƒŠƒXƒg‚ğ•Ô‚·
+            Debug.LogError($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒ‡ãƒ¼ã‚¿å–å¾—ã‚¨ãƒ©ãƒ¼: {ex.Message}");
+            return new List<UserItem>(); // ç©ºã®ãƒªã‚¹ãƒˆã‚’è¿”ã™
         }
     }
 
     /// <summary>
-    /// w’è‚µ‚½ƒ†ƒj[ƒNID‚Ì‘•”õƒf[ƒ^‚ğæ“¾
+    /// æŒ‡å®šã—ãŸãƒ¦ãƒ‹ãƒ¼ã‚¯IDã®è£…å‚™ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—
     /// </summary>
     public UserEquipment GetUserEquipment(string uniqueId)
     {
@@ -64,20 +181,20 @@ public class EnhanceDataService
 
             if (equipment == null)
             {
-                Debug.LogWarning($"‘•”õ‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: {uniqueId}");
+                Debug.LogWarning($"è£…å‚™ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: {uniqueId}");
             }
 
             return equipment;
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"‘•”õƒf[ƒ^æ“¾ƒGƒ‰[ (ID: {uniqueId}): {ex.Message}");
+            Debug.LogError($"è£…å‚™ãƒ‡ãƒ¼ã‚¿å–å¾—ã‚¨ãƒ©ãƒ¼ (ID: {uniqueId}): {ex.Message}");
             return null;
         }
     }
 
     /// <summary>
-    /// ‘•”õƒ}ƒXƒ^[ƒf[ƒ^‚ğæ“¾
+    /// è£…å‚™ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—
     /// </summary>
     public EquipmentMasterData GetEquipmentMaster(int equipmentId)
     {
@@ -87,20 +204,20 @@ public class EnhanceDataService
 
             if (masterData == null)
             {
-                Debug.LogWarning($"‘•”õƒ}ƒXƒ^[ƒf[ƒ^‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: {equipmentId}");
+                Debug.LogWarning($"è£…å‚™ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: {equipmentId}");
             }
 
             return masterData;
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"‘•”õƒ}ƒXƒ^[ƒf[ƒ^æ“¾ƒGƒ‰[ (ID: {equipmentId}): {ex.Message}");
+            Debug.LogError($"è£…å‚™ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿å–å¾—ã‚¨ãƒ©ãƒ¼ (ID: {equipmentId}): {ex.Message}");
             return null;
         }
     }
 
     /// <summary>
-    /// ‹­‰»ƒAƒCƒeƒ€ƒ}ƒXƒ^[ƒf[ƒ^‚ğæ“¾
+    /// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—
     /// </summary>
     public EnhanceItemMasterData GetEnhanceItemMaster(int enhanceItemId)
     {
@@ -110,20 +227,20 @@ public class EnhanceDataService
 
             if (masterData == null)
             {
-                Debug.LogWarning($"‹­‰»ƒAƒCƒeƒ€ƒ}ƒXƒ^[ƒf[ƒ^‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: {enhanceItemId}");
+                Debug.LogWarning($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: {enhanceItemId}");
             }
 
             return masterData;
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"‹­‰»ƒAƒCƒeƒ€ƒ}ƒXƒ^[ƒf[ƒ^æ“¾ƒGƒ‰[ (ID: {enhanceItemId}): {ex.Message}");
+            Debug.LogError($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿å–å¾—ã‚¨ãƒ©ãƒ¼ (ID: {enhanceItemId}): {ex.Message}");
             return null;
         }
     }
 
     /// <summary>
-    /// •â•Ş—¿ƒ}ƒXƒ^[ƒf[ƒ^‚ğæ“¾
+    /// è£œåŠ©ææ–™ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—
     /// </summary>
     public SupportItemMasterData GetSupportItemMaster(int supportItemId)
     {
@@ -133,20 +250,20 @@ public class EnhanceDataService
 
             if (masterData == null)
             {
-                Debug.LogWarning($"•â•Ş—¿ƒ}ƒXƒ^[ƒf[ƒ^‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: {supportItemId}");
+                Debug.LogWarning($"è£œåŠ©ææ–™ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: {supportItemId}");
             }
 
             return masterData;
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"•â•Ş—¿ƒ}ƒXƒ^[ƒf[ƒ^æ“¾ƒGƒ‰[ (ID: {supportItemId}): {ex.Message}");
+            Debug.LogError($"è£œåŠ©ææ–™ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿å–å¾—ã‚¨ãƒ©ãƒ¼ (ID: {supportItemId}): {ex.Message}");
             return null;
         }
     }
 
     /// <summary>
-    /// ‘•”õí—Ş‚É‰‚¶‚½‹­‰»ƒAƒCƒeƒ€‚ÌŒø‰Ê‚ğæ“¾
+    /// è£…å‚™ç¨®é¡ã«å¿œã˜ãŸå¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã®åŠ¹æœã‚’å–å¾—
     /// </summary>
     public EnhanceStatusValues GetEnhanceEffectByEquipmentType(int enhanceItemId, EquipmentType equipmentType)
     {
@@ -156,7 +273,7 @@ public class EnhanceDataService
 
             if (enhanceItem == null)
             {
-                Debug.LogWarning($"‹­‰»ƒAƒCƒeƒ€‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: {enhanceItemId}");
+                Debug.LogWarning($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: {enhanceItemId}");
                 return new EnhanceStatusValues();
             }
 
@@ -164,13 +281,13 @@ public class EnhanceDataService
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"‘•”õí—Ş•Ê‹­‰»Œø‰Êæ“¾ƒGƒ‰[: {ex.Message}");
+            Debug.LogError($"è£…å‚™ç¨®é¡åˆ¥å¼·åŒ–åŠ¹æœå–å¾—ã‚¨ãƒ©ãƒ¼: {ex.Message}");
             return new EnhanceStatusValues();
         }
     }
 
     /// <summary>
-    /// Š‚µ‚Ä‚¢‚é•â•Ş—¿ˆê——‚ğæ“¾
+    /// æ‰€æŒã—ã¦ã„ã‚‹è£œåŠ©ææ–™ä¸€è¦§ã‚’å–å¾—
     /// </summary>
     public List<UserItem> GetOwnedSupportItems()
     {
@@ -178,7 +295,7 @@ public class EnhanceDataService
         {
             List<UserItem> allItems = DataManager.Instance.GetUserItems();
 
-            // •â•Ş—¿‚ÅA‚©‚ÂŠ”‚ª1ˆÈã‚Ì‚à‚Ì‚Ì‚İ
+            // è£œåŠ©ææ–™ã§ã€ã‹ã¤æ‰€æŒæ•°ãŒ1ä»¥ä¸Šã®ã‚‚ã®ã®ã¿
             return allItems.Where(item =>
                 item.item_type == ItemType.SupportItem &&
                 item.quantity > 0
@@ -186,13 +303,13 @@ public class EnhanceDataService
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"•â•Ş—¿ƒf[ƒ^æ“¾ƒGƒ‰[: {ex.Message}");
-            return new List<UserItem>(); // ‹ó‚ÌƒŠƒXƒg‚ğ•Ô‚·
+            Debug.LogError($"è£œåŠ©ææ–™ãƒ‡ãƒ¼ã‚¿å–å¾—ã‚¨ãƒ©ãƒ¼: {ex.Message}");
+            return new List<UserItem>(); // ç©ºã®ãƒªã‚¹ãƒˆã‚’è¿”ã™
         }
     }
 
     /// <summary>
-    /// •â•Ş—¿‚ğÁ”ï
+    /// è£œåŠ©ææ–™ã‚’æ¶ˆè²»
     /// </summary>
     public bool ConsumeSupportItem(int supportItemId, int quantity)
     {
@@ -200,41 +317,41 @@ public class EnhanceDataService
         {
             if (quantity <= 0)
             {
-                Debug.LogWarning("Á”ï—Ê‚Í1ˆÈã‚Å‚ ‚é•K—v‚ª‚ ‚è‚Ü‚·");
+                Debug.LogWarning("æ¶ˆè²»é‡ã¯1ä»¥ä¸Šã§ã‚ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™");
                 return false;
             }
 
-            // –³ŒÀg—pƒAƒCƒeƒ€‚Ìê‡‚ÍÁ”ï‚µ‚È‚¢
+            // ç„¡é™ä½¿ç”¨ã‚¢ã‚¤ãƒ†ãƒ ã®å ´åˆã¯æ¶ˆè²»ã—ãªã„
             SupportItemMasterData masterData = GetSupportItemMaster(supportItemId);
             if (masterData != null && masterData.infinite_use == 1)
             {
-                Debug.Log($"–³ŒÀg—pƒAƒCƒeƒ€‚Ì‚½‚ßÁ”ï‚µ‚Ü‚¹‚ñ: {masterData.support_item_name}");
+                Debug.Log($"ç„¡é™ä½¿ç”¨ã‚¢ã‚¤ãƒ†ãƒ ã®ãŸã‚æ¶ˆè²»ã—ã¾ã›ã‚“: {masterData.support_item_name}");
                 return true;
             }
 
-            // ŠŠm”F
+            // æ‰€æŒç¢ºèª
             UserItem item = GetOwnedSupportItems().FirstOrDefault(i => i.item_id == supportItemId);
             if (item == null || item.quantity < quantity)
             {
-                Debug.LogWarning($"•â•Ş—¿‚ª•s‘«‚µ‚Ä‚¢‚Ü‚·: ID={supportItemId}, •K—v={quantity}, Š={item?.quantity ?? 0}");
+                Debug.LogWarning($"è£œåŠ©ææ–™ãŒä¸è¶³ã—ã¦ã„ã¾ã™: ID={supportItemId}, å¿…è¦={quantity}, æ‰€æŒ={item?.quantity ?? 0}");
                 return false;
             }
 
-            // ƒAƒCƒeƒ€Á”ï
+            // ã‚¢ã‚¤ãƒ†ãƒ æ¶ˆè²»
             DataManager.Instance.ConsumeUserItem(supportItemId, quantity);
-            Debug.Log($"•â•Ş—¿‚ğÁ”ï‚µ‚Ü‚µ‚½: ID={supportItemId}, Á”ï—Ê={quantity}");
+            Debug.Log($"è£œåŠ©ææ–™ã‚’æ¶ˆè²»ã—ã¾ã—ãŸ: ID={supportItemId}, æ¶ˆè²»é‡={quantity}");
 
             return true;
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"•â•Ş—¿Á”ïƒGƒ‰[: {ex.Message}");
+            Debug.LogError($"è£œåŠ©ææ–™æ¶ˆè²»ã‚¨ãƒ©ãƒ¼: {ex.Message}");
             return false;
         }
     }
 
     /// <summary>
-    /// ‹­‰»ƒAƒCƒeƒ€‚ğÁ”ï
+    /// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚’æ¶ˆè²»
     /// </summary>
     public bool ConsumeEnhanceItem(int enhanceItemId, int quantity)
     {
@@ -242,33 +359,33 @@ public class EnhanceDataService
         {
             if (quantity <= 0)
             {
-                Debug.LogWarning("Á”ï—Ê‚Í1ˆÈã‚Å‚ ‚é•K—v‚ª‚ ‚è‚Ü‚·");
+                Debug.LogWarning("æ¶ˆè²»é‡ã¯1ä»¥ä¸Šã§ã‚ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™");
                 return false;
             }
 
-            // ŠŠm”F
+            // æ‰€æŒç¢ºèª
             UserItem item = GetOwnedEnhanceItems().FirstOrDefault(i => i.item_id == enhanceItemId);
             if (item == null || item.quantity < quantity)
             {
-                Debug.LogWarning($"‹­‰»ƒAƒCƒeƒ€‚ª•s‘«‚µ‚Ä‚¢‚Ü‚·: ID={enhanceItemId}, •K—v={quantity}, Š={item?.quantity ?? 0}");
+                Debug.LogWarning($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãŒä¸è¶³ã—ã¦ã„ã¾ã™: ID={enhanceItemId}, å¿…è¦={quantity}, æ‰€æŒ={item?.quantity ?? 0}");
                 return false;
             }
 
-            // ƒAƒCƒeƒ€Á”ï
+            // ã‚¢ã‚¤ãƒ†ãƒ æ¶ˆè²»
             DataManager.Instance.ConsumeUserItem(enhanceItemId, quantity);
-            Debug.Log($"‹­‰»ƒAƒCƒeƒ€‚ğÁ”ï‚µ‚Ü‚µ‚½: ID={enhanceItemId}, Á”ï—Ê={quantity}");
+            Debug.Log($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚’æ¶ˆè²»ã—ã¾ã—ãŸ: ID={enhanceItemId}, æ¶ˆè²»é‡={quantity}");
 
             return true;
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"‹­‰»ƒAƒCƒeƒ€Á”ïƒGƒ‰[: {ex.Message}");
+            Debug.LogError($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ æ¶ˆè²»ã‚¨ãƒ©ãƒ¼: {ex.Message}");
             return false;
         }
     }
 
     /// <summary>
-    /// ‘•”õ‚ª‹­‰»‰Â”\‚©ƒ`ƒFƒbƒN
+    /// è£…å‚™ãŒå¼·åŒ–å¯èƒ½ã‹ãƒã‚§ãƒƒã‚¯
     /// </summary>
     public bool CanEnhanceEquipment(UserEquipment equipment)
     {
@@ -279,18 +396,18 @@ public class EnhanceDataService
                 return false;
             }
 
-            // ‹­‰»‘Ï‹v‚ª0ˆÈ‰º‚Ìê‡‚Í‹­‰»•s‰Â
+            // å¼·åŒ–è€ä¹…ãŒ0ä»¥ä¸‹ã®å ´åˆã¯å¼·åŒ–ä¸å¯
             if (equipment.current_enhance_stamina <= 0)
             {
-                Debug.Log($"‘•”õ‚Ì‹­‰»‘Ï‹v‚ª•s‘«‚µ‚Ä‚¢‚Ü‚·: {equipment.unique_id}");
+                Debug.Log($"è£…å‚™ã®å¼·åŒ–è€ä¹…ãŒä¸è¶³ã—ã¦ã„ã¾ã™: {equipment.unique_id}");
                 return false;
             }
 
-            // Å‘å‹­‰»’l‚É’B‚µ‚Ä‚¢‚éê‡‚Í‹­‰»•s‰Â
+            // æœ€å¤§å¼·åŒ–å€¤ã«é”ã—ã¦ã„ã‚‹å ´åˆã¯å¼·åŒ–ä¸å¯
             EquipmentMasterData masterData = GetEquipmentMaster(equipment.equipment_id);
             if (masterData != null && equipment.current_enhanced_value >= masterData.max_enhanced_value)
             {
-                Debug.Log($"‘•”õ‚ªÅ‘å‹­‰»’l‚É’B‚µ‚Ä‚¢‚Ü‚·: {equipment.unique_id}");
+                Debug.Log($"è£…å‚™ãŒæœ€å¤§å¼·åŒ–å€¤ã«é”ã—ã¦ã„ã¾ã™: {equipment.unique_id}");
                 return false;
             }
 
@@ -298,68 +415,68 @@ public class EnhanceDataService
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"‘•”õ‹­‰»‰Â”\ƒ`ƒFƒbƒNƒGƒ‰[: {ex.Message}");
+            Debug.LogError($"è£…å‚™å¼·åŒ–å¯èƒ½ãƒã‚§ãƒƒã‚¯ã‚¨ãƒ©ãƒ¼: {ex.Message}");
             return false;
         }
     }
 
     /// <summary>
-    /// ƒfƒoƒbƒO—pFƒf[ƒ^‚Ì®‡«ƒ`ƒFƒbƒNiCSV‘Î‰”Åj
+    /// ãƒ‡ãƒãƒƒã‚°ç”¨ï¼šãƒ‡ãƒ¼ã‚¿ã®æ•´åˆæ€§ãƒã‚§ãƒƒã‚¯ï¼ˆCSVå¯¾å¿œç‰ˆï¼‰
     /// </summary>
     public bool ValidateData()
     {
         try
         {
-            Debug.Log("=== EnhanceDataService ƒf[ƒ^®‡«ƒ`ƒFƒbƒNiCSV‘Î‰”Åj ===");
+            Debug.Log("=== EnhanceDataService ãƒ‡ãƒ¼ã‚¿æ•´åˆæ€§ãƒã‚§ãƒƒã‚¯ï¼ˆCSVå¯¾å¿œç‰ˆï¼‰ ===");
 
-            // 1. ‘•”õƒf[ƒ^ƒ`ƒFƒbƒN
+            // 1. è£…å‚™ãƒ‡ãƒ¼ã‚¿ãƒã‚§ãƒƒã‚¯
             List<UserEquipment> equipments = GetOwnedEquipments();
-            Debug.Log($"Š‘•”õ”: {equipments.Count}");
+            Debug.Log($"æ‰€æŒè£…å‚™æ•°: {equipments.Count}");
 
-            foreach (var equipment in equipments.Take(3)) // Å‰‚Ì3‚Â‚¾‚¯•\¦
+            foreach (var equipment in equipments.Take(3)) // æœ€åˆã®3ã¤ã ã‘è¡¨ç¤º
             {
                 EquipmentMasterData master = GetEquipmentMaster(equipment.equipment_id);
                 if (master != null)
                 {
-                    Debug.Log($"‘•”õ: {master.equipment_name} (í—Ş: {master.equipment_type}, ‹­‰»’l: {equipment.current_enhanced_value})");
+                    Debug.Log($"è£…å‚™: {master.equipment_name} (ç¨®é¡: {master.equipment_type}, å¼·åŒ–å€¤: {equipment.current_enhanced_value})");
                 }
             }
 
-            // 2. ‹­‰»ƒAƒCƒeƒ€ƒf[ƒ^ƒ`ƒFƒbƒN
+            // 2. å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒ‡ãƒ¼ã‚¿ãƒã‚§ãƒƒã‚¯
             List<UserItem> enhanceItems = GetOwnedEnhanceItems();
-            Debug.Log($"Š‹­‰»ƒAƒCƒeƒ€í—Ş”: {enhanceItems.Count}");
+            Debug.Log($"æ‰€æŒå¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ç¨®é¡æ•°: {enhanceItems.Count}");
 
-            foreach (var item in enhanceItems.Take(3)) // Å‰‚Ì3‚Â‚¾‚¯•\¦
+            foreach (var item in enhanceItems.Take(3)) // æœ€åˆã®3ã¤ã ã‘è¡¨ç¤º
             {
                 EnhanceItemMasterData master = GetEnhanceItemMaster(item.item_id);
                 if (master != null)
                 {
-                    Debug.Log($"‹­‰»ƒAƒCƒeƒ€: {master.enhance_item_name} (Š”: {item.quantity})");
+                    Debug.Log($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ : {master.enhance_item_name} (æ‰€æŒæ•°: {item.quantity})");
 
-                    // ‘•”õí—Ş•ÊŒø‰Ê‚ÌƒeƒXƒg•\¦
-                    Debug.Log($"  •Ší‚Ö‚ÌŒø‰Ê - HP: +{master.weapon_hp}, UŒ‚: +{master.weapon_offense}");
-                    Debug.Log($"  –h‹ï‚Ö‚ÌŒø‰Ê - HP: +{master.armor_hp}, –hŒä: +{master.armor_defense}");
-                    Debug.Log($"  ƒAƒNƒZƒTƒŠ‚Ö‚ÌŒø‰Ê - HP: +{master.accessory_hp}, UŒ‚: +{master.accessory_offense}");
+                    // è£…å‚™ç¨®é¡åˆ¥åŠ¹æœã®ãƒ†ã‚¹ãƒˆè¡¨ç¤º
+                    Debug.Log($"  æ­¦å™¨ã¸ã®åŠ¹æœ - HP: +{master.weapon_hp}, æ”»æ’ƒ: +{master.weapon_offense}");
+                    Debug.Log($"  é˜²å…·ã¸ã®åŠ¹æœ - HP: +{master.armor_hp}, é˜²å¾¡: +{master.armor_defense}");
+                    Debug.Log($"  ã‚¢ã‚¯ã‚»ã‚µãƒªã¸ã®åŠ¹æœ - HP: +{master.accessory_hp}, æ”»æ’ƒ: +{master.accessory_offense}");
                 }
             }
 
-            // 3. •â•Ş—¿ƒf[ƒ^ƒ`ƒFƒbƒN
+            // 3. è£œåŠ©ææ–™ãƒ‡ãƒ¼ã‚¿ãƒã‚§ãƒƒã‚¯
             List<UserItem> supportItems = GetOwnedSupportItems();
-            Debug.Log($"Š•â•Ş—¿í—Ş”: {supportItems.Count}");
+            Debug.Log($"æ‰€æŒè£œåŠ©ææ–™ç¨®é¡æ•°: {supportItems.Count}");
 
-            foreach (var item in supportItems.Take(3)) // Å‰‚Ì3‚Â‚¾‚¯•\¦
+            foreach (var item in supportItems.Take(3)) // æœ€åˆã®3ã¤ã ã‘è¡¨ç¤º
             {
                 SupportItemMasterData master = GetSupportItemMaster(item.item_id);
                 if (master != null)
                 {
-                    string infiniteText = master.infinite_use == 1 ? " (–³ŒÀg—p)" : "";
-                    Debug.Log($"•â•Ş—¿: {master.support_item_name}{infiniteText} (Š”: {item.quantity})");
-                    Debug.Log($"  Œø‰Ê - ¬Œ÷—¦: +{master.add_enhance_success_rate}%, ƒXƒe[ƒ^ƒX”{—¦: x{master.multipl_status_up}");
+                    string infiniteText = master.infinite_use == 1 ? " (ç„¡é™ä½¿ç”¨)" : "";
+                    Debug.Log($"è£œåŠ©ææ–™: {master.support_item_name}{infiniteText} (æ‰€æŒæ•°: {item.quantity})");
+                    Debug.Log($"  åŠ¹æœ - æˆåŠŸç‡: +{master.add_enhance_success_rate}%, ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å€ç‡: x{master.multipl_status_up}");
                 }
             }
 
-            // 4. ‘•”õí—Ş•ÊŒø‰ÊƒeƒXƒg
-            Debug.Log("=== ‘•”õí—Ş•ÊŒø‰ÊƒeƒXƒg ===");
+            // 4. è£…å‚™ç¨®é¡åˆ¥åŠ¹æœãƒ†ã‚¹ãƒˆ
+            Debug.Log("=== è£…å‚™ç¨®é¡åˆ¥åŠ¹æœãƒ†ã‚¹ãƒˆ ===");
             if (enhanceItems.Count > 0)
             {
                 int testEnhanceItemId = enhanceItems[0].item_id;
@@ -368,60 +485,60 @@ public class EnhanceDataService
                 EnhanceStatusValues armorEffect = GetEnhanceEffectByEquipmentType(testEnhanceItemId, EquipmentType.Armor);
                 EnhanceStatusValues accessoryEffect = GetEnhanceEffectByEquipmentType(testEnhanceItemId, EquipmentType.Accessory);
 
-                Debug.Log($"ƒeƒXƒgƒAƒCƒeƒ€ID {testEnhanceItemId} ‚ÌŒø‰Ê:");
-                Debug.Log($"  •Ší: HP+{weaponEffect.hp}, UŒ‚+{weaponEffect.offense}, –hŒä+{weaponEffect.defense}");
-                Debug.Log($"  –h‹ï: HP+{armorEffect.hp}, UŒ‚+{armorEffect.offense}, –hŒä+{armorEffect.defense}");
-                Debug.Log($"  ƒAƒNƒZƒTƒŠ: HP+{accessoryEffect.hp}, UŒ‚+{accessoryEffect.offense}, –hŒä+{accessoryEffect.defense}");
+                Debug.Log($"ãƒ†ã‚¹ãƒˆã‚¢ã‚¤ãƒ†ãƒ ID {testEnhanceItemId} ã®åŠ¹æœ:");
+                Debug.Log($"  æ­¦å™¨: HP+{weaponEffect.hp}, æ”»æ’ƒ+{weaponEffect.offense}, é˜²å¾¡+{weaponEffect.defense}");
+                Debug.Log($"  é˜²å…·: HP+{armorEffect.hp}, æ”»æ’ƒ+{armorEffect.offense}, é˜²å¾¡+{armorEffect.defense}");
+                Debug.Log($"  ã‚¢ã‚¯ã‚»ã‚µãƒª: HP+{accessoryEffect.hp}, æ”»æ’ƒ+{accessoryEffect.offense}, é˜²å¾¡+{accessoryEffect.defense}");
             }
 
-            Debug.Log("=== ƒf[ƒ^®‡«ƒ`ƒFƒbƒNŠ®—¹ ===");
+            Debug.Log("=== ãƒ‡ãƒ¼ã‚¿æ•´åˆæ€§ãƒã‚§ãƒƒã‚¯å®Œäº† ===");
             return true;
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"ƒf[ƒ^®‡«ƒ`ƒFƒbƒNƒGƒ‰[: {ex.Message}");
+            Debug.LogError($"ãƒ‡ãƒ¼ã‚¿æ•´åˆæ€§ãƒã‚§ãƒƒã‚¯ã‚¨ãƒ©ãƒ¼: {ex.Message}");
             return false;
         }
     }
 }
 
-// ===== ƒf[ƒ^ƒNƒ‰ƒX’è‹`iPhase 1‚Å•K—v‚ÈŠî–{ƒNƒ‰ƒXj =====
+// ===== ãƒ‡ãƒ¼ã‚¿ã‚¯ãƒ©ã‚¹å®šç¾©ï¼ˆPhase 1ã§å¿…è¦ãªåŸºæœ¬ã‚¯ãƒ©ã‚¹ï¼‰ =====
 
 /// <summary>
-/// ƒAƒCƒeƒ€ƒ^ƒCƒv—ñ‹“Œ^
+/// ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—åˆ—æŒ™å‹
 /// </summary>
 public enum ItemType
 {
-    EnhanceItem,    // ‹­‰»ƒAƒCƒeƒ€
-    SupportItem,    // •â•Ş—¿
-    Equipment,      // ‘•”õ
-    Consumable      // Á”ïƒAƒCƒeƒ€
+    EnhanceItem,    // å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ 
+    SupportItem,    // è£œåŠ©ææ–™
+    Equipment,      // è£…å‚™
+    Consumable      // æ¶ˆè²»ã‚¢ã‚¤ãƒ†ãƒ 
 }
 
 /// <summary>
-/// ‘•”õƒ^ƒCƒv—ñ‹“Œ^
+/// è£…å‚™ã‚¿ã‚¤ãƒ—åˆ—æŒ™å‹
 /// </summary>
 public enum EquipmentType
 {
-    Weapon,     // •Ší
-    Armor,      // –h‹ï
-    Accessory   // ƒAƒNƒZƒTƒŠ
+    Weapon,     // æ­¦å™¨
+    Armor,      // é˜²å…·
+    Accessory   // ã‚¢ã‚¯ã‚»ã‚µãƒª
 }
 
 /// <summary>
-/// ƒ†[ƒU[‘•”õƒf[ƒ^iƒZ[ƒuƒf[ƒ^j
+/// ãƒ¦ãƒ¼ã‚¶ãƒ¼è£…å‚™ãƒ‡ãƒ¼ã‚¿ï¼ˆã‚»ãƒ¼ãƒ–ãƒ‡ãƒ¼ã‚¿ï¼‰
 /// </summary>
 [System.Serializable]
 public class UserEquipment
 {
-    public string unique_id;                    // ƒ†ƒj[ƒNID
-    public int equipment_id;                    // ‘•”õƒ}ƒXƒ^[ID
-    public int current_enhanced_value;          // Œ»İ‚Ì‹­‰»’l
-    public int current_enhance_stamina;         // Œ»İ‚Ì‹­‰»‘Ï‹v
-    public bool is_equipped;                    // ‘•”õ’†ƒtƒ‰ƒO
-    public System.DateTime acquired_time;       // æ“¾“ú
+    public string unique_id;                    // ãƒ¦ãƒ‹ãƒ¼ã‚¯ID
+    public int equipment_id;                    // è£…å‚™ãƒã‚¹ã‚¿ãƒ¼ID
+    public int current_enhanced_value;          // ç¾åœ¨ã®å¼·åŒ–å€¤
+    public int current_enhance_stamina;         // ç¾åœ¨ã®å¼·åŒ–è€ä¹…
+    public bool is_equipped;                    // è£…å‚™ä¸­ãƒ•ãƒ©ã‚°
+    public System.DateTime acquired_time;       // å–å¾—æ—¥æ™‚
 
-    // Œ»İ‚ÌƒXƒe[ƒ^ƒXi‹­‰»‚É‚æ‚è•Ï“®j
+    // ç¾åœ¨ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ï¼ˆå¼·åŒ–ã«ã‚ˆã‚Šå¤‰å‹•ï¼‰
     public int hp;
     public int offense;
     public int defense;
@@ -435,18 +552,18 @@ public class UserEquipment
 }
 
 /// <summary>
-/// ƒ†[ƒU[ƒAƒCƒeƒ€ƒf[ƒ^iƒZ[ƒuƒf[ƒ^j
+/// ãƒ¦ãƒ¼ã‚¶ãƒ¼ã‚¢ã‚¤ãƒ†ãƒ ãƒ‡ãƒ¼ã‚¿ï¼ˆã‚»ãƒ¼ãƒ–ãƒ‡ãƒ¼ã‚¿ï¼‰
 /// </summary>
 [System.Serializable]
 public class UserItem
 {
-    public int item_id;         // ƒAƒCƒeƒ€ƒ}ƒXƒ^[ID
-    public ItemType item_type;  // ƒAƒCƒeƒ€ƒ^ƒCƒv
-    public int quantity;        // Š”
+    public int item_id;         // ã‚¢ã‚¤ãƒ†ãƒ ãƒã‚¹ã‚¿ãƒ¼ID
+    public ItemType item_type;  // ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—
+    public int quantity;        // æ‰€æŒæ•°
 }
 
 /// <summary>
-/// ‘•”õƒ}ƒXƒ^[ƒf[ƒ^
+/// è£…å‚™ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿
 /// </summary>
 [System.Serializable]
 public class EquipmentMasterData
@@ -462,7 +579,7 @@ public class EquipmentMasterData
     public string equipment_icon_path;
     public string description;
 
-    // Šî–{ƒXƒe[ƒ^ƒX
+    // åŸºæœ¬ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
     public int hp;
     public int offense;
     public int defense;
@@ -476,7 +593,7 @@ public class EquipmentMasterData
 }
 
 /// <summary>
-/// ‹­‰»ƒAƒCƒeƒ€ƒ}ƒXƒ^[ƒf[ƒ^iCSV‘Î‰”Åj
+/// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ï¼ˆCSVå¯¾å¿œç‰ˆï¼‰
 /// </summary>
 [System.Serializable]
 public class EnhanceItemMasterData
@@ -496,7 +613,7 @@ public class EnhanceItemMasterData
     public int completion_flag;
     public int collection_flag;
 
-    // •Ší—pƒXƒe[ƒ^ƒX‘‰Á’l
+    // æ­¦å™¨ç”¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¢—åŠ å€¤
     public int weapon_hp;
     public int weapon_offense;
     public int weapon_defense;
@@ -508,7 +625,7 @@ public class EnhanceItemMasterData
     public int weapon_wind_offence;
     public int weapon_earth_offence;
 
-    // –h‹ï—pƒXƒe[ƒ^ƒX‘‰Á’l
+    // é˜²å…·ç”¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¢—åŠ å€¤
     public int armor_hp;
     public int armor_offense;
     public int armor_defense;
@@ -520,7 +637,7 @@ public class EnhanceItemMasterData
     public int armor_wind_offence;
     public int armor_earth_offence;
 
-    // ƒAƒNƒZƒTƒŠ—pƒXƒe[ƒ^ƒX‘‰Á’l
+    // ã‚¢ã‚¯ã‚»ã‚µãƒªç”¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¢—åŠ å€¤
     public int accessory_hp;
     public int accessory_offense;
     public int accessory_defense;
@@ -533,7 +650,7 @@ public class EnhanceItemMasterData
     public int accessory_earth_offence;
 
     /// <summary>
-    /// ‘•”õƒ^ƒCƒv‚É‰‚¶‚½ƒXƒe[ƒ^ƒX‘‰Á’l‚ğæ“¾
+    /// è£…å‚™ã‚¿ã‚¤ãƒ—ã«å¿œã˜ãŸã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¢—åŠ å€¤ã‚’å–å¾—
     /// </summary>
     public EnhanceStatusValues GetStatusValuesByEquipmentType(EquipmentType equipmentType)
     {
@@ -585,14 +702,14 @@ public class EnhanceItemMasterData
                 };
 
             default:
-                Debug.LogWarning($"EnhanceItemMasterData: –¢‘Î‰‚Ì‘•”õƒ^ƒCƒv‚Å‚· {equipmentType}");
+                Debug.LogWarning($"EnhanceItemMasterData: æœªå¯¾å¿œã®è£…å‚™ã‚¿ã‚¤ãƒ—ã§ã™ {equipmentType}");
                 return new EnhanceStatusValues();
         }
     }
 }
 
 /// <summary>
-/// •â•Ş—¿ƒ}ƒXƒ^[ƒf[ƒ^iCSV‘Î‰”Åj
+/// è£œåŠ©ææ–™ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ï¼ˆCSVå¯¾å¿œç‰ˆï¼‰
 /// </summary>
 [System.Serializable]
 public class SupportItemMasterData
@@ -601,7 +718,7 @@ public class SupportItemMasterData
     public string support_item_name;
     public string attribute_type;
     public string rarity;
-    public int infinite_use;                    // –³ŒÀg—pƒtƒ‰ƒO
+    public int infinite_use;                    // ç„¡é™ä½¿ç”¨ãƒ•ãƒ©ã‚°
     public int max_stack_value;
     public int add_enhanced_value;
     public int multipl_enhanced_value;
@@ -611,12 +728,12 @@ public class SupportItemMasterData
     public int add_enhance_success_rate;
     public int reduce_enhance_success_rate;
     public int multipl_status_up;
-    public string enhance_item_icon_path;
+    public string support_item_icon_path;
     public string description;
     public int completion_flag;
     public int collection_flag;
 
-    // •â•Ş—¿‚Ì’¼ÚƒXƒe[ƒ^ƒXŒø‰Ê
+    // è£œåŠ©ææ–™ã®ç›´æ¥ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹åŠ¹æœ
     public int hp;
     public int offense;
     public int defense;
@@ -630,7 +747,7 @@ public class SupportItemMasterData
 }
 
 /// <summary>
-/// ‹­‰»ƒXƒe[ƒ^ƒX’li‘•”õí—Ş•Ê‚Ì’l‚ğŠi”[j
+/// å¼·åŒ–ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å€¤ï¼ˆè£…å‚™ç¨®é¡åˆ¥ã®å€¤ã‚’æ ¼ç´ï¼‰
 /// </summary>
 [System.Serializable]
 public class EnhanceStatusValues
@@ -647,18 +764,18 @@ public class EnhanceStatusValues
     public int earth_offence;
 
     /// <summary>
-    /// ƒfƒoƒbƒO—p•¶š—ñ•\Œ»
+    /// ãƒ‡ãƒãƒƒã‚°ç”¨æ–‡å­—åˆ—è¡¨ç¾
     /// </summary>
     public override string ToString()
     {
-        return $"HP:{hp}, UŒ‚:{offense}, –hŒä:{defense}, ‘¬“x:{speed}, " +
-               $"ƒNƒŠ—¦:{critical_rate}, ƒNƒŠƒ_ƒ:{critical_damage_rate}, " +
-               $"‰Î:{fire_offence}, …:{water_offence}, •—:{wind_offence}, “y:{earth_offence}";
+        return $"HP:{hp}, æ”»æ’ƒ:{offense}, é˜²å¾¡:{defense}, é€Ÿåº¦:{speed}, " +
+               $"ã‚¯ãƒªç‡:{critical_rate}, ã‚¯ãƒªãƒ€ãƒ¡:{critical_damage_rate}, " +
+               $"ç«:{fire_offence}, æ°´:{water_offence}, é¢¨:{wind_offence}, åœŸ:{earth_offence}";
     }
 }
 
 /// <summary>
-/// ƒ†[ƒU[ƒvƒƒtƒB[ƒ‹
+/// ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ—ãƒ­ãƒ•ã‚£ãƒ¼ãƒ«
 /// </summary>
 [System.Serializable]
 public class UserProfile
@@ -676,7 +793,7 @@ public class UserProfile
 }
 
 /// <summary>
-/// ƒ†[ƒU[ƒXƒLƒ‹
+/// ãƒ¦ãƒ¼ã‚¶ãƒ¼ã‚¹ã‚­ãƒ«
 /// </summary>
 [System.Serializable]
 public class UserSkill
@@ -687,7 +804,7 @@ public class UserSkill
 }
 
 /// <summary>
-/// ‰¹‹¿İ’èƒf[ƒ^
+/// éŸ³éŸ¿è¨­å®šãƒ‡ãƒ¼ã‚¿
 /// </summary>
 [System.Serializable]
 public class AudioSettingsData
@@ -697,7 +814,7 @@ public class AudioSettingsData
 }
 
 /// <summary>
-/// ƒNƒGƒXƒgƒ}ƒXƒ^[ƒf[ƒ^
+/// ã‚¯ã‚¨ã‚¹ãƒˆãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿
 /// </summary>
 [System.Serializable]
 public class QuestMasterData
@@ -714,7 +831,7 @@ public class QuestMasterData
 }
 
 /// <summary>
-/// ƒNƒGƒXƒgƒ^ƒCƒv
+/// ã‚¯ã‚¨ã‚¹ãƒˆã‚¿ã‚¤ãƒ—
 /// </summary>
 public enum QuestType
 {

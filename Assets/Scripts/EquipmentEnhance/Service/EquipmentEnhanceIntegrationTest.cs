@@ -523,7 +523,7 @@ public class EquipmentEnhanceIntegrationTest : MonoBehaviour
             add_enhance_success_rate = 10,
             reduce_enhance_success_rate = 0,
             multipl_status_up = 2,
-            enhance_item_icon_path = "Icons/mock_support_item",
+            support_item_icon_path = "Icons/mock_support_item",
             description = "テスト用の補助材料",
             completion_flag = 0,
             collection_flag = 0,

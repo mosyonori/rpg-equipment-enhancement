@@ -7,6 +7,16 @@
       "current_enhance_stamina": 80,
       "is_equipped": true,
       "acquired_time": "2025-06-22T10:00:00Z"
+
+      "unique_id": "eq_002", // ユニークID
+      "equipment_id": 4,     // マスターデータのID
+      "current_enhanced_value": 1,
+      "current_enhance_stamina": 100,
+      "is_equipped": true,
+      "acquired_time": "2025-06-23T10:00:00Z"
+
+
+
     }
   ]
 }

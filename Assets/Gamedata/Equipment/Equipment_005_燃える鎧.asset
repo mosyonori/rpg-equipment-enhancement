@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1591e3dfa64c0bf41a5ccacbbaa95802, type: 3}
-  m_Name: "Equipment_002_\u521D\u5FC3\u8005\u306E\u93A7"
+  m_Name: "Equipment_005_\u71C3\u3048\u308B\u93A7"
   m_EditorClassIdentifier: 
-  equipmentId: 2
-  equipmentName: "\u521D\u5FC3\u8005\u306E\u93A7"
+  equipmentId: 5
+  equipmentName: "\u71C3\u3048\u308B\u93A7"
   equipmentType: armor
-  rarity: common
+  rarity: rare
   description: 
   baseEnhancedValue: 0
   maxEnhancedValue: 999
@@ -24,19 +24,19 @@ MonoBehaviour:
   maxEnhanceStamina: 100
   minEnhanceStamina: 0
   baseEnhanceSuccessRate: 0
-  hp: 5
+  hp: 20
   offense: 0
-  defense: 1
+  defense: 5
   speed: 0
   criticalRate: 0
   criticalDamageRate: 0
-  fireOffence: 0
+  fireOffence: 10
   waterOffence: 0
   windOffence: 0
   earthOffence: 0
   equipmentOpenSkillId: 0
   equipmentOpenCharacterId: 
-  equipmentIcon: {fileID: 1375592586, guid: 7be1c793f97b0414f8da5fa5bd1086bf, type: 3}
+  equipmentIcon: {fileID: 0}
   equipmentModel: {fileID: 0}
   completionFlag: 0
   collectionFlag: 0

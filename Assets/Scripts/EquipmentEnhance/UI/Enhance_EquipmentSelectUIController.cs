@@ -605,12 +605,12 @@ public class Enhance_EquipmentSelectUIController : MonoBehaviour
     {
         try
         {
-            // Unity上のマスターデータからアイコンを読み込み（IDベース）
-            return Resources.Load<Sprite>($"Icons/Equipments/equipment_{equipmentId:D3}");
+            EnhanceDataService dataService = new EnhanceDataService();
+            return dataService.GetEquipmentIcon(equipmentId);
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[Enhance_EquipmentSelectUIController] アイコン読み込み失敗: equipment_{equipmentId:D3}, {e.Message}");
+            Debug.LogWarning($"[Enhance_EquipmentSelectUIController] アイコン読み込み失敗: {e.Message}");
             return null;
         }
     }

@@ -607,7 +607,7 @@ public class MasterDataContainer
             add_enhance_success_rate = 10,
             reduce_enhance_success_rate = 0,
             multipl_status_up = 1,
-            enhance_item_icon_path = "Icons/coin_old",
+            support_item_icon_path = "Icons/coin_old",
             description = "古いコイン。成功率が増加する。",
             completion_flag = 1,
             collection_flag = 1,

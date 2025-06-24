@@ -560,12 +560,12 @@ public class Enhance_EnhanceItemSelectUIController : MonoBehaviour
     {
         try
         {
-            // Unity上のマスターデータからアイコンを読み込み（IDベース）
-            return Resources.Load<Sprite>($"Icons/EnhanceItems/enhance_item_{enhanceItemId:D3}");
+            EnhanceDataService dataService = new EnhanceDataService();
+            return dataService.GetEnhanceItemIcon(enhanceItemId);
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[Enhance_EnhanceItemSelectUIController] アイコン読み込み失敗: enhance_item_{enhanceItemId:D3}, {e.Message}");
+            Debug.LogWarning($"[Enhance_EnhanceItemSelectUIController] アイコン読み込み失敗: {e.Message}");
             return null;
         }
     }

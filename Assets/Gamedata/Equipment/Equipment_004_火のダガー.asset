@@ -29,14 +29,14 @@ MonoBehaviour:
   defense: 0
   speed: 1
   criticalRate: 15
-  criticalDamageRate: 150
+  criticalDamageRate: 50
   fireOffence: 15
   waterOffence: 0
   windOffence: 0
   earthOffence: 0
   equipmentOpenSkillId: 1
-  equipmentOpenCharacterId: 
-  equipmentIcon: {fileID: -101499420, guid: 6eb16e372762d6b4cb708c44ebfab931, type: 3}
+  equipmentOpenCharacterId: 15
+  equipmentIcon: {fileID: -101499420, guid: ad5f057a813f22f4cbe33ea72021a4c2, type: 3}
   equipmentModel: {fileID: 0}
   completionFlag: 0
   collectionFlag: 0
