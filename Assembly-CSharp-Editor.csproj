@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\TutorialInfo\Scripts\Editor\ReadmeEditor.cs" />
+    <Compile Include="Assets\Scripts\Editor\SaveDataEditorTools.cs" />
     <Compile Include="Assets\Scripts\Editor\MasterDataIconUpdater.cs" />
     <Compile Include="Assets\Scripts\Editor\CSVImporter.cs" />
   </ItemGroup>
