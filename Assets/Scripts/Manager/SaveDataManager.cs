@@ -289,6 +289,25 @@ public class SaveDataManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 外部からセーブデータを設定（エディター用）
+    /// </summary>
+    public void SetSaveData(UserSaveData saveData)
+    {
+        if (saveData == null)
+        {
+            DebugLogError("設定しようとしたセーブデータがnullです");
+            return;
+        }
+
+        CurrentSaveData = saveData;
+        IsDataLoaded = true;
+        isDirty = true;
+
+        DebugLog($"外部からセーブデータを設定しました: {saveData.playerName}");
+        OnDataLoaded?.Invoke(CurrentSaveData);
+    }
+
+    /// <summary>
     /// バックアップファイル一覧を取得
     /// </summary>
     public string[] GetBackupFiles()

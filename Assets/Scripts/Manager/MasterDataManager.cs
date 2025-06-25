@@ -515,6 +515,46 @@ public class MasterDataManager : MonoBehaviour
                supportItemDataList.Count > 0;
     }
 
+    /// <summary>
+    /// アイコン設定状況を確認
+    /// </summary>
+    public string GetIconStatus()
+    {
+        string status = "=== アイコン設定状況 ===\n\n";
+
+        status += "【装備】\n";
+        foreach (var equipment in equipmentDataList)
+        {
+            bool hasIcon = equipment.equipmentIcon != null;
+            bool hasPath = !string.IsNullOrEmpty(equipment.equipmentIconPath);
+            status += $"- {equipment.equipmentName} (ID:{equipment.equipmentId}): アイコン={hasIcon}, パス={hasPath}";
+            if (hasPath) status += $" [{equipment.equipmentIconPath}]";
+            status += "\n";
+        }
+
+        status += "\n【強化アイテム】\n";
+        foreach (var item in enhanceItemDataList)
+        {
+            bool hasIcon = item.enhanceItemIcon != null;
+            bool hasPath = !string.IsNullOrEmpty(item.enhanceItemIconPath);
+            status += $"- {item.enhanceItemName} (ID:{item.enhanceItemId}): アイコン={hasIcon}, パス={hasPath}";
+            if (hasPath) status += $" [{item.enhanceItemIconPath}]";
+            status += "\n";
+        }
+
+        status += "\n【補助アイテム】\n";
+        foreach (var item in supportItemDataList)
+        {
+            bool hasIcon = item.supportItemIcon != null;
+            bool hasPath = !string.IsNullOrEmpty(item.supportItemIconPath);
+            status += $"- {item.supportItemName} (ID:{item.supportItemId}): アイコン={hasIcon}, パス={hasPath}";
+            if (hasPath) status += $" [{item.supportItemIconPath}]";
+            status += "\n";
+        }
+
+        return status;
+    }
+
     #endregion
 
     #region 内部メソッド

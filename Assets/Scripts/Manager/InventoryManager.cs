@@ -675,6 +675,48 @@ public class InventoryManager : MonoBehaviour
     }
 
     /// <summary>
+    /// デバッグ用：詳細なインベントリ状態を取得
+    /// </summary>
+    public string GetDetailedInventoryStatus()
+    {
+        if (!IsInitialized)
+            return "InventoryManager が初期化されていません";
+
+        if (SaveData == null)
+            return "SaveData が null です";
+
+        string status = $@"=== InventoryManager 詳細状態 ===
+IsInitialized: {IsInitialized}
+SaveData != null: {SaveData != null}
+Equipment Count: {SaveData?.equipments?.Count ?? 0}
+Items Count: {SaveData?.items?.Count ?? 0}
+
+=== キャッシュ状態 ===
+equipmentCache Count: {equipmentCache?.Count ?? 0}
+itemCache Count: {itemCache?.Count ?? 0}
+equippedItemsCache Count: {equippedItemsCache?.Count ?? 0}
+
+=== アイテム詳細 ===";
+
+        if (SaveData?.items != null)
+        {
+            foreach (var item in SaveData.items)
+            {
+                status += $"\n- {item.itemType} ID:{item.itemMasterId} x{item.quantity}";
+            }
+        }
+
+        status += "\n\n=== GetItemsByType結果 ===";
+        var enhanceItems = GetItemsByType(ItemType.EnhanceItem);
+        var supportItems = GetItemsByType(ItemType.SupportItem);
+
+        status += $"\nEnhanceItem: {enhanceItems.Count}件";
+        status += $"\nSupportItem: {supportItems.Count}件";
+
+        return status;
+    }
+
+    /// <summary>
     /// 特定の条件に一致する装備の数を取得
     /// </summary>
     public int CountEquipments(Func<UserEquipmentData, bool> predicate)

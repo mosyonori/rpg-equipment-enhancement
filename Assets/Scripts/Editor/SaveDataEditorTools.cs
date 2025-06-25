@@ -12,10 +12,10 @@ public class SaveDataEditorTools : EditorWindow
     private ItemType selectedItemType = ItemType.EnhanceItem;
     private Vector2 scrollPosition;
 
-    [MenuItem("Tools/Save Data/Save Data Manager")]
+    [MenuItem("Tools/Save Data/Save Data Editor")]
     public static void ShowWindow()
     {
-        GetWindow<SaveDataEditorTools>("Save Data Manager");
+        GetWindow<SaveDataEditorTools>("Save Data Editor");
     }
 
     private void OnGUI()
@@ -181,6 +181,15 @@ public class SaveDataEditorTools : EditorWindow
             Debug.Log(InventoryManager.Instance.GetInventoryStatistics());
         }
 
+        if (GUILayout.Button("詳細状態確認"))
+        {
+            Debug.Log(InventoryManager.Instance.GetDetailedInventoryStatus());
+        }
+
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.BeginHorizontal();
+
         if (GUILayout.Button("データ検証"))
         {
             var errors = InventoryManager.Instance.ValidateInventoryData();
@@ -192,6 +201,12 @@ public class SaveDataEditorTools : EditorWindow
             {
                 Debug.LogError($"インベントリデータに{errors.Count}個の問題があります:\n" + string.Join("\n", errors));
             }
+        }
+
+        if (GUILayout.Button("強制キャッシュ更新"))
+        {
+            InventoryManager.Instance.RefreshCache();
+            Debug.Log("キャッシュを強制更新しました");
         }
 
         EditorGUILayout.EndHorizontal();
@@ -356,4 +371,4 @@ public class SaveDataEditorTools : EditorWindow
         Repaint();
     }
 }
-#endif // UNITY_EDITOR
+#endif
