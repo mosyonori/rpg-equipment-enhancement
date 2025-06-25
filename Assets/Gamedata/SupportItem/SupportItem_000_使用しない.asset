@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46294412170c9944580c3c9cac907f36, type: 3}
+  m_Name: "SupportItem_000_\u4F7F\u7528\u3057\u306A\u3044"
+  m_EditorClassIdentifier: 
+  supportItemId: 0
+  supportItemName: "\u4F7F\u7528\u3057\u306A\u3044"
+  attributeType: 0
+  rarity: 0
+  infiniteUse: 1
+  maxStackValue: 1
+  addEnhancedValue: 0
+  multiplEnhancedValue: 0
+  reduceEnhancedValue: 0
+  addEnhanceStamina: 0
+  reduceEnhanceStamina: 0
+  addEnhanceSuccessRate: 0
+  reduceEnhanceSuccessRate: 0
+  multiplStatusUp: 0
+  hp: 0
+  offense: 0
+  defense: 0
+  speed: 0
+  criticalRate: 0
+  criticalDamageRate: 0
+  fireOffence: 0
+  waterOffence: 0
+  windOffence: 0
+  earthOffence: 0
+  supportItemIcon: {fileID: 0}
+  supportItemIconPath: 
+  description: null
+  completionFlag: 0
+  collectionFlag: 0

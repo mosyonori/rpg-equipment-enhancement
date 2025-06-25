@@ -3,60 +3,24 @@
   "WorkspaceRootPath": "C:\\Users\\aax62\\blacksmith\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{14A141A5-E7EA-0CC6-2595-AAB6DDBB6EB2}|Assembly-CSharp-Editor.csproj|c:\\users\\aax62\\blacksmith\\assets\\editor\\questdataimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{14A141A5-E7EA-0CC6-2595-AAB6DDBB6EB2}|Assembly-CSharp-Editor.csproj|solutionrelative:assets\\editor\\questdataimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\data\\enhanceitemmasterdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\data\\enhanceitemmasterdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|c:\\users\\aax62\\blacksmith\\assets\\scripts\\equipmentenhance\\data\\savedatacontainer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\equipmentenhance\\data\\savedatacontainer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{14A141A5-E7EA-0CC6-2595-AAB6DDBB6EB2}|Assembly-CSharp-Editor.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\editor\\masterdataiconupdater.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{14A141A5-E7EA-0CC6-2595-AAB6DDBB6EB2}|Assembly-CSharp-Editor.csproj|solutionrelative:assets\\scripts\\editor\\masterdataiconupdater.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\titlemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\titlemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{14A141A5-E7EA-0CC6-2595-AAB6DDBB6EB2}|Assembly-CSharp-Editor.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\editor\\csvimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{14A141A5-E7EA-0CC6-2595-AAB6DDBB6EB2}|Assembly-CSharp-Editor.csproj|solutionrelative:assets\\scripts\\editor\\csvimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\homeuimanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\homeuimanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\data\\supportitemmasterdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\data\\supportitemmasterdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\managers\\questmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\managers\\questmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\data\\questdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\data\\questdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\data\\equipmentdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\data\\equipmentdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\equipmentupgrademanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\equipmentupgrademanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\data\\userdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\data\\userdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\questlistitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\questlistitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\datamanagerquestextension.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\datamanagerquestextension.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\googlesheetsimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\googlesheetsimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\data\\supportmaterialdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\data\\supportmaterialdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\data\\enhancementitemdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\scripts\\data\\enhancementitemdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\data\\equipmentmasterdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\data\\equipmentmasterdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -71,171 +35,63 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "SaveDataContainer.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\EquipmentEnhance\\Data\\SaveDataContainer.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\EquipmentEnhance\\Data\\SaveDataContainer.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\EquipmentEnhance\\Data\\SaveDataContainer.cs",
-              "RelativeToolTip": "Assets\\Scripts\\EquipmentEnhance\\Data\\SaveDataContainer.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAADoAAAANAAAAAAAAAA==",
+              "Title": "MasterDataIconUpdater.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Editor\\MasterDataIconUpdater.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Editor\\MasterDataIconUpdater.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Editor\\MasterDataIconUpdater.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Editor\\MasterDataIconUpdater.cs",
+              "ViewState": "AgIAALgAAAAAAAAAAAAiwMcAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-24T19:38:30.511Z"
+              "WhenOpened": "2025-06-25T04:10:58.335Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "TitleManager.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\TitleManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\TitleManager.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\TitleManager.cs",
-              "RelativeToolTip": "Assets\\Scripts\\TitleManager.cs",
-              "ViewState": "AgIAAKkAAAAAAAAAAAAgwIkBAAAyAAAAAAAAAA==",
+              "Title": "CSVImporter.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Editor\\CSVImporter.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Editor\\CSVImporter.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Editor\\CSVImporter.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Editor\\CSVImporter.cs",
+              "ViewState": "AgIAADQBAAAAAAAAAAAgwGwBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-19T04:27:42.7Z"
+              "WhenOpened": "2025-06-25T04:10:20.68Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "HomeUIManager.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\HomeUIManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\HomeUIManager.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\HomeUIManager.cs",
-              "RelativeToolTip": "Assets\\Scripts\\HomeUIManager.cs",
-              "ViewState": "AgIAAEoAAAAAAAAAAAAQwF4AAAA3AAAAAAAAAA==",
+              "Title": "SupportItemMasterData.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\SupportItemMasterData.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\SupportItemMasterData.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\SupportItemMasterData.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Data\\SupportItemMasterData.cs",
+              "ViewState": "AgIAAFIAAAAAAAAAAAAgwIoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-19T02:26:25.904Z"
+              "WhenOpened": "2025-06-25T04:09:46.463Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "QuestDataImporter.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Editor\\QuestDataImporter.cs",
-              "RelativeDocumentMoniker": "Assets\\Editor\\QuestDataImporter.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Editor\\QuestDataImporter.cs",
-              "RelativeToolTip": "Assets\\Editor\\QuestDataImporter.cs",
-              "ViewState": "AgIAAEkBAAAAAAAAAAAkwGUBAAAUAAAAAAAAAA==",
+              "Title": "EnhanceItemMasterData.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\EnhanceItemMasterData.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\EnhanceItemMasterData.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\EnhanceItemMasterData.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Data\\EnhanceItemMasterData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAK8AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-18T14:51:36.55Z",
+              "WhenOpened": "2025-06-25T04:09:02.06Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "QuestManager.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Managers\\QuestManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Managers\\QuestManager.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Managers\\QuestManager.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Managers\\QuestManager.cs",
-              "ViewState": "AgIAAHEAAAAAAAAAAAAAwIsAAAAuAAAAAAAAAA==",
+              "Title": "EquipmentMasterData.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\EquipmentMasterData.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\EquipmentMasterData.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\EquipmentMasterData.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Data\\EquipmentMasterData.cs",
+              "ViewState": "AgIAADIAAAAAAAAAAADwv0sAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-18T14:58:27.516Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "QuestData.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\QuestData.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\QuestData.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\QuestData.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Data\\QuestData.cs",
-              "ViewState": "AgIAACEAAAAAAAAAAAAQwD0AAAATAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-18T14:56:12.177Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "EquipmentData.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\EquipmentData.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\EquipmentData.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\EquipmentData.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Data\\EquipmentData.cs",
-              "ViewState": "AgIAACIAAAAAAAAAAAAAwDsAAAAVAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-16T04:40:26.592Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "EquipmentUpgradeManager.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\EquipmentUpgradeManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\EquipmentUpgradeManager.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\EquipmentUpgradeManager.cs",
-              "RelativeToolTip": "Assets\\Scripts\\EquipmentUpgradeManager.cs",
-              "ViewState": "AgIAADYBAAAAAAAAAAAIwEsBAAAMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-19T05:19:44.636Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "UserData.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\UserData.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\UserData.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\UserData.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Data\\UserData.cs",
-              "ViewState": "AgIAACMAAAAAAAAAAAAQwD8AAABMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-15T13:32:28.679Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "QuestListItem.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\QuestListItem.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\QuestListItem.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\QuestListItem.cs",
-              "RelativeToolTip": "Assets\\Scripts\\QuestListItem.cs",
-              "ViewState": "AgIAAL8AAAAAAAAAAAAowPwAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-19T02:28:58.292Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "DataManagerQuestExtension.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\DataManagerQuestExtension.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\DataManagerQuestExtension.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\DataManagerQuestExtension.cs",
-              "RelativeToolTip": "Assets\\Scripts\\DataManagerQuestExtension.cs",
-              "ViewState": "AgIAAEUBAAAAAAAAAAAqwGABAAARAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-19T02:30:08.116Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "GoogleSheetsImporter.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\GoogleSheetsImporter.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\GoogleSheetsImporter.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\GoogleSheetsImporter.cs",
-              "RelativeToolTip": "Assets\\Scripts\\GoogleSheetsImporter.cs",
-              "ViewState": "AgIAAFYAAAAAAAAAAAAqwJQAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-18T14:49:40.995Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "SupportMaterialData.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\SupportMaterialData.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\SupportMaterialData.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\SupportMaterialData.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Data\\SupportMaterialData.cs",
-              "ViewState": "AgIAACoBAAAAAAAAAAAcwEoBAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-15T12:14:43.869Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "EnhancementItemData.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\EnhancementItemData.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\EnhancementItemData.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\EnhancementItemData.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Data\\EnhancementItemData.cs",
-              "ViewState": "AgIAAMYBAAAAAAAAAAAqwNoBAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-15T12:14:34.936Z"
+              "WhenOpened": "2025-06-25T04:08:20.44Z"
             }
           ]
         }

@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d181f2c7b882c54598e86cf1387bc06, type: 3}
+  m_Name: "EnhanceItem_008_\u8010\u4E45\u5FA9\u5143\u7825\u77F3"
+  m_EditorClassIdentifier: 
+  enhanceItemId: 8
+  enhanceItemName: "\u8010\u4E45\u5FA9\u5143\u7825\u77F3"
+  attributeType: 0
+  rarity: 2
+  maxStackValue: 999
+  addEnhancedValue: 0
+  reduceEnhancedValue: 0
+  addEnhanceStamina: 100
+  reduceEnhanceStamina: 0
+  enhanceSuccessRate: 100
+  weaponHp: 0
+  weaponOffense: 0
+  weaponDefense: 0
+  weaponSpeed: 0
+  weaponCriticalRate: 0
+  weaponCriticalDamageRate: 0
+  weaponFireOffence: 0
+  weaponWaterOffence: 0
+  weaponWindOffence: 0
+  weaponEarthOffence: 0
+  armorHp: 0
+  armorOffense: 0
+  armorDefense: 0
+  armorSpeed: 0
+  armorCriticalRate: 0
+  armorCriticalDamageRate: 0
+  armorFireOffence: 0
+  armorWaterOffence: 0
+  armorWindOffence: 0
+  armorEarthOffence: 0
+  accessoryHp: 0
+  accessoryOffense: 0
+  accessoryDefense: 0
+  accessorySpeed: 0
+  accessoryCriticalRate: 0
+  accessoryCriticalDamageRate: 0
+  accessoryFireOffence: 0
+  accessoryWaterOffence: 0
+  accessoryWindOffence: 0
+  accessoryEarthOffence: 0
+  enhanceItemIcon: {fileID: 0}
+  enhanceItemIconPath: 
+  description: "\u88C5\u5099\u306E\u5F37\u5316\u8010\u4E45\u3092\u5B8C\u5168\u306B\u5FA9\u5143\u3059\u308B\u3002\u8D85\u30EC\u30A2\u3002"
+  completionFlag: 1
+  collectionFlag: 1

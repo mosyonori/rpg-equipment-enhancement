@@ -1,0 +1,10 @@
+enhance_item_id,enhance_item_name,attribute_type,rarity,max_stack_value,add_enhanced_value,reduce_enhanced_value,add_enhance_stamina,reduce_enhance_stamina,enhance_success_rate,weapon_hp,weapon_offense,weapon_defense,weapon_speed,weapon_critical_rate,weapon_critical_damage_rate,weapon_fire_offence,weapon_water_offence,weapon_wind_offence,weapon_earth_offence,armor_hp,armor_offense,armor_defense,armor_speed,armor_critical_rate,armor_critical_damage_rate,armor_fire_offence,armor_water_offence,armor_wind_offence,armor_earth_offence,accessory_hp,accessory_offense,accessory_defense,accessory_speed,accessory_critical_rate,accessory_critical_damage_rate,accessory_fire_offence,accessory_water_offence,accessory_wind_offence,accessory_earth_offence,enhance_item_icon_path,description,completion_flag,collection_flag
+1,低級強化石,normal,common,999,1,0,0,1,90,0,1,0,0,0,1,0,0,0,0,3,0,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,,低品質な強化石。能力の伸びは悪い。,1,1
+2,中級強化石,normal,rare,999,2,0,0,1,75,0,3,0,0,1,2,0,0,0,0,5,0,3,0,0,0,0,0,0,0,3,2,2,0,0,0,0,0,0,0,,品質の良い強化石。そこそこ強くなる。,1,1
+3,高級強化石,normal,epic,999,3,0,0,1,60,0,5,0,0,2,4,0,0,0,0,10,0,5,0,0,0,0,0,0,0,5,3,3,1,0,0,0,0,0,0,,最高品質。成功すればとても強力になる。,1,1
+4,火のルビー,fire,epic,999,2,0,0,1,50,0,5,0,0,4,3,5,0,0,0,15,0,7,0,0,0,5,0,0,0,8,3,3,0,0,0,5,0,0,0,,赤い宝石。火属性攻撃が増加する。,1,1
+5,水のアクアマリン,water,epic,999,2,0,0,1,50,0,5,0,0,2,6,0,5,0,0,15,0,7,0,0,0,0,5,0,0,5,3,5,0,0,0,0,5,0,0,,青い宝石。水属性攻撃が増加する。,1,1
+6,風のエメラルド,wind,epic,999,2,0,0,1,50,0,5,0,0,2,3,0,0,5,0,15,0,7,0,0,0,0,0,5,0,5,3,3,2,0,0,0,0,5,0,,緑色の宝石。風属性攻撃が増加する。,1,1
+7,土のトパーズ,earth,epic,999,2,0,0,1,50,0,10,0,0,2,3,0,0,0,5,15,0,7,0,0,0,0,0,0,5,5,5,3,0,0,0,0,0,0,5,,橙色の宝石。土属性攻撃が増加する。,1,1
+8,耐久復元砥石,normal,epic,999,0,0,100,0,100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,,装備の強化耐久を完全に復元する。超レア。,1,1
+9,初期化石,normal,epic,999,0,999,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,,装備の強化値を初期化する。いつ使うんだ？,1,1
