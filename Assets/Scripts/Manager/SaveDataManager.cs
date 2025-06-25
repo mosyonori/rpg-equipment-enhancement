@@ -304,6 +304,14 @@ public class SaveDataManager : MonoBehaviour
         isDirty = true;
 
         DebugLog($"外部からセーブデータを設定しました: {saveData.playerName}");
+
+        // InventoryManagerのキャッシュを自動更新
+        if (InventoryManager.Instance != null && InventoryManager.Instance.IsInitialized)
+        {
+            InventoryManager.Instance.RefreshCache();
+            DebugLog("InventoryManagerのキャッシュを自動更新しました");
+        }
+
         OnDataLoaded?.Invoke(CurrentSaveData);
     }
 
