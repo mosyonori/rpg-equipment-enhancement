@@ -1,0 +1,361 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+/// <summary>
+/// 装備選択用ポップアップUI
+/// </summary>
+public class EquipmentSelectionPopup : MonoBehaviour
+{
+    [Header("UI参照")]
+    [SerializeField] private GameObject popupPanel;
+    [SerializeField] private TextMeshProUGUI titleText;
+    [SerializeField] private Button closeButton;
+    [SerializeField] private Button confirmButton;
+    [SerializeField] private TextMeshProUGUI confirmButtonText; // 追加
+    [SerializeField] private Button removeEquipmentButton;
+    [SerializeField] private TextMeshProUGUI removeEquipmentButtonText; // 追加
+    [SerializeField] private Transform equipmentGridParent;
+    [SerializeField] private GameObject equipmentSlotPrefab;
+    [SerializeField] private ScrollRect scrollRect;
+
+    [Header("ボタンテキスト色設定")]
+    [SerializeField] private Color enabledTextColor = Color.white;
+    [SerializeField] private Color disabledTextColor = Color.gray;
+
+    [Header("デバッグ")]
+    [SerializeField] private bool enableDebugLog = true;
+
+    // イベント
+    public System.Action<UserEquipmentData> OnEquipmentSelected;
+    public System.Action OnEquipmentRemoved;
+    public System.Action OnPopupClosed;
+
+    // 状態
+    private EquipmentType currentEquipmentType;
+    private UserEquipmentData selectedEquipment;
+    private List<EquipmentSlotUI> equipmentSlots = new List<EquipmentSlotUI>();
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+        SetupButtons();
+        HidePopup();
+    }
+
+    #endregion
+
+    #region 初期化
+
+    private void SetupButtons()
+    {
+        if (closeButton != null)
+        {
+            closeButton.onClick.AddListener(HidePopup);
+        }
+
+        if (confirmButton != null)
+        {
+            confirmButton.onClick.AddListener(ConfirmSelection);
+        }
+
+        if (removeEquipmentButton != null)
+        {
+            removeEquipmentButton.onClick.AddListener(RemoveEquipment);
+        }
+    }
+
+    #endregion
+
+    #region 公開メソッド
+
+    /// <summary>
+    /// 装備選択ポップアップを表示
+    /// </summary>
+    public void ShowEquipmentSelection(EquipmentType equipmentType)
+    {
+        currentEquipmentType = equipmentType;
+        selectedEquipment = null;
+
+        // タイトル設定
+        UpdateTitle();
+
+        // 装備リスト表示
+        DisplayEquipmentList();
+
+        // ポップアップ表示
+        ShowPopup();
+
+        DebugLog($"装備選択ポップアップを表示: {equipmentType}");
+    }
+
+    /// <summary>
+    /// ポップアップを非表示
+    /// </summary>
+    public void HidePopup()
+    {
+        if (popupPanel != null)
+        {
+            popupPanel.SetActive(false);
+        }
+
+        selectedEquipment = null;
+        OnPopupClosed?.Invoke();
+
+        DebugLog("装備選択ポップアップを非表示");
+    }
+
+    /// <summary>
+    /// 現在表示中の装備タイプを取得
+    /// </summary>
+    public EquipmentType GetCurrentEquipmentType()
+    {
+        return currentEquipmentType;
+    }
+
+    #endregion
+
+    #region 内部メソッド
+
+    private void ShowPopup()
+    {
+        if (popupPanel != null)
+        {
+            popupPanel.SetActive(true);
+        }
+    }
+
+    private void UpdateTitle()
+    {
+        if (titleText == null) return;
+
+        string titleStr = currentEquipmentType switch
+        {
+            EquipmentType.Weapon => "武器を選択",
+            EquipmentType.Armor => "防具を選択",
+            EquipmentType.Accessory => "アクセサリーを選択",
+            _ => "装備を選択"
+        };
+
+        titleText.text = titleStr;
+    }
+
+    private void DisplayEquipmentList()
+    {
+        if (!IsManagersReady()) return;
+
+        // 指定タイプの装備可能アイテムを取得
+        var availableEquipments = InventoryManager.Instance.GetEquippableItems(currentEquipmentType);
+
+        DebugLog($"表示可能装備数: {availableEquipments.Count}");
+
+        // スロット数を調整
+        AdjustSlotCount(availableEquipments.Count);
+
+        // 各スロットにデータ設定
+        for (int i = 0; i < availableEquipments.Count; i++)
+        {
+            equipmentSlots[i].SetEquipmentData(availableEquipments[i]);
+            equipmentSlots[i].OnSlotClicked = OnEquipmentSlotClicked;
+            equipmentSlots[i].SetSelected(false);
+        }
+
+        // ボタン状態更新
+        UpdateButtonStates();
+    }
+
+    private void AdjustSlotCount(int targetCount)
+    {
+        // 不足分を作成
+        while (equipmentSlots.Count < targetCount)
+        {
+            GameObject newSlot = Instantiate(equipmentSlotPrefab, equipmentGridParent);
+            EquipmentSlotUI slotUI = newSlot.GetComponent<EquipmentSlotUI>();
+
+            if (slotUI != null)
+            {
+                equipmentSlots.Add(slotUI);
+            }
+        }
+
+        // 表示/非表示を制御
+        for (int i = 0; i < equipmentSlots.Count; i++)
+        {
+            equipmentSlots[i].gameObject.SetActive(i < targetCount);
+        }
+    }
+
+    private void OnEquipmentSlotClicked(UserEquipmentData equipment)
+    {
+        selectedEquipment = equipment;
+
+        // 選択状態の見た目更新
+        UpdateSelectionVisual();
+
+        // ボタン状態更新
+        UpdateButtonStates();
+
+        DebugLog($"装備が選択されました: {equipment.userEquipmentId}");
+    }
+
+    private void UpdateSelectionVisual()
+    {
+        foreach (var slot in equipmentSlots)
+        {
+            if (slot.gameObject.activeInHierarchy)
+            {
+                bool isSelected = selectedEquipment != null &&
+                    slot.GetEquipmentData()?.userEquipmentId == selectedEquipment.userEquipmentId;
+                slot.SetSelected(isSelected);
+            }
+        }
+    }
+
+    private void UpdateButtonStates()
+    {
+        bool hasSelection = selectedEquipment != null;
+
+        // Confirmボタンのテキスト色を変更（ボタン自体は常に有効）
+        if (confirmButton != null)
+        {
+            confirmButton.interactable = true; // 常に有効
+
+            if (confirmButtonText != null)
+            {
+                confirmButtonText.color = hasSelection ? enabledTextColor : disabledTextColor;
+            }
+        }
+
+        // 装備外しボタンは、現在装備中のアイテムがある場合のみ有効
+        if (removeEquipmentButton != null)
+        {
+            bool hasEquippedItem = HasEquippedItem();
+            removeEquipmentButton.interactable = true; // 常に有効
+
+            if (removeEquipmentButtonText != null)
+            {
+                removeEquipmentButtonText.color = hasEquippedItem ? enabledTextColor : disabledTextColor;
+            }
+        }
+    }
+
+    private bool HasEquippedItem()
+    {
+        var equippedItems = InventoryManager.Instance.GetEquippedItems();
+        return equippedItems.Exists(eq =>
+        {
+            var masterData = MasterDataManager.Instance?.GetEquipmentData(eq.equipmentMasterId);
+            return masterData?.equipmentType == currentEquipmentType;
+        });
+    }
+
+    private void ConfirmSelection()
+    {
+        // 選択状態のチェック
+        if (selectedEquipment == null)
+        {
+            DebugLog("装備が選択されていません");
+            return;
+        }
+
+        // イベントが設定されているかチェック
+        if (OnEquipmentSelected == null)
+        {
+            DebugLogError("OnEquipmentSelectedイベントが設定されていません");
+            return;
+        }
+
+        DebugLog($"装備選択を確定: {selectedEquipment.userEquipmentId}");
+
+        try
+        {
+            OnEquipmentSelected.Invoke(selectedEquipment);
+            HidePopup();
+        }
+        catch (System.Exception e)
+        {
+            DebugLogError($"装備選択確定時にエラーが発生: {e.Message}");
+        }
+    }
+
+    private void RemoveEquipment()
+    {
+        // 装備外し可能かチェック
+        if (!HasEquippedItem())
+        {
+            DebugLog("外す装備がありません");
+            return;
+        }
+
+        // イベントが設定されているかチェック
+        if (OnEquipmentRemoved == null)
+        {
+            DebugLogError("OnEquipmentRemovedイベントが設定されていません");
+            return;
+        }
+
+        DebugLog($"装備を外します: {currentEquipmentType}");
+
+        try
+        {
+            OnEquipmentRemoved.Invoke();
+            HidePopup();
+        }
+        catch (System.Exception e)
+        {
+            DebugLogError($"装備外し時にエラーが発生: {e.Message}");
+        }
+    }
+
+    private bool IsManagersReady()
+    {
+        return InventoryManager.Instance != null &&
+               InventoryManager.Instance.IsInitialized &&
+               MasterDataManager.Instance != null &&
+               MasterDataManager.Instance.IsDataLoaded;
+    }
+
+    private void DebugLog(string message)
+    {
+        if (enableDebugLog)
+        {
+            Debug.Log($"[EquipmentSelectionPopup] {message}");
+        }
+    }
+
+    private void DebugLogError(string message)
+    {
+        if (enableDebugLog)
+        {
+            Debug.LogError($"[EquipmentSelectionPopup] {message}");
+        }
+    }
+
+    #endregion
+
+    #region エディター用ツール
+
+#if UNITY_EDITOR
+    [ContextMenu("テスト表示 - 武器")]
+    private void TestShowWeapons()
+    {
+        ShowEquipmentSelection(EquipmentType.Weapon);
+    }
+
+    [ContextMenu("テスト表示 - 防具")]
+    private void TestShowArmors()
+    {
+        ShowEquipmentSelection(EquipmentType.Armor);
+    }
+
+    [ContextMenu("テスト表示 - アクセサリー")]
+    private void TestShowAccessories()
+    {
+        ShowEquipmentSelection(EquipmentType.Accessory);
+    }
+#endif
+
+    #endregion
+}

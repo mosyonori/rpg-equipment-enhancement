@@ -173,7 +173,7 @@ public class UserSaveData
         var equipment = GetEquipment(userEquipmentId);
         if (equipment == null || equipment.isEquipped) return false;
 
-        // 同じタイプの装備が既に装着されている場合は外す
+        // 同じタイプの装備が既に装備されている場合は先に外す
         UnEquipSameTypeItem(characterId, masterData.equipmentType);
 
         // 装備を装着
@@ -183,17 +183,47 @@ public class UserSaveData
         switch (masterData.equipmentType)
         {
             case EquipmentType.Weapon:
-                equippedWeaponIds.Add(userEquipmentId);
+                if (!equippedWeaponIds.Contains(userEquipmentId))
+                    equippedWeaponIds.Add(userEquipmentId);
                 break;
             case EquipmentType.Armor:
-                equippedArmorIds.Add(userEquipmentId);
+                if (!equippedArmorIds.Contains(userEquipmentId))
+                    equippedArmorIds.Add(userEquipmentId);
                 break;
             case EquipmentType.Accessory:
-                equippedAccessoryIds.Add(userEquipmentId);
+                if (!equippedAccessoryIds.Contains(userEquipmentId))
+                    equippedAccessoryIds.Add(userEquipmentId);
                 break;
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// 同じタイプの装備を外す
+    /// </summary>
+    private void UnEquipSameTypeItem(string characterId, EquipmentType equipmentType)
+    {
+        var equippedItems = equipments.FindAll(e => e.isEquipped && e.equippedCharacterId == characterId);
+
+        foreach (var item in equippedItems)
+        {
+            // マスターデータから装備タイプを確認
+            // 簡易的に装備IDリストから判定
+            bool shouldUnEquip = equipmentType switch
+            {
+                EquipmentType.Weapon => equippedWeaponIds.Contains(item.userEquipmentId),
+                EquipmentType.Armor => equippedArmorIds.Contains(item.userEquipmentId),
+                EquipmentType.Accessory => equippedAccessoryIds.Contains(item.userEquipmentId),
+                _ => false
+            };
+
+            if (shouldUnEquip)
+            {
+                UnEquipItem(item.userEquipmentId);
+                break; // 同じタイプは1つだけ装備可能
+            }
+        }
     }
 
     /// <summary>
@@ -214,31 +244,6 @@ public class UserSaveData
         return true;
     }
 
-    /// <summary>
-    /// 同じタイプの装備を外す
-    /// </summary>
-    private void UnEquipSameTypeItem(string characterId, EquipmentType equipmentType)
-    {
-        var equippedItems = equipments.FindAll(e => e.isEquipped && e.equippedCharacterId == characterId);
-
-        foreach (var item in equippedItems)
-        {
-            // マスターデータから装備タイプを確認する必要があるが、簡易的に装備IDリストから判定
-            bool shouldUnEquip = equipmentType switch
-            {
-                EquipmentType.Weapon => equippedWeaponIds.Contains(item.userEquipmentId),
-                EquipmentType.Armor => equippedArmorIds.Contains(item.userEquipmentId),
-                EquipmentType.Accessory => equippedAccessoryIds.Contains(item.userEquipmentId),
-                _ => false
-            };
-
-            if (shouldUnEquip)
-            {
-                UnEquipItem(item.userEquipmentId);
-                break; // 同じタイプは1つだけ装備可能
-            }
-        }
-    }
 
     /// <summary>
     /// 最終ログイン日時を更新

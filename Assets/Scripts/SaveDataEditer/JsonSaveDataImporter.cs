@@ -107,6 +107,58 @@ public class JsonSaveDataImporter : EditorWindow
         {
             ShowManualInputDialog();
         }
+
+        GUILayout.Space(5);
+
+        EditorGUILayout.BeginHorizontal();
+
+        if (GUILayout.Button("インポート後確認"))
+        {
+            CheckImportResult();
+        }
+
+        if (GUILayout.Button("強制データ再読み込み"))
+        {
+            ForceReloadData();
+        }
+
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void CheckImportResult()
+    {
+        if (SaveDataManager.Instance?.CurrentSaveData == null)
+        {
+            EditorUtility.DisplayDialog("状態確認", "セーブデータが読み込まれていません", "OK");
+            return;
+        }
+
+        var saveData = SaveDataManager.Instance.CurrentSaveData;
+        string message = $@"現在のセーブデータ:
+プレイヤー名: {saveData.playerName}
+レベル: {saveData.playerLevel}
+装備数: {saveData.equipments.Count}
+アイテム数: {saveData.items.Count}
+ゴールド: {saveData.gold:N0}";
+
+        EditorUtility.DisplayDialog("インポート結果確認", message, "OK");
+        Debug.Log("=== インポート結果確認 ===\n" + message);
+    }
+
+    private void ForceReloadData()
+    {
+        if (SaveDataManager.Instance != null)
+        {
+            SaveDataManager.Instance.LoadSaveData();
+
+            if (InventoryManager.Instance != null)
+            {
+                InventoryManager.Instance.RefreshCache();
+            }
+
+            EditorUtility.DisplayDialog("完了", "データを強制再読み込みしました", "OK");
+            Debug.Log("データを強制再読み込みしました");
+        }
     }
 
     private void ValidateJsonData()
@@ -251,12 +303,16 @@ public class JsonSaveDataImporter : EditorWindow
                 SaveDataManager.Instance.SetSaveData(saveData);
                 SaveDataManager.Instance.SaveSaveData();
 
-                // インベントリマネージャーのキャッシュを更新
+                // InventoryManagerのキャッシュを更新
                 if (InventoryManager.Instance != null)
                 {
                     InventoryManager.Instance.RefreshCache();
                     Debug.Log("InventoryManagerのキャッシュを手動更新しました");
                 }
+
+                // データを再読み込みして確実に反映
+                SaveDataManager.Instance.LoadSaveData();
+                Debug.Log("セーブデータを再読み込みしました");
 
                 EditorUtility.DisplayDialog("完了", "JSONからセーブデータをインポートしました", "OK");
                 Debug.Log("JSONからセーブデータをインポートしました");
@@ -266,9 +322,6 @@ public class JsonSaveDataImporter : EditorWindow
         {
             EditorUtility.DisplayDialog("エラー", $"インポートエラー: {e.Message}", "OK");
         }
-
-        // インポート完了後に確実にデータを反映
-        SaveDataManager.Instance.LoadSaveData();
     }
 
     private void ImportWithBackup()
@@ -414,6 +467,9 @@ public class ManualJsonInputWindow : EditorWindow
                 {
                     InventoryManager.Instance.RefreshCache();
                 }
+
+                // データを再読み込みして確実に反映
+                SaveDataManager.Instance.LoadSaveData();
 
                 EditorUtility.DisplayDialog("完了", "手動JSONからセーブデータをインポートしました", "OK");
                 Close();

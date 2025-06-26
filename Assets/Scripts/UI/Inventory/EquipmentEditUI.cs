@@ -1,0 +1,437 @@
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+/// <summary>
+/// 装備編集画面のメインUI
+/// </summary>
+public class EquipmentEditUI : MonoBehaviour
+{
+    [Header("装備スロットボタン")]
+    [SerializeField] private Button weaponSlotButton;
+    [SerializeField] private Button armorSlotButton;
+    [SerializeField] private Button accessorySlotButton;
+    [SerializeField] private Button futureSlot1Button; // 将来用スロット
+    [SerializeField] private Button futureSlot2Button; // 将来用スロット
+
+    [Header("装備スロット表示")]
+    [SerializeField] private Image weaponSlotIcon;
+    [SerializeField] private Image armorSlotIcon;
+    [SerializeField] private Image accessorySlotIcon;
+    [SerializeField] private TextMeshProUGUI weaponSlotText;
+    [SerializeField] private TextMeshProUGUI armorSlotText;
+    [SerializeField] private TextMeshProUGUI accessorySlotText;
+
+    [Header("ナビゲーションボタン")]
+    [SerializeField] private Button backButton;
+    [SerializeField] private Button inventoryButton;
+    [SerializeField] private Button enhanceButton;
+
+    [Header("ステータス表示")]
+    [SerializeField] private TextMeshProUGUI playerNameText;
+    [SerializeField] private TextMeshProUGUI playerLevelText;
+    [SerializeField] private TextMeshProUGUI totalPowerText;
+    [SerializeField] private TextMeshProUGUI equipmentCountText;
+
+    [Header("装備選択ポップアップ")]
+    [SerializeField] private EquipmentSelectionPopup equipmentSelectionPopup;
+
+    [Header("デフォルトアイコン")]
+    [SerializeField] private Sprite defaultWeaponIcon;
+    [SerializeField] private Sprite defaultArmorIcon;
+    [SerializeField] private Sprite defaultAccessoryIcon;
+
+    [Header("デバッグ")]
+    [SerializeField] private bool enableDebugLog = true;
+
+    // イベント
+    public System.Action OnBackButtonClicked;
+    public System.Action OnInventoryButtonClicked;
+    public System.Action OnEnhanceButtonClicked;
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+        SetupButtons();
+        SetupPopupEvents();
+    }
+
+    private void Start()
+    {
+        // イベント購読
+        SubscribeToEvents();
+
+        // 初期表示更新
+        RefreshDisplay();
+    }
+
+    private void OnDestroy()
+    {
+        // イベント購読解除
+        UnsubscribeFromEvents();
+    }
+
+    #endregion
+
+    #region 初期化
+
+    private void SetupButtons()
+    {
+        // 装備スロットボタン
+        if (weaponSlotButton != null)
+        {
+            weaponSlotButton.onClick.AddListener(() => OpenEquipmentSelection(EquipmentType.Weapon));
+        }
+
+        if (armorSlotButton != null)
+        {
+            armorSlotButton.onClick.AddListener(() => OpenEquipmentSelection(EquipmentType.Armor));
+        }
+
+        if (accessorySlotButton != null)
+        {
+            accessorySlotButton.onClick.AddListener(() => OpenEquipmentSelection(EquipmentType.Accessory));
+        }
+
+        // 将来用スロットは無効化
+        if (futureSlot1Button != null)
+        {
+            futureSlot1Button.interactable = false;
+        }
+
+        if (futureSlot2Button != null)
+        {
+            futureSlot2Button.interactable = false;
+        }
+
+        // ナビゲーションボタン
+        if (backButton != null)
+        {
+            backButton.onClick.AddListener(() => OnBackButtonClicked?.Invoke());
+        }
+
+        if (inventoryButton != null)
+        {
+            inventoryButton.onClick.AddListener(() => OnInventoryButtonClicked?.Invoke());
+        }
+
+        if (enhanceButton != null)
+        {
+            enhanceButton.onClick.AddListener(() => OnEnhanceButtonClicked?.Invoke());
+        }
+    }
+
+    private void SetupPopupEvents()
+    {
+        if (equipmentSelectionPopup != null)
+        {
+            equipmentSelectionPopup.OnEquipmentSelected += OnEquipmentSelected;
+            equipmentSelectionPopup.OnEquipmentRemoved += OnEquipmentRemoved;
+            equipmentSelectionPopup.OnPopupClosed += OnPopupClosed;
+        }
+    }
+
+    private void SubscribeToEvents()
+    {
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.OnEquipmentEquipped += OnEquipmentEquipped;
+            InventoryManager.OnEquipmentUnequipped += OnEquipmentUnequipped;
+            InventoryManager.OnInventoryChanged += OnInventoryChanged;
+        }
+    }
+
+    private void UnsubscribeFromEvents()
+    {
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.OnEquipmentEquipped -= OnEquipmentEquipped;
+            InventoryManager.OnEquipmentUnequipped -= OnEquipmentUnequipped;
+            InventoryManager.OnInventoryChanged -= OnInventoryChanged;
+        }
+
+        if (equipmentSelectionPopup != null)
+        {
+            equipmentSelectionPopup.OnEquipmentSelected -= OnEquipmentSelected;
+            equipmentSelectionPopup.OnEquipmentRemoved -= OnEquipmentRemoved;
+            equipmentSelectionPopup.OnPopupClosed -= OnPopupClosed;
+        }
+    }
+
+    #endregion
+
+    #region 公開メソッド
+
+    /// <summary>
+    /// 表示を更新
+    /// </summary>
+    public void RefreshDisplay()
+    {
+        if (!IsManagersReady()) return;
+
+        UpdatePlayerInfo();
+        UpdateEquipmentSlots();
+
+        DebugLog("装備編集画面の表示を更新しました");
+    }
+
+    #endregion
+
+    #region 内部メソッド - 表示更新
+
+    private void UpdatePlayerInfo()
+    {
+        var saveData = SaveDataManager.Instance?.CurrentSaveData;
+        if (saveData == null) return;
+
+        if (playerNameText != null) playerNameText.text = saveData.playerName;
+        if (playerLevelText != null) playerLevelText.text = $"Lv.{saveData.playerLevel}";
+
+        if (totalPowerText != null)
+        {
+            int totalPower = InventoryManager.Instance?.CalculateTotalPower() ?? 0;
+            totalPowerText.text = totalPower.ToString();
+        }
+
+        if (equipmentCountText != null)
+        {
+            int currentCount = saveData.equipments.Count;
+            int maxCount = 1000; // 設定可能にする
+            equipmentCountText.text = $"{currentCount}/{maxCount}";
+        }
+    }
+
+    private void UpdateEquipmentSlots()
+    {
+        UpdateEquipmentSlot(EquipmentType.Weapon, weaponSlotIcon, weaponSlotText, defaultWeaponIcon);
+        UpdateEquipmentSlot(EquipmentType.Armor, armorSlotIcon, armorSlotText, defaultArmorIcon);
+        UpdateEquipmentSlot(EquipmentType.Accessory, accessorySlotIcon, accessorySlotText, defaultAccessoryIcon);
+    }
+
+    private void UpdateEquipmentSlot(EquipmentType equipmentType, Image iconImage, TextMeshProUGUI nameText, Sprite defaultIcon)
+    {
+        if (iconImage == null) return;
+
+        var equippedItems = InventoryManager.Instance.GetEquippedItems();
+        var equippedItem = equippedItems.Find(eq =>
+        {
+            var masterData = MasterDataManager.Instance?.GetEquipmentData(eq.equipmentMasterId);
+            return masterData?.equipmentType == equipmentType;
+        });
+
+        DebugLog($"装備スロット更新: {equipmentType}, 装備中アイテム: {(equippedItem != null ? equippedItem.userEquipmentId : "なし")}");
+
+        if (equippedItem != null)
+        {
+            // 装備中のアイテム表示
+            var masterData = MasterDataManager.Instance.GetEquipmentData(equippedItem.equipmentMasterId);
+            if (masterData != null)
+            {
+                // アイコン設定
+                Sprite iconToUse = masterData.equipmentIcon ?? defaultIcon;
+                iconImage.sprite = iconToUse;
+
+                DebugLog($"アイコン設定: {masterData.equipmentName}, Icon: {(masterData.equipmentIcon != null ? "あり" : "デフォルト")}");
+
+                // 名前設定
+                if (nameText != null)
+                {
+                    string displayName = masterData.equipmentName;
+                    if (equippedItem.currentEnhancedValue > 0)
+                    {
+                        displayName += $" +{equippedItem.currentEnhancedValue}";
+                    }
+                    nameText.text = displayName;
+                }
+            }
+        }
+        else
+        {
+            // 装備なしの表示
+            iconImage.sprite = defaultIcon;
+            if (nameText != null)
+            {
+                nameText.text = GetEmptySlotText(equipmentType);
+            }
+
+            DebugLog($"装備なし表示: {equipmentType}");
+        }
+    }
+
+    private string GetEmptySlotText(EquipmentType equipmentType)
+    {
+        return equipmentType switch
+        {
+            EquipmentType.Weapon => "武器なし",
+            EquipmentType.Armor => "防具なし",
+            EquipmentType.Accessory => "アクセサリーなし",
+            _ => "装備なし"
+        };
+    }
+
+    #endregion
+
+    #region 内部メソッド - 装備選択
+
+    private void OpenEquipmentSelection(EquipmentType equipmentType)
+    {
+        if (equipmentSelectionPopup == null)
+        {
+            DebugLogError("装備選択ポップアップが設定されていません");
+            return;
+        }
+
+        // 装備タイプを記録
+        lastOpenedEquipmentType = equipmentType;
+
+        equipmentSelectionPopup.ShowEquipmentSelection(equipmentType);
+        DebugLog($"装備選択を開始: {equipmentType}");
+    }
+
+    #endregion
+
+    #region イベントハンドラー
+
+    private void OnEquipmentSelected(UserEquipmentData equipment)
+    {
+        if (equipment == null) return;
+
+        // 装備を装着
+        bool success = InventoryManager.Instance.EquipItem(equipment.userEquipmentId);
+
+        if (success)
+        {
+            DebugLog($"装備を装着しました: {equipment.userEquipmentId}");
+            // 装備画面の表示を即座に更新
+            RefreshDisplay();
+        }
+        else
+        {
+            DebugLogError($"装備の装着に失敗しました: {equipment.userEquipmentId}");
+        }
+    }
+
+    private void OnEquipmentRemoved()
+    {
+        // 現在のポップアップで表示している装備タイプの装備を外す
+        EquipmentType targetType = GetCurrentPopupEquipmentType();
+
+        DebugLog($"装備解除を開始: {targetType}");
+
+        // InventoryManagerの新しいメソッドを使用
+        bool success = InventoryManager.Instance.UnequipItemByType(targetType);
+
+        if (success)
+        {
+            DebugLog($"装備を外しました: {targetType}");
+            // 表示更新は装備イベントで自動実行されるため、ここでは呼ばない
+        }
+        else
+        {
+            DebugLog($"外す装備がないか、既に外されています: {targetType}");
+        }
+    }
+
+    /// <summary>
+    /// 現在のポップアップで表示している装備タイプを取得
+    /// </summary>
+    private EquipmentType GetCurrentPopupEquipmentType()
+    {
+        // ポップアップから直接取得
+        if (equipmentSelectionPopup != null)
+        {
+            return equipmentSelectionPopup.GetCurrentEquipmentType();
+        }
+
+        // フォールバック: 記録された値を使用
+        return lastOpenedEquipmentType;
+    }
+
+    // 直前に開いた装備タイプを記録
+    private EquipmentType lastOpenedEquipmentType;
+
+    private void OnPopupClosed()
+    {
+        DebugLog("装備選択ポップアップが閉じられました");
+    }
+
+    private void OnEquipmentEquipped(UserEquipmentData equipment)
+    {
+        DebugLog($"装備装着イベント: {equipment.userEquipmentId}");
+        // 少し遅延して表示更新（装備処理の完了を待つ）
+        StartCoroutine(DelayedRefresh());
+    }
+
+    private void OnEquipmentUnequipped(UserEquipmentData equipment)
+    {
+        DebugLog($"装備解除イベント: {equipment.userEquipmentId}");
+        // 少し遅延して表示更新（装備処理の完了を待つ）
+        StartCoroutine(DelayedRefresh());
+    }
+
+    private void OnInventoryChanged()
+    {
+        // 少し遅延して表示更新
+        StartCoroutine(DelayedRefresh());
+    }
+
+    /// <summary>
+    /// 遅延して表示更新（装備処理の完了を待つ）
+    /// </summary>
+    private System.Collections.IEnumerator DelayedRefresh()
+    {
+        yield return new WaitForEndOfFrame(); // 1フレーム待機
+        RefreshDisplay();
+    }
+
+    #endregion
+
+    #region ユーティリティ
+
+    private bool IsManagersReady()
+    {
+        return InventoryManager.Instance != null &&
+               InventoryManager.Instance.IsInitialized &&
+               SaveDataManager.Instance != null &&
+               SaveDataManager.Instance.IsDataLoaded &&
+               MasterDataManager.Instance != null &&
+               MasterDataManager.Instance.IsDataLoaded;
+    }
+
+    private void DebugLog(string message)
+    {
+        if (enableDebugLog)
+        {
+            Debug.Log($"[EquipmentEditUI] {message}");
+        }
+    }
+
+    private void DebugLogError(string message)
+    {
+        if (enableDebugLog)
+        {
+            Debug.LogError($"[EquipmentEditUI] {message}");
+        }
+    }
+
+    #endregion
+
+    #region エディター用ツール
+
+#if UNITY_EDITOR
+    [ContextMenu("表示を強制更新")]
+    private void ForceRefresh()
+    {
+        RefreshDisplay();
+    }
+
+    [ContextMenu("武器選択をテスト")]
+    private void TestWeaponSelection()
+    {
+        OpenEquipmentSelection(EquipmentType.Weapon);
+    }
+#endif
+
+    #endregion
+}

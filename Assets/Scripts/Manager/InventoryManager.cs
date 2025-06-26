@@ -67,6 +67,20 @@ public class InventoryManager : MonoBehaviour
 
     #endregion
 
+    #region デバッグ
+
+    private void DebugLog(string message)
+    {
+        Debug.Log($"[InventoryManager] {message}");
+    }
+
+    private void DebugLogError(string message)
+    {
+        Debug.LogError($"[InventoryManager] {message}");
+    }
+
+    #endregion
+
     #region 初期化
 
     private void InitializeCache()
@@ -108,6 +122,9 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
+        // 装備リストの整合性をチェック・修正
+        ValidateAndFixEquipmentLists();
+
         // アイテムキャッシュ更新
         itemCache.Clear();
         foreach (var item in SaveData.items)
@@ -116,6 +133,44 @@ public class InventoryManager : MonoBehaviour
         }
 
         OnInventoryChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// 装備リストの整合性をチェック・修正
+    /// </summary>
+    private void ValidateAndFixEquipmentLists()
+    {
+        var masterDataDict = MasterDataManager.Instance?.GetEquipmentDataDict();
+        if (masterDataDict == null) return;
+
+        // 装備中アイテムから正しい装備リストを再構築
+        SaveData.equippedWeaponIds.Clear();
+        SaveData.equippedArmorIds.Clear();
+        SaveData.equippedAccessoryIds.Clear();
+
+        foreach (var equipment in SaveData.equipments)
+        {
+            if (!equipment.isEquipped) continue;
+
+            if (masterDataDict.ContainsKey(equipment.equipmentMasterId))
+            {
+                var masterData = masterDataDict[equipment.equipmentMasterId];
+                switch (masterData.equipmentType)
+                {
+                    case EquipmentType.Weapon:
+                        SaveData.equippedWeaponIds.Add(equipment.userEquipmentId);
+                        break;
+                    case EquipmentType.Armor:
+                        SaveData.equippedArmorIds.Add(equipment.userEquipmentId);
+                        break;
+                    case EquipmentType.Accessory:
+                        SaveData.equippedAccessoryIds.Add(equipment.userEquipmentId);
+                        break;
+                }
+            }
+        }
+
+        DebugLog($"装備リスト修正: 武器{SaveData.equippedWeaponIds.Count}, 防具{SaveData.equippedArmorIds.Count}, アクセサリー{SaveData.equippedAccessoryIds.Count}");
     }
 
     #endregion
@@ -256,21 +311,74 @@ public class InventoryManager : MonoBehaviour
         if (SaveData == null || !IsInitialized) return false;
 
         var equipment = GetEquipment(userEquipmentId);
-        if (equipment == null || equipment.isEquipped) return false;
+        if (equipment == null || equipment.isEquipped)
+        {
+            DebugLog($"装備不可: 装備が見つからないか既に装備中です ({userEquipmentId})");
+            return false;
+        }
 
         var masterData = MasterDataManager.Instance?.GetEquipmentData(equipment.equipmentMasterId);
-        if (masterData == null) return false;
+        if (masterData == null)
+        {
+            DebugLogError($"マスターデータが見つかりません: {equipment.equipmentMasterId}");
+            return false;
+        }
 
+        DebugLog($"装備処理開始: {masterData.equipmentName} (Type: {masterData.equipmentType})");
+
+        // 1. 同じタイプの既存装備を先に外す
+        UnequipSameTypeItem(characterId, masterData.equipmentType);
+
+        // 2. 新しい装備を装着
         bool success = SaveData.EquipItem(userEquipmentId, characterId, masterData);
         if (success)
         {
-            equippedItemsCache.Add(equipment);
+            // 3. キャッシュを更新
+            RefreshEquippedCache();
+
             SaveDataManager.Instance.MarkDataDirty();
             OnEquipmentEquipped?.Invoke(equipment);
             OnInventoryChanged?.Invoke();
+
+            DebugLog($"装備完了: {masterData.equipmentName}");
+        }
+        else
+        {
+            DebugLogError($"装備処理に失敗: {userEquipmentId}");
         }
 
         return success;
+    }
+
+    /// <summary>
+    /// 同じタイプの装備を外す（内部処理用）
+    /// </summary>
+    private void UnequipSameTypeItem(string characterId, EquipmentType equipmentType)
+    {
+        var currentEquipped = GetEquippedItemByType(equipmentType);
+        if (currentEquipped != null)
+        {
+            DebugLog($"既存装備を外します: {currentEquipped.userEquipmentId} (Type: {equipmentType})");
+            UnequipItem(currentEquipped.userEquipmentId);
+        }
+    }
+
+    /// <summary>
+    /// 装備キャッシュを強制更新
+    /// </summary>
+    private void RefreshEquippedCache()
+    {
+        equippedItemsCache.Clear();
+
+        foreach (var equipment in SaveData.equipments)
+        {
+            if (equipment.isEquipped)
+            {
+                equippedItemsCache.Add(equipment);
+            }
+        }
+
+        DebugLog($"装備キャッシュ更新: {equippedItemsCache.Count}個の装備");
     }
 
     /// <summary>
@@ -278,10 +386,24 @@ public class InventoryManager : MonoBehaviour
     /// </summary>
     public bool UnequipItem(string userEquipmentId)
     {
-        if (SaveData == null || !IsInitialized) return false;
+        if (SaveData == null || !IsInitialized)
+        {
+            DebugLog("SaveDataまたはInventoryManagerが初期化されていません");
+            return false;
+        }
 
         var equipment = GetEquipment(userEquipmentId);
-        if (equipment == null || !equipment.isEquipped) return false;
+        if (equipment == null)
+        {
+            DebugLog($"装備が見つかりません: {userEquipmentId}");
+            return false;
+        }
+
+        if (!equipment.isEquipped)
+        {
+            DebugLog($"装備は既に外されています: {userEquipmentId}");
+            return false; // 既に外されている場合はfalseを返す
+        }
 
         bool success = SaveData.UnEquipItem(userEquipmentId);
         if (success)
@@ -290,9 +412,50 @@ public class InventoryManager : MonoBehaviour
             SaveDataManager.Instance.MarkDataDirty();
             OnEquipmentUnequipped?.Invoke(equipment);
             OnInventoryChanged?.Invoke();
+            DebugLog($"装備を外しました: {userEquipmentId}");
+        }
+        else
+        {
+            DebugLogError($"装備解除処理に失敗しました: {userEquipmentId}");
         }
 
         return success;
+    }
+
+    /// <summary>
+    /// 指定された装備タイプの装備中アイテムを取得
+    /// </summary>
+    public UserEquipmentData GetEquippedItemByType(EquipmentType equipmentType)
+    {
+        if (!IsInitialized) return null;
+
+        var masterDataDict = MasterDataManager.Instance?.GetEquipmentDataDict();
+        if (masterDataDict == null) return null;
+
+        var equippedItems = GetEquippedItems();
+        return equippedItems.Find(eq =>
+        {
+            if (masterDataDict.ContainsKey(eq.equipmentMasterId))
+            {
+                return masterDataDict[eq.equipmentMasterId].equipmentType == equipmentType;
+            }
+            return false;
+        });
+    }
+
+    /// <summary>
+    /// 指定された装備タイプの装備を外す
+    /// </summary>
+    public bool UnequipItemByType(EquipmentType equipmentType)
+    {
+        var equippedItem = GetEquippedItemByType(equipmentType);
+        if (equippedItem == null)
+        {
+            DebugLog($"外す装備が見つかりません: {equipmentType}");
+            return false;
+        }
+
+        return UnequipItem(equippedItem.userEquipmentId);
     }
 
     #endregion
@@ -649,7 +812,58 @@ public class InventoryManager : MonoBehaviour
     {
         if (!IsInitialized) return new List<string> { "インベントリが初期化されていません" };
 
-        return UserDataUtility.ValidateUserData(SaveData);
+        var errors = UserDataUtility.ValidateUserData(SaveData);
+
+        // 装備の重複チェックを追加
+        var equipmentDuplicateErrors = CheckEquipmentDuplicates();
+        errors.AddRange(equipmentDuplicateErrors);
+
+        return errors;
+    }
+
+    /// <summary>
+    /// 装備の重複をチェック
+    /// </summary>
+    private List<string> CheckEquipmentDuplicates()
+    {
+        var errors = new List<string>();
+        var masterDataDict = MasterDataManager.Instance?.GetEquipmentDataDict();
+
+        if (masterDataDict == null) return errors;
+
+        // タイプ別に装備中アイテムを分類
+        var weaponCount = 0;
+        var armorCount = 0;
+        var accessoryCount = 0;
+
+        foreach (var equipment in SaveData.equipments)
+        {
+            if (!equipment.isEquipped) continue;
+
+            if (masterDataDict.ContainsKey(equipment.equipmentMasterId))
+            {
+                var masterData = masterDataDict[equipment.equipmentMasterId];
+                switch (masterData.equipmentType)
+                {
+                    case EquipmentType.Weapon:
+                        weaponCount++;
+                        break;
+                    case EquipmentType.Armor:
+                        armorCount++;
+                        break;
+                    case EquipmentType.Accessory:
+                        accessoryCount++;
+                        break;
+                }
+            }
+        }
+
+        // 重複チェック
+        if (weaponCount > 1) errors.Add($"武器が{weaponCount}個装備されています（1個まで）");
+        if (armorCount > 1) errors.Add($"防具が{armorCount}個装備されています（1個まで）");
+        if (accessoryCount > 1) errors.Add($"アクセサリーが{accessoryCount}個装備されています（1個まで）");
+
+        return errors;
     }
 
     /// <summary>

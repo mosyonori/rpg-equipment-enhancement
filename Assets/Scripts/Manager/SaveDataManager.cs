@@ -306,13 +306,27 @@ public class SaveDataManager : MonoBehaviour
         DebugLog($"外部からセーブデータを設定しました: {saveData.playerName}");
 
         // InventoryManagerのキャッシュを自動更新
+        if (InventoryManager.Instance != null)
+        {
+            // 少し遅延してキャッシュ更新（SetSaveDataの処理完了を待つ）
+            StartCoroutine(DelayedCacheRefresh());
+        }
+
+        OnDataLoaded?.Invoke(CurrentSaveData);
+    }
+
+    /// <summary>
+    /// 遅延キャッシュ更新
+    /// </summary>
+    private System.Collections.IEnumerator DelayedCacheRefresh()
+    {
+        yield return new WaitForEndOfFrame();
+
         if (InventoryManager.Instance != null && InventoryManager.Instance.IsInitialized)
         {
             InventoryManager.Instance.RefreshCache();
             DebugLog("InventoryManagerのキャッシュを自動更新しました");
         }
-
-        OnDataLoaded?.Invoke(CurrentSaveData);
     }
 
     /// <summary>

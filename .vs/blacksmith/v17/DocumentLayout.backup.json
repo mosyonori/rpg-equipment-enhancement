@@ -3,44 +3,64 @@
   "WorkspaceRootPath": "C:\\Users\\aax62\\blacksmith\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{14A141A5-E7EA-0CC6-2595-AAB6DDBB6EB2}|Assembly-CSharp-Editor.csproj|c:\\users\\aax62\\blacksmith\\assets\\scripts\\editor\\savedataeditortools.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{14A141A5-E7EA-0CC6-2595-AAB6DDBB6EB2}|Assembly-CSharp-Editor.csproj|solutionrelative:assets\\scripts\\editor\\savedataeditortools.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|c:\\users\\aax62\\blacksmith\\assets\\scripts\\ui\\inventory\\itemslotui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\ui\\inventory\\itemslotui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\manager\\masterdatamanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\manager\\masterdatamanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\ui\\inventory\\equipmentslotui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\ui\\inventory\\equipmentslotui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\ui\\equipmentslotui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\ui\\equipmentslotui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\EquipmentSlotUI.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\UI\\EquipmentSlotUI.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\manager\\savedatamanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\manager\\savedatamanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\savedataediter\\savedatavalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\savedataediter\\savedatavalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\savedataediter\\jsonsavedataimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\savedataediter\\jsonsavedataimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\data\\userdata\\usersavedata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\data\\userdata\\usersavedata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\manager\\inventorymanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\manager\\inventorymanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|c:\\users\\aax62\\blacksmith\\assets\\scripts\\savedataediter\\jsonsavedataimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\savedataediter\\jsonsavedataimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\ui\\inventory\\equipmentselectionpopupui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\ui\\inventory\\equipmentselectionpopupui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|c:\\users\\aax62\\blacksmith\\assets\\scripts\\savedataediter\\customsavedatacreator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\ui\\inventory\\equipmenteditui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\ui\\inventory\\equipmenteditui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{14A141A5-E7EA-0CC6-2595-AAB6DDBB6EB2}|Assembly-CSharp-Editor.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\editor\\savedataeditortools.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{14A141A5-E7EA-0CC6-2595-AAB6DDBB6EB2}|Assembly-CSharp-Editor.csproj|solutionrelative:assets\\scripts\\editor\\savedataeditortools.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\InventoryUI.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\UI\\InventoryUI.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\manager\\masterdatamanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\manager\\masterdatamanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\savedataediter\\customsavedatacreator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\savedataediter\\customsavedatacreator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|c:\\users\\aax62\\blacksmith\\assets\\scripts\\savedataediter\\savedatavalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\savedataediter\\savedatavalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\ui\\inventoryui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\ui\\inventoryui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\ui\\itemslotui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\ui\\itemslotui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\manager\\savedatamanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\manager\\savedatamanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\ItemSlotUI.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Assets\\Scripts\\UI\\ItemSlotUI.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -55,45 +75,79 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "SaveDataEditorTools.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Editor\\SaveDataEditorTools.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Editor\\SaveDataEditorTools.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Editor\\SaveDataEditorTools.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Editor\\SaveDataEditorTools.cs",
-              "ViewState": "AgIAADYBAAAAAAAAAAAgwEEBAAAAAAAAAAAAAA==",
+              "Title": "ItemSlotUI.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\ItemSlotUI.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Inventory\\ItemSlotUI.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\ItemSlotUI.cs",
+              "RelativeToolTip": "Assets\\Scripts\\UI\\Inventory\\ItemSlotUI.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHQBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-25T08:02:57.99Z",
+              "WhenOpened": "2025-06-26T08:16:02.29Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "EquipmentSlotUI.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\EquipmentSlotUI.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Inventory\\EquipmentSlotUI.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\EquipmentSlotUI.cs",
+              "RelativeToolTip": "Assets\\Scripts\\UI\\Inventory\\EquipmentSlotUI.cs",
+              "ViewState": "AgIAAGwBAAAAAAAAAAA1wKQBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-26T08:15:53.588Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "UserSaveData.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\UserData\\UserSaveData.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\UserData\\UserSaveData.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\UserData\\UserSaveData.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Data\\UserData\\UserSaveData.cs",
+              "ViewState": "AgIAAOwAAAAAAAAAAAAQwPsAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-26T07:48:14.086Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "EquipmentEditUI.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\EquipmentEditUI.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Inventory\\EquipmentEditUI.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\EquipmentEditUI.cs",
+              "RelativeToolTip": "Assets\\Scripts\\UI\\Inventory\\EquipmentEditUI.cs",
+              "ViewState": "AgIAAHwBAAAAAAAAAAAgwLQBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-26T05:47:52.774Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "EquipmentSelectionPopupUI.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\EquipmentSelectionPopupUI.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Inventory\\EquipmentSelectionPopupUI.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\EquipmentSelectionPopupUI.cs",
+              "RelativeToolTip": "Assets\\Scripts\\UI\\Inventory\\EquipmentSelectionPopupUI.cs",
+              "ViewState": "AgIAADABAAAAAAAAAAAgwGgBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-26T05:47:15.797Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "CustomSaveDataCreator.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SaveDataEditer\\CustomSaveDataCreator.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\SaveDataEditer\\CustomSaveDataCreator.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SaveDataEditer\\CustomSaveDataCreator.cs",
-              "RelativeToolTip": "Assets\\Scripts\\SaveDataEditer\\CustomSaveDataCreator.cs",
-              "ViewState": "AgIAAB4BAAAAAAAAAAAgwFYBAAAGAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-25T07:55:58.406Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
               "Title": "JsonSaveDataImporter.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SaveDataEditer\\JsonSaveDataImporter.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SaveDataEditer\\JsonSaveDataImporter.cs",
               "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SaveDataEditer\\JsonSaveDataImporter.cs",
               "RelativeToolTip": "Assets\\Scripts\\SaveDataEditer\\JsonSaveDataImporter.cs",
-              "ViewState": "AgIAAPUAAAAAAAAAAAAUwBABAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAKsBAAAAAAAAAAAgwOMBAAAGAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-25T07:43:35.682Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-25T07:43:35.682Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 4,
               "Title": "SaveDataValidator.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SaveDataEditer\\SaveDataValidator.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SaveDataEditer\\SaveDataValidator.cs",
@@ -101,24 +155,11 @@
               "RelativeToolTip": "Assets\\Scripts\\SaveDataEditer\\SaveDataValidator.cs",
               "ViewState": "AgIAAOwAAAAAAAAAAAAgwCQBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-25T07:43:16.918Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-25T07:43:16.918Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "InventoryUI.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\InventoryUI.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\InventoryUI.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\InventoryUI.cs",
-              "RelativeToolTip": "Assets\\Scripts\\UI\\InventoryUI.cs",
-              "ViewState": "AgIAABkAAAAAAAAAAAAgwP8BAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-25T05:10:40.328Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 14,
               "Title": "ItemSlotUI.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\ItemSlotUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\ItemSlotUI.cs",
@@ -138,12 +179,11 @@
               "RelativeToolTip": "Assets\\Scripts\\UI\\EquipmentSlotUI.cs",
               "ViewState": "AgIAAGUBAAAAAAAAAAAgwHEBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-25T05:09:49.004Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-25T05:09:49.004Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 12,
               "Title": "MasterDataManager.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\MasterDataManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Manager\\MasterDataManager.cs",
@@ -151,33 +191,66 @@
               "RelativeToolTip": "Assets\\Scripts\\Manager\\MasterDataManager.cs",
               "ViewState": "AgIAAHUCAAAAAAAAAAAgwK0CAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-25T04:44:06.729Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-25T04:44:06.729Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "InventoryManager.cs",
-              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\InventoryManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Manager\\InventoryManager.cs",
-              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\InventoryManager.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Manager\\InventoryManager.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAABOAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-25T04:37:42.867Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
               "Title": "SaveDataManager.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\SaveDataManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Manager\\SaveDataManager.cs",
               "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\SaveDataManager.cs",
               "RelativeToolTip": "Assets\\Scripts\\Manager\\SaveDataManager.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAN0BAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAM4BAAAAAAAAAAAgwNcBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-25T04:37:17.975Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "InventoryUI.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\InventoryUI.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\InventoryUI.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\InventoryUI.cs",
+              "RelativeToolTip": "Assets\\Scripts\\UI\\InventoryUI.cs",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-25T05:10:40.328Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "InventoryManager.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\InventoryManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Manager\\InventoryManager.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\InventoryManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Manager\\InventoryManager.cs",
+              "ViewState": "AgIAAN4DAAAAAAAAAAAgwBYEAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-25T04:37:42.867Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "SaveDataEditorTools.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Editor\\SaveDataEditorTools.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Editor\\SaveDataEditorTools.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Editor\\SaveDataEditorTools.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Editor\\SaveDataEditorTools.cs",
+              "ViewState": "AgIAADYBAAAAAAAAAAAgwEEBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-25T08:02:57.99Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "CustomSaveDataCreator.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SaveDataEditer\\CustomSaveDataCreator.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SaveDataEditer\\CustomSaveDataCreator.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SaveDataEditer\\CustomSaveDataCreator.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SaveDataEditer\\CustomSaveDataCreator.cs",
+              "ViewState": "AgIAAB4BAAAAAAAAAAAgwFYBAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-25T07:55:58.406Z"
             }
           ]
         }
