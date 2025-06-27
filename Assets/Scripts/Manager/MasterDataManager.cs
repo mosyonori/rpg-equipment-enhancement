@@ -16,6 +16,7 @@ public class MasterDataManager : MonoBehaviour
     [SerializeField] private string equipmentDataPath = "GameData/Equipment";
     [SerializeField] private string enhanceItemDataPath = "GameData/EnhanceItem";
     [SerializeField] private string supportItemDataPath = "GameData/SupportItem";
+    [SerializeField] private string characterDataPath = "GameData/Character";
 
     // イベント
     public static event System.Action OnMasterDataLoaded;
@@ -29,17 +30,20 @@ public class MasterDataManager : MonoBehaviour
     private Dictionary<int, EquipmentMasterData> equipmentDataDict;
     private Dictionary<int, EnhanceItemMasterData> enhanceItemDataDict;
     private Dictionary<int, SupportItemMasterData> supportItemDataDict;
+    private Dictionary<int, CharacterMasterData> characterDataDict;
 
     // リスト形式のデータ（フィルタ・ソート用）
     private List<EquipmentMasterData> equipmentDataList;
     private List<EnhanceItemMasterData> enhanceItemDataList;
     private List<SupportItemMasterData> supportItemDataList;
+    private List<CharacterMasterData> characterDataList;
 
     // キャッシュ用データ
     private Dictionary<EquipmentType, List<EquipmentMasterData>> equipmentsByType;
     private Dictionary<RarityType, List<EquipmentMasterData>> equipmentsByRarity;
     private Dictionary<AttributeType, List<EnhanceItemMasterData>> enhanceItemsByAttribute;
     private Dictionary<AttributeType, List<SupportItemMasterData>> supportItemsByAttribute;
+    private Dictionary<RarityType, List<CharacterMasterData>> charactersByRarity;
 
     #region Unity Lifecycle
 
@@ -72,15 +76,18 @@ public class MasterDataManager : MonoBehaviour
         equipmentDataDict = new Dictionary<int, EquipmentMasterData>();
         enhanceItemDataDict = new Dictionary<int, EnhanceItemMasterData>();
         supportItemDataDict = new Dictionary<int, SupportItemMasterData>();
+        characterDataDict = new Dictionary<int, CharacterMasterData>();
 
         equipmentDataList = new List<EquipmentMasterData>();
         enhanceItemDataList = new List<EnhanceItemMasterData>();
         supportItemDataList = new List<SupportItemMasterData>();
+        characterDataList = new List<CharacterMasterData>();
 
         equipmentsByType = new Dictionary<EquipmentType, List<EquipmentMasterData>>();
         equipmentsByRarity = new Dictionary<RarityType, List<EquipmentMasterData>>();
         enhanceItemsByAttribute = new Dictionary<AttributeType, List<EnhanceItemMasterData>>();
         supportItemsByAttribute = new Dictionary<AttributeType, List<SupportItemMasterData>>();
+        charactersByRarity = new Dictionary<RarityType, List<CharacterMasterData>>();
     }
 
     #endregion
@@ -100,6 +107,7 @@ public class MasterDataManager : MonoBehaviour
             success &= LoadEquipmentData();
             success &= LoadEnhanceItemData();
             success &= LoadSupportItemData();
+            success &= LoadCharacterData();
 
             if (success)
             {
@@ -234,6 +242,42 @@ public class MasterDataManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// キャラクターデータを読み込み
+    /// </summary>
+    public bool LoadCharacterData()
+    {
+        try
+        {
+            var characterAssets = Resources.LoadAll<CharacterMasterData>(characterDataPath);
+
+            characterDataDict.Clear();
+            characterDataList.Clear();
+
+            foreach (var character in characterAssets)
+            {
+                if (character == null) continue;
+
+                if (characterDataDict.ContainsKey(character.CharacterId))
+                {
+                    DebugLogError($"重複するキャラクターID: {character.CharacterId} ({character.CharacterName})");
+                    continue;
+                }
+
+                characterDataDict[character.CharacterId] = character;
+                characterDataList.Add(character);
+            }
+
+            DebugLog($"キャラクターデータを{characterDataList.Count}件読み込みました");
+            return true;
+        }
+        catch (Exception e)
+        {
+            DebugLogError($"キャラクターデータ読み込みエラー: {e.Message}");
+            return false;
+        }
+    }
+
     #endregion
 
     #region 公開メソッド - データ取得（単体）
@@ -260,6 +304,14 @@ public class MasterDataManager : MonoBehaviour
     public SupportItemMasterData GetSupportItemData(int supportItemId)
     {
         return supportItemDataDict.TryGetValue(supportItemId, out var data) ? data : null;
+    }
+
+    /// <summary>
+    /// キャラクターデータを取得
+    /// </summary>
+    public CharacterMasterData GetCharacterData(int characterId)
+    {
+        return characterDataDict.TryGetValue(characterId, out var data) ? data : null;
     }
 
     #endregion
@@ -291,6 +343,14 @@ public class MasterDataManager : MonoBehaviour
     }
 
     /// <summary>
+    /// キャラクターデータ辞書を取得
+    /// </summary>
+    public Dictionary<int, CharacterMasterData> GetCharacterDataDict()
+    {
+        return new Dictionary<int, CharacterMasterData>(characterDataDict);
+    }
+
+    /// <summary>
     /// 装備データリストを取得
     /// </summary>
     public List<EquipmentMasterData> GetEquipmentDataList()
@@ -312,6 +372,14 @@ public class MasterDataManager : MonoBehaviour
     public List<SupportItemMasterData> GetSupportItemDataList()
     {
         return new List<SupportItemMasterData>(supportItemDataList);
+    }
+
+    /// <summary>
+    /// キャラクターデータリストを取得
+    /// </summary>
+    public List<CharacterMasterData> GetCharacterDataList()
+    {
+        return new List<CharacterMasterData>(characterDataList);
     }
 
     #endregion
@@ -367,6 +435,18 @@ public class MasterDataManager : MonoBehaviour
     }
 
     /// <summary>
+    /// レアリティ別のキャラクターデータを取得
+    /// </summary>
+    public List<CharacterMasterData> GetCharactersByRarity(RarityType rarity)
+    {
+        if (charactersByRarity.TryGetValue(rarity, out var list))
+        {
+            return new List<CharacterMasterData>(list);
+        }
+        return new List<CharacterMasterData>();
+    }
+
+    /// <summary>
     /// レアリティ別の強化アイテムデータを取得
     /// </summary>
     public List<EnhanceItemMasterData> GetEnhanceItemsByRarity(RarityType rarity)
@@ -411,11 +491,27 @@ public class MasterDataManager : MonoBehaviour
     }
 
     /// <summary>
+    /// キャラクターを条件で検索
+    /// </summary>
+    public List<CharacterMasterData> SearchCharacters(Func<CharacterMasterData, bool> predicate)
+    {
+        return characterDataList.Where(predicate).ToList();
+    }
+
+    /// <summary>
     /// 名前で装備を検索
     /// </summary>
     public List<EquipmentMasterData> SearchEquipmentsByName(string name)
     {
         return equipmentDataList.Where(eq => eq.equipmentName.Contains(name)).ToList();
+    }
+
+    /// <summary>
+    /// 名前でキャラクターを検索
+    /// </summary>
+    public List<CharacterMasterData> SearchCharactersByName(string name)
+    {
+        return characterDataList.Where(ch => ch.CharacterName.Contains(name)).ToList();
     }
 
     /// <summary>
@@ -448,10 +544,12 @@ public class MasterDataManager : MonoBehaviour
             totalEquipments = equipmentDataList.Count,
             totalEnhanceItems = enhanceItemDataList.Count,
             totalSupportItems = supportItemDataList.Count,
+            totalCharacters = characterDataList.Count,
             equipmentsByType = equipmentsByType.ToDictionary(kv => kv.Key, kv => kv.Value.Count),
             equipmentsByRarity = equipmentsByRarity.ToDictionary(kv => kv.Key, kv => kv.Value.Count),
             enhanceItemsByAttribute = enhanceItemsByAttribute.ToDictionary(kv => kv.Key, kv => kv.Value.Count),
-            supportItemsByAttribute = supportItemsByAttribute.ToDictionary(kv => kv.Key, kv => kv.Value.Count)
+            supportItemsByAttribute = supportItemsByAttribute.ToDictionary(kv => kv.Key, kv => kv.Value.Count),
+            charactersByRarity = charactersByRarity.ToDictionary(kv => kv.Key, kv => kv.Value.Count)
         };
     }
 
@@ -501,6 +599,25 @@ public class MasterDataManager : MonoBehaviour
                 errors.Add($"補助アイテム名が空: ID {supportItem.supportItemId}");
         }
 
+        // キャラクターデータの検証
+        foreach (var character in characterDataList)
+        {
+            if (character.CharacterId <= 0)
+                errors.Add($"無効なキャラクターID: {character.CharacterId}");
+
+            if (string.IsNullOrEmpty(character.CharacterName))
+                errors.Add($"キャラクター名が空: ID {character.CharacterId}");
+
+            if (character.BaseLevel <= 0)
+                errors.Add($"ベースレベルが無効: {character.CharacterName} ({character.BaseLevel})");
+
+            if (character.MaxLevel < character.BaseLevel)
+                errors.Add($"最大レベルがベースレベルより小さい: {character.CharacterName}");
+
+            if (character.Hp < 0)
+                errors.Add($"HPが負の値: {character.CharacterName} ({character.Hp})");
+        }
+
         return errors;
     }
 
@@ -512,7 +629,8 @@ public class MasterDataManager : MonoBehaviour
         return IsDataLoaded &&
                equipmentDataList.Count > 0 &&
                enhanceItemDataList.Count > 0 &&
-               supportItemDataList.Count > 0;
+               supportItemDataList.Count > 0 &&
+               characterDataList.Count > 0;
     }
 
     /// <summary>
@@ -549,6 +667,16 @@ public class MasterDataManager : MonoBehaviour
             bool hasPath = !string.IsNullOrEmpty(item.supportItemIconPath);
             status += $"- {item.supportItemName} (ID:{item.supportItemId}): アイコン={hasIcon}, パス={hasPath}";
             if (hasPath) status += $" [{item.supportItemIconPath}]";
+            status += "\n";
+        }
+
+        status += "\n【キャラクター】\n";
+        foreach (var character in characterDataList)
+        {
+            bool hasIcon = character.CharacterIcon != null;
+            bool hasPath = !string.IsNullOrEmpty(character.CharacterIconPath);
+            status += $"- {character.CharacterName} (ID:{character.CharacterId}): アイコン={hasIcon}, パス={hasPath}";
+            if (hasPath) status += $" [{character.CharacterIconPath}]";
             status += "\n";
         }
 
@@ -590,6 +718,13 @@ public class MasterDataManager : MonoBehaviour
         foreach (AttributeType attribute in Enum.GetValues(typeof(AttributeType)))
         {
             supportItemsByAttribute[attribute] = supportItemDataList.Where(item => item.attributeType == attribute).ToList();
+        }
+
+        // キャラクターレアリティ別キャッシュ
+        charactersByRarity.Clear();
+        foreach (RarityType rarity in Enum.GetValues(typeof(RarityType)))
+        {
+            charactersByRarity[rarity] = characterDataList.Where(ch => ch.Rarity == rarity).ToList();
         }
 
         DebugLog("キャッシュデータの構築が完了しました");
@@ -656,10 +791,12 @@ public class MasterDataStatistics
     public int totalEquipments;
     public int totalEnhanceItems;
     public int totalSupportItems;
+    public int totalCharacters;
     public Dictionary<EquipmentType, int> equipmentsByType;
     public Dictionary<RarityType, int> equipmentsByRarity;
     public Dictionary<AttributeType, int> enhanceItemsByAttribute;
     public Dictionary<AttributeType, int> supportItemsByAttribute;
+    public Dictionary<RarityType, int> charactersByRarity;
 
     public override string ToString()
     {
@@ -667,6 +804,7 @@ public class MasterDataStatistics
 装備数: {totalEquipments}
 強化アイテム数: {totalEnhanceItems}
 補助アイテム数: {totalSupportItems}
+キャラクター数: {totalCharacters}
 
 装備タイプ別:";
 
@@ -677,6 +815,12 @@ public class MasterDataStatistics
 
         result += "\n\n装備レアリティ別:";
         foreach (var kv in equipmentsByRarity)
+        {
+            result += $"\n  {kv.Key}: {kv.Value}個";
+        }
+
+        result += "\n\nキャラクターレアリティ別:";
+        foreach (var kv in charactersByRarity)
         {
             result += $"\n  {kv.Key}: {kv.Value}個";
         }

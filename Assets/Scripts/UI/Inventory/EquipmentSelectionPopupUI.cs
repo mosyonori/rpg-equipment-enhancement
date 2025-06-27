@@ -13,12 +13,28 @@ public class EquipmentSelectionPopup : MonoBehaviour
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private Button closeButton;
     [SerializeField] private Button confirmButton;
-    [SerializeField] private TextMeshProUGUI confirmButtonText; // 追加
+    [SerializeField] private TextMeshProUGUI confirmButtonText;
     [SerializeField] private Button removeEquipmentButton;
-    [SerializeField] private TextMeshProUGUI removeEquipmentButtonText; // 追加
+    [SerializeField] private TextMeshProUGUI removeEquipmentButtonText;
     [SerializeField] private Transform equipmentGridParent;
     [SerializeField] private GameObject equipmentSlotPrefab;
     [SerializeField] private ScrollRect scrollRect;
+
+    [Header("詳細ステータス表示")]
+    [SerializeField] private GameObject detailsPanel;
+    [SerializeField] private TextMeshProUGUI selectedEquipmentNameText;
+    [SerializeField] private TextMeshProUGUI selectedEquipmentEnhanceText;
+    [SerializeField] private TextMeshProUGUI selectedEquipmentPowerText;
+    [SerializeField] private TextMeshProUGUI detailHpText;
+    [SerializeField] private TextMeshProUGUI detailOffenseText;
+    [SerializeField] private TextMeshProUGUI detailDefenseText;
+    [SerializeField] private TextMeshProUGUI detailSpeedText;
+    [SerializeField] private TextMeshProUGUI detailCriticalRateText;
+    [SerializeField] private TextMeshProUGUI detailCriticalDamageText;
+    [SerializeField] private TextMeshProUGUI detailFireOffenceText;
+    [SerializeField] private TextMeshProUGUI detailWaterOffenceText;
+    [SerializeField] private TextMeshProUGUI detailWindOffenceText;
+    [SerializeField] private TextMeshProUGUI detailEarthOffenceText;
 
     [Header("ボタンテキスト色設定")]
     [SerializeField] private Color enabledTextColor = Color.white;
@@ -85,6 +101,9 @@ public class EquipmentSelectionPopup : MonoBehaviour
         // 装備リスト表示
         DisplayEquipmentList();
 
+        // 詳細パネル初期化
+        HideDetailsPanel();
+
         // ポップアップ表示
         ShowPopup();
 
@@ -102,6 +121,7 @@ public class EquipmentSelectionPopup : MonoBehaviour
         }
 
         selectedEquipment = null;
+        HideDetailsPanel();
         OnPopupClosed?.Invoke();
 
         DebugLog("装備選択ポップアップを非表示");
@@ -194,10 +214,148 @@ public class EquipmentSelectionPopup : MonoBehaviour
         // 選択状態の見た目更新
         UpdateSelectionVisual();
 
+        // 詳細ステータス表示更新（新規追加）
+        UpdateDetailsPanel();
+
         // ボタン状態更新
         UpdateButtonStates();
 
         DebugLog($"装備が選択されました: {equipment.userEquipmentId}");
+    }
+
+    /// <summary>
+    /// 詳細ステータスパネルを更新（新規追加）
+    /// </summary>
+    private void UpdateDetailsPanel()
+    {
+        if (selectedEquipment == null)
+        {
+            HideDetailsPanel();
+            return;
+        }
+
+        var masterData = MasterDataManager.Instance?.GetEquipmentData(selectedEquipment.equipmentMasterId);
+        if (masterData == null)
+        {
+            DebugLogError($"装備マスターデータが見つかりません: {selectedEquipment.equipmentMasterId}");
+            HideDetailsPanel();
+            return;
+        }
+
+        ShowDetailsPanel();
+
+        // 基本情報表示
+        UpdateBasicInfo(masterData);
+
+        // 詳細ステータス表示
+        UpdateDetailedStats(masterData);
+
+        DebugLog($"詳細ステータス表示を更新: {masterData.equipmentName}");
+    }
+
+    /// <summary>
+    /// 基本情報を更新
+    /// </summary>
+    private void UpdateBasicInfo(EquipmentMasterData masterData)
+    {
+        // 装備名
+        if (selectedEquipmentNameText != null)
+        {
+            selectedEquipmentNameText.text = masterData.equipmentName;
+        }
+
+        // 強化値
+        if (selectedEquipmentEnhanceText != null)
+        {
+            if (selectedEquipment.currentEnhancedValue > 0)
+            {
+                selectedEquipmentEnhanceText.text = $"+{selectedEquipment.currentEnhancedValue}";
+                selectedEquipmentEnhanceText.gameObject.SetActive(true);
+            }
+            else
+            {
+                selectedEquipmentEnhanceText.gameObject.SetActive(false);
+            }
+        }
+
+        // 戦闘力
+        if (selectedEquipmentPowerText != null)
+        {
+            var totalStats = selectedEquipment.CalculateTotalStats(masterData);
+            int power = CalculateEquipmentPower(totalStats);
+            selectedEquipmentPowerText.text = power.ToString();
+        }
+    }
+
+    /// <summary>
+    /// 詳細ステータスを更新
+    /// </summary>
+    private void UpdateDetailedStats(EquipmentMasterData masterData)
+    {
+        // 基本ステータス + 強化値を計算
+        int totalHp = masterData.hp + selectedEquipment.enhancedHp;
+        int totalOffense = masterData.offense + selectedEquipment.enhancedOffense;
+        int totalDefense = masterData.defense + selectedEquipment.enhancedDefense;
+        int totalSpeed = masterData.speed + selectedEquipment.enhancedSpeed;
+        int totalCriticalRate = masterData.criticalRate + selectedEquipment.enhancedCriticalRate;
+        int totalCriticalDamage = masterData.criticalDamageRate + selectedEquipment.enhancedCriticalDamageRate;
+        int totalFireOffence = masterData.fireOffence + selectedEquipment.enhancedFireOffence;
+        int totalWaterOffence = masterData.waterOffence + selectedEquipment.enhancedWaterOffence;
+        int totalWindOffence = masterData.windOffence + selectedEquipment.enhancedWindOffence;
+        int totalEarthOffence = masterData.earthOffence + selectedEquipment.enhancedEarthOffence;
+
+        // 各ステータステキストを更新
+        if (detailHpText != null) detailHpText.text = totalHp.ToString();
+        if (detailOffenseText != null) detailOffenseText.text = totalOffense.ToString();
+        if (detailDefenseText != null) detailDefenseText.text = totalDefense.ToString();
+        if (detailSpeedText != null) detailSpeedText.text = totalSpeed.ToString();
+        if (detailCriticalRateText != null) detailCriticalRateText.text = $"{totalCriticalRate}%";
+        if (detailCriticalDamageText != null) detailCriticalDamageText.text = $"{totalCriticalDamage}%";
+        if (detailFireOffenceText != null) detailFireOffenceText.text = totalFireOffence.ToString();
+        if (detailWaterOffenceText != null) detailWaterOffenceText.text = totalWaterOffence.ToString();
+        if (detailWindOffenceText != null) detailWindOffenceText.text = totalWindOffence.ToString();
+        if (detailEarthOffenceText != null) detailEarthOffenceText.text = totalEarthOffence.ToString();
+    }
+
+    /// <summary>
+    /// 詳細パネルを表示
+    /// </summary>
+    private void ShowDetailsPanel()
+    {
+        if (detailsPanel != null)
+        {
+            detailsPanel.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// 詳細パネルを非表示
+    /// </summary>
+    private void HideDetailsPanel()
+    {
+        if (detailsPanel != null)
+        {
+            detailsPanel.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// 装備の戦闘力を計算
+    /// </summary>
+    private int CalculateEquipmentPower(EquipmentTotalStats stats)
+    {
+        int power = 0;
+        power += stats.hp / 10;
+        power += stats.offense * 2;
+        power += stats.defense;
+        power += stats.speed;
+        power += stats.criticalRate / 5;
+        power += stats.criticalDamageRate / 10;
+        power += stats.fireOffence;
+        power += stats.waterOffence;
+        power += stats.windOffence;
+        power += stats.earthOffence;
+        return power;
     }
 
     private void UpdateSelectionVisual()
@@ -354,6 +512,20 @@ public class EquipmentSelectionPopup : MonoBehaviour
     private void TestShowAccessories()
     {
         ShowEquipmentSelection(EquipmentType.Accessory);
+    }
+
+    [ContextMenu("詳細ステータステスト")]
+    private void TestDetailedStats()
+    {
+        if (selectedEquipment != null)
+        {
+            UpdateDetailsPanel();
+            Debug.Log("詳細ステータス表示をテスト更新しました");
+        }
+        else
+        {
+            Debug.LogWarning("装備が選択されていません");
+        }
     }
 #endif
 

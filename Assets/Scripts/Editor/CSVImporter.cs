@@ -1,293 +1,271 @@
-using System;
-using System.IO;
-using System.Collections.Generic;
+// 既存のCSVImporter.csに以下の内容を追加してください
+// エラーとなっている ImportAllCSVData メソッドを修正します
+
 using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
+using System.IO;
 
-public static class CSVImporter
+public class CSVImporter : EditorWindow
 {
-    private const string CSV_FOLDER_PATH = "Assets/CSV/";
-    private const string GAME_DATA_FOLDER_PATH = "Assets/GameData/";
-    private const string EQUIPMENT_FOLDER_PATH = GAME_DATA_FOLDER_PATH + "Equipment/";
-    private const string ENHANCE_ITEM_FOLDER_PATH = GAME_DATA_FOLDER_PATH + "EnhanceItem/";
-    private const string SUPPORT_ITEM_FOLDER_PATH = GAME_DATA_FOLDER_PATH + "SupportItem/";
+    // === 1. キャラクターデータ用の定数を追加 ===
+    private static readonly string CHARACTER_CSV_PATH = "Assets/CSV/m_character_data.csv";
+    private static readonly string CHARACTER_OUTPUT_PATH = "Assets/GameData/Character/";
 
+    // === 2. キャラクターデータインポートメソッド ===
+    [MenuItem("Tools/CSV Import/Import Character Data")]
+    public static void ImportCharacterData()
+    {
+        try
+        {
+            if (!File.Exists(CHARACTER_CSV_PATH))
+            {
+                Debug.LogError($"Character CSV file not found: {CHARACTER_CSV_PATH}");
+                return;
+            }
+
+            // フォルダ作成
+            if (!Directory.Exists(CHARACTER_OUTPUT_PATH))
+            {
+                Directory.CreateDirectory(CHARACTER_OUTPUT_PATH);
+            }
+
+            string csvContent = File.ReadAllText(CHARACTER_CSV_PATH);
+            string[] lines = csvContent.Split('\n');
+
+            if (lines.Length < 2)
+            {
+                Debug.LogError("Character CSV file is empty or has no data");
+                return;
+            }
+
+            // ヘッダー行をスキップして処理
+            int successCount = 0;
+            int errorCount = 0;
+
+            for (int i = 1; i < lines.Length; i++)
+            {
+                string line = lines[i].Trim();
+                if (string.IsNullOrEmpty(line)) continue;
+
+                try
+                {
+                    CharacterMasterData characterData = ParseCharacterLine(line);
+                    if (characterData != null)
+                    {
+                        SaveCharacterAsset(characterData);
+                        successCount++;
+                    }
+                    else
+                    {
+                        errorCount++;
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"Error parsing character line {i + 1}: {e.Message}");
+                    errorCount++;
+                }
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            Debug.Log($"Character data import completed. Success: {successCount}, Errors: {errorCount}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Failed to import character data: {e.Message}");
+        }
+    }
+
+    // === 3. Import All CSV Data メソッドを修正（既存のメソッドがある場合は置き換え） ===
     [MenuItem("Tools/CSV Import/Import All CSV Data")]
     public static void ImportAllCSVData()
     {
-        CreateFolders();
-        ImportEquipmentData();
-        ImportEnhanceItemData();
-        ImportSupportItemData();
-        AssetDatabase.Refresh();
-        Debug.Log("全てのCSVデータのインポートが完了しました。");
+        Debug.Log("Starting import of all CSV data...");
+
+        // キャラクターデータのみ追加
+        ImportCharacterData();
+
+        Debug.Log("All CSV data import completed!");
     }
 
-    [MenuItem("Tools/CSV Import/Import Equipment Data")]
-    public static void ImportEquipmentData()
+    // === 4. キャラクターデータ専用のメソッド群 ===
+
+    /// <summary>
+    /// キャラクターCSV行をパース
+    /// </summary>
+    private static CharacterMasterData ParseCharacterLine(string line)
     {
-        string csvPath = CSV_FOLDER_PATH + "m_equipment_data.csv";
-        if (!File.Exists(csvPath))
+        try
         {
-            Debug.LogError($"CSVファイルが見つかりません: {csvPath}");
-            return;
-        }
+            string[] fields = SplitCSVLine(line);
 
-        string[] lines = File.ReadAllLines(csvPath);
-        if (lines.Length < 2)
-        {
-            Debug.LogError("CSVファイルが空です。");
-            return;
-        }
+            if (fields.Length < 22) // 最低限必要なフィールド数
+            {
+                Debug.LogError($"Character CSV line has insufficient fields: {fields.Length}");
+                return null;
+            }
 
-        // ヘッダー行をスキップして処理
-        for (int i = 1; i < lines.Length; i++)
-        {
-            string[] values = ParseCSVLine(lines[i]);
-            if (values.Length < 29) continue;
-
-            EquipmentMasterData equipment = ScriptableObject.CreateInstance<EquipmentMasterData>();
+            CharacterMasterData character = ScriptableObject.CreateInstance<CharacterMasterData>();
 
             // 基本情報
-            equipment.equipmentId = ParseInt(values[0]);
-            equipment.equipmentName = values[1];
-            equipment.equipmentType = ParseEquipmentType(values[2]);
-            equipment.rarity = ParseRarityType(values[3]);
-
-            // 強化値設定
-            equipment.baseEnhancedValue = ParseInt(values[4]);
-            equipment.maxEnhancedValue = ParseInt(values[5]);
-            equipment.minEnhancedValue = ParseInt(values[6]);
-
-            // 強化耐久値設定
-            equipment.baseEnhanceStamina = ParseInt(values[7]);
-            equipment.maxEnhanceStamina = ParseInt(values[8]);
-            equipment.minEnhanceStamina = ParseInt(values[9]);
-
-            // 強化成功率
-            equipment.baseEnhanceSuccessRate = ParseInt(values[10]);
+            character.SetCharacterId(ParseInt(fields[0]));
+            character.SetCharacterName(fields[1]);
+            character.SetRarity(ParseRarity(fields[2]));
+            character.SetBaseLevel(ParseInt(fields[3]));
+            character.SetMaxLevel(ParseInt(fields[4]));
 
             // 基本ステータス
-            equipment.hp = ParseInt(values[11]);
-            equipment.offense = ParseInt(values[12]);
-            equipment.defense = ParseInt(values[13]);
-            equipment.speed = ParseInt(values[14]);
-            equipment.criticalRate = ParseInt(values[15]);
-            equipment.criticalDamageRate = ParseInt(values[16]);
+            character.SetHp(ParseInt(fields[5]));
+            character.SetOffense(ParseInt(fields[6]));
+            character.SetDefense(ParseInt(fields[7]));
+            character.SetSpeed(ParseInt(fields[8]));
+            character.SetCriticalRate(ParseInt(fields[9]));
+            character.SetCriticalDamageRate(ParseInt(fields[10]));
 
-            // 属性攻撃力
-            equipment.fireOffence = ParseInt(values[17]);
-            equipment.waterOffence = ParseInt(values[18]);
-            equipment.windOffence = ParseInt(values[19]);
-            equipment.earthOffence = ParseInt(values[20]);
+            // 属性攻撃
+            character.SetFireOffence(ParseInt(fields[11]));
+            character.SetWaterOffence(ParseInt(fields[12]));
+            character.SetWindOffence(ParseInt(fields[13]));
+            character.SetEarthOffence(ParseInt(fields[14]));
 
-            // 解放コンテンツ
-            equipment.equipmentUnlockSkillId = ParseInt(values[21]);
-            equipment.equipmentUnlockSkillEnhancedValue = ParseInt(values[22]);
-            equipment.equipmentUnlockCharacterId = values[23];
-            equipment.equipmentUnlockCharacterEnhancedValue = values[24];
+            // スキル
+            character.SetDefaultSkillId(ParseInt(fields[15]));
+            character.SetUsedSkill1(ParseInt(fields[16]));
+            character.SetUsedSkill2(ParseInt(fields[17]));
 
-            // 表示設定
-            equipment.equipmentIconPath = values[25];
-            equipment.description = values[26];
+            // UI・表示
+            character.SetCharacterIconPath(fields[18]);
+            character.SetCharacterAnimationPath(fields[19]);
+            character.SetDescription(fields[20]);
 
-            // フラグ
-            equipment.completionFlag = ParseBool(values[27]);
-            equipment.collectionFlag = ParseBool(values[28]);
+            // 収集要素
+            character.SetCompletionFlag(ParseBool(fields[21]));
+            if (fields.Length > 22) // collection_flagがある場合のみ
+            {
+                character.SetCollectionFlag(ParseBool(fields[22]));
+            }
 
-            // アセットとして保存
-            string assetPath = EQUIPMENT_FOLDER_PATH + $"Equipment_{equipment.equipmentId:D3}_{equipment.equipmentName}.asset";
-            AssetDatabase.CreateAsset(equipment, assetPath);
+            return character;
         }
-
-        AssetDatabase.SaveAssets();
-        Debug.Log($"装備データのインポートが完了しました。({lines.Length - 1}件)");
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error parsing character line: {e.Message}\nLine: {line}");
+            return null;
+        }
     }
 
-    [MenuItem("Tools/CSV Import/Import Enhance Item Data")]
-    public static void ImportEnhanceItemData()
+    /// <summary>
+    /// キャラクターアセットを保存
+    /// </summary>
+    private static void SaveCharacterAsset(CharacterMasterData characterData)
     {
-        string csvPath = CSV_FOLDER_PATH + "m_enhance_item_data.csv";
-        if (!File.Exists(csvPath))
+        string fileName = $"Character_{characterData.CharacterId:000}_{characterData.CharacterName}.asset";
+        string fullPath = CHARACTER_OUTPUT_PATH + fileName;
+
+        // 既存アセットをチェック
+        CharacterMasterData existingAsset = AssetDatabase.LoadAssetAtPath<CharacterMasterData>(fullPath);
+        if (existingAsset != null)
         {
-            Debug.LogError($"CSVファイルが見つかりません: {csvPath}");
-            return;
+            // 既存アセットを更新
+            UpdateCharacterAsset(existingAsset, characterData);
+            EditorUtility.SetDirty(existingAsset);
         }
-
-        string[] lines = File.ReadAllLines(csvPath);
-        if (lines.Length < 2) return;
-
-        for (int i = 1; i < lines.Length; i++)
+        else
         {
-            string[] values = ParseCSVLine(lines[i]);
-            if (values.Length < 44) continue;
-
-            EnhanceItemMasterData enhanceItem = ScriptableObject.CreateInstance<EnhanceItemMasterData>();
-
-            // 基本情報
-            enhanceItem.enhanceItemId = ParseInt(values[0]);
-            enhanceItem.enhanceItemName = values[1];
-            enhanceItem.attributeType = ParseAttributeType(values[2]);
-            enhanceItem.rarity = ParseRarityType(values[3]);
-
-            // スタック設定
-            enhanceItem.maxStackValue = ParseInt(values[4]);
-
-            // 強化値変動
-            enhanceItem.addEnhancedValue = ParseInt(values[5]);
-            enhanceItem.reduceEnhancedValue = ParseInt(values[6]);
-
-            // 強化耐久値変動
-            enhanceItem.addEnhanceStamina = ParseInt(values[7]);
-            enhanceItem.reduceEnhanceStamina = ParseInt(values[8]);
-
-            // 強化成功率
-            enhanceItem.enhanceSuccessRate = ParseInt(values[9]);
-
-            // 武器への効果
-            enhanceItem.weaponHp = ParseInt(values[10]);
-            enhanceItem.weaponOffense = ParseInt(values[11]);
-            enhanceItem.weaponDefense = ParseInt(values[12]);
-            enhanceItem.weaponSpeed = ParseInt(values[13]);
-            enhanceItem.weaponCriticalRate = ParseInt(values[14]);
-            enhanceItem.weaponCriticalDamageRate = ParseInt(values[15]);
-            enhanceItem.weaponFireOffence = ParseInt(values[16]);
-            enhanceItem.weaponWaterOffence = ParseInt(values[17]);
-            enhanceItem.weaponWindOffence = ParseInt(values[18]);
-            enhanceItem.weaponEarthOffence = ParseInt(values[19]);
-
-            // 防具への効果
-            enhanceItem.armorHp = ParseInt(values[20]);
-            enhanceItem.armorOffense = ParseInt(values[21]);
-            enhanceItem.armorDefense = ParseInt(values[22]);
-            enhanceItem.armorSpeed = ParseInt(values[23]);
-            enhanceItem.armorCriticalRate = ParseInt(values[24]);
-            enhanceItem.armorCriticalDamageRate = ParseInt(values[25]);
-            enhanceItem.armorFireOffence = ParseInt(values[26]);
-            enhanceItem.armorWaterOffence = ParseInt(values[27]);
-            enhanceItem.armorWindOffence = ParseInt(values[28]);
-            enhanceItem.armorEarthOffence = ParseInt(values[29]);
-
-            // アクセサリーへの効果
-            enhanceItem.accessoryHp = ParseInt(values[30]);
-            enhanceItem.accessoryOffense = ParseInt(values[31]);
-            enhanceItem.accessoryDefense = ParseInt(values[32]);
-            enhanceItem.accessorySpeed = ParseInt(values[33]);
-            enhanceItem.accessoryCriticalRate = ParseInt(values[34]);
-            enhanceItem.accessoryCriticalDamageRate = ParseInt(values[35]);
-            enhanceItem.accessoryFireOffence = ParseInt(values[36]);
-            enhanceItem.accessoryWaterOffence = ParseInt(values[37]);
-            enhanceItem.accessoryWindOffence = ParseInt(values[38]);
-            enhanceItem.accessoryEarthOffence = ParseInt(values[39]);
-
-            // 表示設定
-            enhanceItem.enhanceItemIconPath = values[40];
-            enhanceItem.description = values[41];
-
-            // フラグ
-            enhanceItem.completionFlag = ParseBool(values[42]);
-            enhanceItem.collectionFlag = ParseBool(values[43]);
-
-            // アセットとして保存
-            string assetPath = ENHANCE_ITEM_FOLDER_PATH + $"EnhanceItem_{enhanceItem.enhanceItemId:D3}_{enhanceItem.enhanceItemName}.asset";
-            AssetDatabase.CreateAsset(enhanceItem, assetPath);
+            // 新規アセット作成
+            AssetDatabase.CreateAsset(characterData, fullPath);
         }
-
-        AssetDatabase.SaveAssets();
-        Debug.Log($"強化アイテムデータのインポートが完了しました。({lines.Length - 1}件)");
     }
 
-    [MenuItem("Tools/CSV Import/Import Support Item Data")]
-    public static void ImportSupportItemData()
+    /// <summary>
+    /// 既存キャラクターアセットを更新
+    /// </summary>
+    private static void UpdateCharacterAsset(CharacterMasterData existing, CharacterMasterData newData)
     {
-        string csvPath = CSV_FOLDER_PATH + "m_support_item_data.csv";
-        if (!File.Exists(csvPath))
-        {
-            Debug.LogError($"CSVファイルが見つかりません: {csvPath}");
-            return;
-        }
+        // 基本情報
+        existing.SetCharacterName(newData.CharacterName);
+        existing.SetRarity(newData.Rarity);
+        existing.SetBaseLevel(newData.BaseLevel);
+        existing.SetMaxLevel(newData.MaxLevel);
 
-        string[] lines = File.ReadAllLines(csvPath);
-        if (lines.Length < 2) return;
+        // 基本ステータス
+        existing.SetHp(newData.Hp);
+        existing.SetOffense(newData.Offense);
+        existing.SetDefense(newData.Defense);
+        existing.SetSpeed(newData.Speed);
+        existing.SetCriticalRate(newData.CriticalRate);
+        existing.SetCriticalDamageRate(newData.CriticalDamageRate);
 
-        for (int i = 1; i < lines.Length; i++)
-        {
-            string[] values = ParseCSVLine(lines[i]);
-            if (values.Length < 28) continue;
+        // 属性攻撃
+        existing.SetFireOffence(newData.FireOffence);
+        existing.SetWaterOffence(newData.WaterOffence);
+        existing.SetWindOffence(newData.WindOffence);
+        existing.SetEarthOffence(newData.EarthOffence);
 
-            SupportItemMasterData supportItem = ScriptableObject.CreateInstance<SupportItemMasterData>();
+        // スキル
+        existing.SetDefaultSkillId(newData.DefaultSkillId);
+        existing.SetUsedSkill1(newData.UsedSkill1);
+        existing.SetUsedSkill2(newData.UsedSkill2);
 
-            // 基本情報
-            supportItem.supportItemId = ParseInt(values[0]);
-            supportItem.supportItemName = values[1];
-            supportItem.attributeType = ParseAttributeType(values[2]);
-            supportItem.rarity = ParseRarityType(values[3]);
+        // UI・表示
+        existing.SetCharacterIconPath(newData.CharacterIconPath);
+        existing.SetCharacterAnimationPath(newData.CharacterAnimationPath);
+        existing.SetDescription(newData.Description);
 
-            // 使用設定
-            supportItem.infiniteUse = ParseBool(values[4]);
-            supportItem.maxStackValue = ParseInt(values[5]);
-
-            // 強化値効果
-            supportItem.addEnhancedValue = ParseInt(values[6]);
-            supportItem.multiplEnhancedValue = ParseInt(values[7]);
-            supportItem.reduceEnhancedValue = ParseInt(values[8]);
-
-            // 強化耐久値効果
-            supportItem.addEnhanceStamina = ParseInt(values[9]);
-            supportItem.reduceEnhanceStamina = ParseInt(values[10]);
-
-            // 強化成功率効果
-            supportItem.addEnhanceSuccessRate = ParseInt(values[11]);
-            supportItem.reduceEnhanceSuccessRate = ParseInt(values[12]);
-
-            // ステータス効果
-            supportItem.multiplStatusUp = ParseInt(values[13]);
-            supportItem.hp = ParseInt(values[14]);
-            supportItem.offense = ParseInt(values[15]);
-            supportItem.defense = ParseInt(values[16]);
-            supportItem.speed = ParseInt(values[17]);
-            supportItem.criticalRate = ParseInt(values[18]);
-            supportItem.criticalDamageRate = ParseInt(values[19]);
-            supportItem.fireOffence = ParseInt(values[20]);
-            supportItem.waterOffence = ParseInt(values[21]);
-            supportItem.windOffence = ParseInt(values[22]);
-            supportItem.earthOffence = ParseInt(values[23]);
-
-            // 表示設定
-            supportItem.supportItemIconPath = values[24];
-            supportItem.description = values[25];
-
-            // フラグ
-            supportItem.completionFlag = ParseBool(values[26]);
-            supportItem.collectionFlag = ParseBool(values[27]);
-
-            // アセットとして保存
-            string assetPath = SUPPORT_ITEM_FOLDER_PATH + $"SupportItem_{supportItem.supportItemId:D3}_{supportItem.supportItemName}.asset";
-            AssetDatabase.CreateAsset(supportItem, assetPath);
-        }
-
-        AssetDatabase.SaveAssets();
-        Debug.Log($"補助アイテムデータのインポートが完了しました。({lines.Length - 1}件)");
+        // 収集要素
+        existing.SetCompletionFlag(newData.CompletionFlag);
+        existing.SetCollectionFlag(newData.CollectionFlag);
     }
 
-    private static void CreateFolders()
+    /// <summary>
+    /// レアリティをパース
+    /// </summary>
+    private static RarityType ParseRarity(string rarityStr)
     {
-        if (!AssetDatabase.IsValidFolder(GAME_DATA_FOLDER_PATH))
-            AssetDatabase.CreateFolder("Assets", "GameData");
-
-        if (!AssetDatabase.IsValidFolder(EQUIPMENT_FOLDER_PATH))
-            AssetDatabase.CreateFolder(GAME_DATA_FOLDER_PATH.TrimEnd('/'), "Equipment");
-
-        if (!AssetDatabase.IsValidFolder(ENHANCE_ITEM_FOLDER_PATH))
-            AssetDatabase.CreateFolder(GAME_DATA_FOLDER_PATH.TrimEnd('/'), "EnhanceItem");
-
-        if (!AssetDatabase.IsValidFolder(SUPPORT_ITEM_FOLDER_PATH))
-            AssetDatabase.CreateFolder(GAME_DATA_FOLDER_PATH.TrimEnd('/'), "SupportItem");
+        switch (rarityStr.ToLower())
+        {
+            case "common": return RarityType.Common;
+            case "rare": return RarityType.Rare;
+            case "epic": return RarityType.Epic;
+            case "legendary": return RarityType.Legendary;
+            default:
+                Debug.LogWarning($"Unknown rarity type: {rarityStr}, defaulting to Common");
+                return RarityType.Common;
+        }
     }
 
-    private static string[] ParseCSVLine(string line)
+    /// <summary>
+    /// 整数をパース
+    /// </summary>
+    private static int ParseInt(string value)
     {
-        List<string> result = new List<string>();
+        if (string.IsNullOrEmpty(value)) return 0;
+        if (int.TryParse(value, out int result)) return result;
+        Debug.LogWarning($"Failed to parse int: {value}, defaulting to 0");
+        return 0;
+    }
+
+    /// <summary>
+    /// ブール値をパース
+    /// </summary>
+    private static bool ParseBool(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+        if (value == "1") return true;
+        if (bool.TryParse(value, out bool result)) return result;
+        Debug.LogWarning($"Failed to parse bool: {value}, defaulting to false");
+        return false;
+    }
+
+    /// <summary>
+    /// CSV行を分割（カンマ区切り、クォート対応）
+    /// </summary>
+    private static string[] SplitCSVLine(string line)
+    {
+        List<string> fields = new List<string>();
         bool inQuotes = false;
         string currentField = "";
 
@@ -295,13 +273,17 @@ public static class CSVImporter
         {
             char c = line[i];
 
-            if (c == '"')
+            if (c == '"' && !inQuotes)
             {
-                inQuotes = !inQuotes;
+                inQuotes = true;
+            }
+            else if (c == '"' && inQuotes)
+            {
+                inQuotes = false;
             }
             else if (c == ',' && !inQuotes)
             {
-                result.Add(currentField);
+                fields.Add(currentField.Trim());
                 currentField = "";
             }
             else
@@ -310,56 +292,75 @@ public static class CSVImporter
             }
         }
 
-        result.Add(currentField);
-        return result.ToArray();
+        // 最後のフィールドを追加
+        fields.Add(currentField.Trim());
+
+        return fields.ToArray();
     }
 
-    private static int ParseInt(string value)
+    /// <summary>
+    /// キャラクターデータ検証
+    /// </summary>
+    [MenuItem("Tools/CSV Import/Validate Character Data")]
+    public static void ValidateCharacterData()
     {
-        if (string.IsNullOrEmpty(value)) return 0;
-        return int.TryParse(value, out int result) ? result : 0;
-    }
-
-    private static bool ParseBool(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return false;
-        return value == "1" || value.ToLower() == "true";
-    }
-
-    private static EquipmentType ParseEquipmentType(string value)
-    {
-        return value?.ToLower() switch
+        try
         {
-            "weapon" => EquipmentType.Weapon,
-            "armor" => EquipmentType.Armor,
-            "accessory" => EquipmentType.Accessory,
-            _ => EquipmentType.Weapon
-        };
-    }
+            Debug.Log("=== Character Data Validation ===");
 
-    private static RarityType ParseRarityType(string value)
-    {
-        return value?.ToLower() switch
-        {
-            "common" => RarityType.Common,
-            "rare" => RarityType.Rare,
-            "epic" => RarityType.Epic,
-            "legendary" => RarityType.Legendary,
-            _ => RarityType.Common
-        };
-    }
+            string[] characterAssets = AssetDatabase.FindAssets("t:CharacterMasterData", new[] { "Assets/GameData/Character" });
 
-    private static AttributeType ParseAttributeType(string value)
-    {
-        return value?.ToLower() switch
+            if (characterAssets.Length == 0)
+            {
+                Debug.LogWarning("No character assets found");
+                return;
+            }
+
+            int validCount = 0;
+            int errorCount = 0;
+
+            foreach (string guid in characterAssets)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                CharacterMasterData character = AssetDatabase.LoadAssetAtPath<CharacterMasterData>(path);
+
+                if (character == null) continue;
+
+                List<string> errors = new List<string>();
+
+                // 基本検証
+                if (character.CharacterId <= 0)
+                    errors.Add("Invalid character ID");
+
+                if (string.IsNullOrEmpty(character.CharacterName))
+                    errors.Add("Character name is empty");
+
+                if (character.BaseLevel <= 0)
+                    errors.Add("Invalid base level");
+
+                if (character.MaxLevel < character.BaseLevel)
+                    errors.Add("Max level is less than base level");
+
+                if (character.Hp < 0)
+                    errors.Add("HP is negative");
+
+                if (errors.Count > 0)
+                {
+                    Debug.LogError($"Character {character.CharacterName} (ID:{character.CharacterId}) has errors:\n" +
+                                 string.Join("\n", errors));
+                    errorCount++;
+                }
+                else
+                {
+                    validCount++;
+                }
+            }
+
+            Debug.Log($"Character validation completed. Valid: {validCount}, Errors: {errorCount}");
+        }
+        catch (System.Exception e)
         {
-            "fire" => AttributeType.Fire,
-            "water" => AttributeType.Water,
-            "wind" => AttributeType.Wind,
-            "earth" => AttributeType.Earth,
-            "none" => AttributeType.None,
-            "" => AttributeType.None,
-            _ => AttributeType.None
-        };
+            Debug.LogError($"Character validation failed: {e.Message}");
+        }
     }
 }

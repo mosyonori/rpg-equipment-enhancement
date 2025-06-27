@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e273845d9ac6ba54189fe5d34ead64ce, type: 3}
+  m_Name: "Character_001_\u4E3B\u4EBA\u516C"
+  m_EditorClassIdentifier: 
+  characterId: 1
+  characterName: "\u4E3B\u4EBA\u516C"
+  rarity: 0
+  baseLevel: 1
+  maxLevel: 99
+  hp: 20
+  offense: 3
+  defense: 3
+  speed: 1
+  criticalRate: 15
+  criticalDamageRate: 100
+  fireOffence: 0
+  waterOffence: 0
+  windOffence: 0
+  earthOffence: 0
+  defaultSkillId: 0
+  usedSkill1: 0
+  usedSkill2: 0
+  characterIcon: {fileID: 0}
+  characterIconPath: 
+  characterAnimationPath: 
+  description: "\u4E3B\u4EBA\u516C"
+  completionFlag: 1
+  collectionFlag: 1

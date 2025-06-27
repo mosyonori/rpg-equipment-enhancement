@@ -27,11 +27,23 @@ public class EquipmentEditUI : MonoBehaviour
     [SerializeField] private Button inventoryButton;
     [SerializeField] private Button enhanceButton;
 
-    [Header("ステータス表示")]
+    [Header("基本ステータス表示")]
     [SerializeField] private TextMeshProUGUI playerNameText;
     [SerializeField] private TextMeshProUGUI playerLevelText;
     [SerializeField] private TextMeshProUGUI totalPowerText;
     [SerializeField] private TextMeshProUGUI equipmentCountText;
+
+    [Header("詳細ステータス表示")]
+    [SerializeField] private TextMeshProUGUI hpText;
+    [SerializeField] private TextMeshProUGUI offenseText;
+    [SerializeField] private TextMeshProUGUI defenseText;
+    [SerializeField] private TextMeshProUGUI speedText;
+    [SerializeField] private TextMeshProUGUI criticalRateText;
+    [SerializeField] private TextMeshProUGUI criticalDamageText;
+    [SerializeField] private TextMeshProUGUI fireOffenceText;
+    [SerializeField] private TextMeshProUGUI waterOffenceText;
+    [SerializeField] private TextMeshProUGUI windOffenceText;
+    [SerializeField] private TextMeshProUGUI earthOffenceText;
 
     [Header("装備選択ポップアップ")]
     [SerializeField] private EquipmentSelectionPopup equipmentSelectionPopup;
@@ -48,6 +60,9 @@ public class EquipmentEditUI : MonoBehaviour
     public System.Action OnBackButtonClicked;
     public System.Action OnInventoryButtonClicked;
     public System.Action OnEnhanceButtonClicked;
+
+    // 直前に開いた装備タイプを記録
+    private EquipmentType lastOpenedEquipmentType;
 
     #region Unity Lifecycle
 
@@ -172,6 +187,7 @@ public class EquipmentEditUI : MonoBehaviour
 
         UpdatePlayerInfo();
         UpdateEquipmentSlots();
+        UpdateDetailedStatus(); // 新規追加
 
         DebugLog("装備編集画面の表示を更新しました");
     }
@@ -200,6 +216,138 @@ public class EquipmentEditUI : MonoBehaviour
             int maxCount = 1000; // 設定可能にする
             equipmentCountText.text = $"{currentCount}/{maxCount}";
         }
+    }
+
+    /// <summary>
+    /// 詳細ステータス表示を更新（新規追加）
+    /// </summary>
+    private void UpdateDetailedStatus()
+    {
+        // キャラクターの基本ステータスを取得
+        var characterStats = GetCharacterBaseStatus();
+
+        // 装備中アイテムのステータス合計を取得
+        var equipmentStats = GetEquippedItemsStatus();
+
+        // 合計ステータスを計算
+        var totalStats = CalculateTotalStatus(characterStats, equipmentStats);
+
+        // UI表示を更新
+        UpdateStatusDisplay(totalStats);
+
+        DebugLog($"詳細ステータス更新完了 - HP:{totalStats.hp}, 攻撃:{totalStats.offense}, 防御:{totalStats.defense}");
+    }
+
+    /// <summary>
+    /// キャラクターの基本ステータスを取得
+    /// </summary>
+    private CharacterStatus GetCharacterBaseStatus()
+    {
+        // キャラクターID=1の主人公データを取得（固定）
+        var characterData = MasterDataManager.Instance?.GetCharacterData(1);
+
+        if (characterData == null)
+        {
+            DebugLogError("キャラクターデータが見つかりません（ID:1）");
+            return new CharacterStatus(); // 空のステータスを返す
+        }
+
+        return new CharacterStatus
+        {
+            hp = characterData.Hp,
+            offense = characterData.Offense,
+            defense = characterData.Defense,
+            speed = characterData.Speed,
+            criticalRate = characterData.CriticalRate,
+            criticalDamageRate = characterData.CriticalDamageRate,
+            fireOffence = characterData.FireOffence,
+            waterOffence = characterData.WaterOffence,
+            windOffence = characterData.WindOffence,
+            earthOffence = characterData.EarthOffence
+        };
+    }
+
+    /// <summary>
+    /// 装備中アイテムのステータス合計を取得
+    /// </summary>
+    private CharacterStatus GetEquippedItemsStatus()
+    {
+        var totalStats = new CharacterStatus();
+        var equippedItems = InventoryManager.Instance?.GetEquippedItems();
+
+        if (equippedItems == null || equippedItems.Count == 0)
+        {
+            return totalStats; // 装備なしの場合は0を返す
+        }
+
+        foreach (var equippedItem in equippedItems)
+        {
+            var masterData = MasterDataManager.Instance?.GetEquipmentData(equippedItem.equipmentMasterId);
+            if (masterData == null) continue;
+
+            // 基本ステータス
+            totalStats.hp += masterData.hp;
+            totalStats.offense += masterData.offense;
+            totalStats.defense += masterData.defense;
+            totalStats.speed += masterData.speed;
+            totalStats.criticalRate += masterData.criticalRate;
+            totalStats.criticalDamageRate += masterData.criticalDamageRate;
+            totalStats.fireOffence += masterData.fireOffence;
+            totalStats.waterOffence += masterData.waterOffence;
+            totalStats.windOffence += masterData.windOffence;
+            totalStats.earthOffence += masterData.earthOffence;
+
+            // 強化による追加ステータス
+            totalStats.hp += equippedItem.enhancedHp;
+            totalStats.offense += equippedItem.enhancedOffense;
+            totalStats.defense += equippedItem.enhancedDefense;
+            totalStats.speed += equippedItem.enhancedSpeed;
+            totalStats.criticalRate += equippedItem.enhancedCriticalRate;
+            totalStats.criticalDamageRate += equippedItem.enhancedCriticalDamageRate;
+            totalStats.fireOffence += equippedItem.enhancedFireOffence;
+            totalStats.waterOffence += equippedItem.enhancedWaterOffence;
+            totalStats.windOffence += equippedItem.enhancedWindOffence;
+            totalStats.earthOffence += equippedItem.enhancedEarthOffence;
+        }
+
+        return totalStats;
+    }
+
+    /// <summary>
+    /// 合計ステータスを計算
+    /// </summary>
+    private CharacterStatus CalculateTotalStatus(CharacterStatus characterStats, CharacterStatus equipmentStats)
+    {
+        return new CharacterStatus
+        {
+            hp = characterStats.hp + equipmentStats.hp,
+            offense = characterStats.offense + equipmentStats.offense,
+            defense = characterStats.defense + equipmentStats.defense,
+            speed = characterStats.speed + equipmentStats.speed,
+            criticalRate = characterStats.criticalRate + equipmentStats.criticalRate,
+            criticalDamageRate = characterStats.criticalDamageRate + equipmentStats.criticalDamageRate,
+            fireOffence = characterStats.fireOffence + equipmentStats.fireOffence,
+            waterOffence = characterStats.waterOffence + equipmentStats.waterOffence,
+            windOffence = characterStats.windOffence + equipmentStats.windOffence,
+            earthOffence = characterStats.earthOffence + equipmentStats.earthOffence
+        };
+    }
+
+    /// <summary>
+    /// ステータス表示を更新
+    /// </summary>
+    private void UpdateStatusDisplay(CharacterStatus stats)
+    {
+        if (hpText != null) hpText.text = stats.hp.ToString();
+        if (offenseText != null) offenseText.text = stats.offense.ToString();
+        if (defenseText != null) defenseText.text = stats.defense.ToString();
+        if (speedText != null) speedText.text = stats.speed.ToString();
+        if (criticalRateText != null) criticalRateText.text = $"{stats.criticalRate}%";
+        if (criticalDamageText != null) criticalDamageText.text = $"{stats.criticalDamageRate}%";
+        if (fireOffenceText != null) fireOffenceText.text = stats.fireOffence.ToString();
+        if (waterOffenceText != null) waterOffenceText.text = stats.waterOffence.ToString();
+        if (windOffenceText != null) windOffenceText.text = stats.windOffence.ToString();
+        if (earthOffenceText != null) earthOffenceText.text = stats.earthOffence.ToString();
     }
 
     private void UpdateEquipmentSlots()
@@ -348,9 +496,6 @@ public class EquipmentEditUI : MonoBehaviour
         return lastOpenedEquipmentType;
     }
 
-    // 直前に開いた装備タイプを記録
-    private EquipmentType lastOpenedEquipmentType;
-
     private void OnPopupClosed()
     {
         DebugLog("装備選択ポップアップが閉じられました");
@@ -431,7 +576,37 @@ public class EquipmentEditUI : MonoBehaviour
     {
         OpenEquipmentSelection(EquipmentType.Weapon);
     }
+
+    [ContextMenu("ステータステスト")]
+    private void TestStatusCalculation()
+    {
+        var characterStats = GetCharacterBaseStatus();
+        var equipmentStats = GetEquippedItemsStatus();
+        var totalStats = CalculateTotalStatus(characterStats, equipmentStats);
+
+        Debug.Log($"キャラクター基本ステータス: HP={characterStats.hp}, 攻撃={characterStats.offense}");
+        Debug.Log($"装備ステータス: HP={equipmentStats.hp}, 攻撃={equipmentStats.offense}");
+        Debug.Log($"合計ステータス: HP={totalStats.hp}, 攻撃={totalStats.offense}");
+    }
 #endif
 
     #endregion
+}
+
+/// <summary>
+/// キャラクターステータス用の構造体
+/// </summary>
+[System.Serializable]
+public struct CharacterStatus
+{
+    public int hp;
+    public int offense;
+    public int defense;
+    public int speed;
+    public int criticalRate;
+    public int criticalDamageRate;
+    public int fireOffence;
+    public int waterOffence;
+    public int windOffence;
+    public int earthOffence;
 }
