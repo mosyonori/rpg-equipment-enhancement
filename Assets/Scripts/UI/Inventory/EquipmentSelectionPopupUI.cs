@@ -14,11 +14,13 @@ public class EquipmentSelectionPopup : MonoBehaviour
     [SerializeField] private Button closeButton;
     [SerializeField] private Button confirmButton;
     [SerializeField] private TextMeshProUGUI confirmButtonText;
-    [SerializeField] private Button removeEquipmentButton;
-    [SerializeField] private TextMeshProUGUI removeEquipmentButtonText;
+    [SerializeField] private Button removeEquipmentButton; // 従来のボタン（念のため残す）
     [SerializeField] private Transform equipmentGridParent;
     [SerializeField] private GameObject equipmentSlotPrefab;
     [SerializeField] private ScrollRect scrollRect;
+
+    [Header("装備解除ボタン設定")]
+    [SerializeField] private GameObject removeEquipmentSlotPrefab;
 
     [Header("詳細ステータス表示")]
     [SerializeField] private GameObject detailsPanel;
@@ -48,10 +50,11 @@ public class EquipmentSelectionPopup : MonoBehaviour
     public System.Action OnEquipmentRemoved;
     public System.Action OnPopupClosed;
 
-    // 状態
+    // 内部状態
     private EquipmentType currentEquipmentType;
     private UserEquipmentData selectedEquipment;
     private List<EquipmentSlotUI> equipmentSlots = new List<EquipmentSlotUI>();
+    private GameObject removeEquipmentSlot; // Grid内の装備解除ボタン
 
     #region Unity Lifecycle
 
@@ -77,6 +80,7 @@ public class EquipmentSelectionPopup : MonoBehaviour
             confirmButton.onClick.AddListener(ConfirmSelection);
         }
 
+        // 従来の装備解除ボタンがある場合の初期化
         if (removeEquipmentButton != null)
         {
             removeEquipmentButton.onClick.AddListener(RemoveEquipment);
@@ -166,45 +170,114 @@ public class EquipmentSelectionPopup : MonoBehaviour
     {
         if (!IsManagersReady()) return;
 
+        // 既存のアイテムをクリア
+        ClearAllSlots();
+
+        // 装備解除ボタンを最初に作成
+        CreateRemoveEquipmentSlot();
+
         // 指定タイプの装備可能アイテムを取得
         var availableEquipments = InventoryManager.Instance.GetEquippableItems(currentEquipmentType);
 
         DebugLog($"表示可能装備数: {availableEquipments.Count}");
 
-        // スロット数を調整
-        AdjustSlotCount(availableEquipments.Count);
-
-        // 各スロットにデータ設定
-        for (int i = 0; i < availableEquipments.Count; i++)
-        {
-            equipmentSlots[i].SetEquipmentData(availableEquipments[i]);
-            equipmentSlots[i].OnSlotClicked = OnEquipmentSlotClicked;
-            equipmentSlots[i].SetSelected(false);
-        }
+        // 装備アイテムスロットを作成
+        CreateEquipmentSlots(availableEquipments);
 
         // ボタン状態更新
         UpdateButtonStates();
     }
 
-    private void AdjustSlotCount(int targetCount)
+    /// <summary>
+    /// 全スロットをクリア
+    /// </summary>
+    private void ClearAllSlots()
     {
-        // 不足分を作成
-        while (equipmentSlots.Count < targetCount)
+        // 装備スロットを破棄
+        foreach (var slot in equipmentSlots)
+        {
+            if (slot != null && slot.gameObject != null)
+            {
+                DestroyImmediate(slot.gameObject);
+            }
+        }
+        equipmentSlots.Clear();
+
+        // 装備解除スロットを破棄
+        if (removeEquipmentSlot != null)
+        {
+            DestroyImmediate(removeEquipmentSlot);
+            removeEquipmentSlot = null;
+        }
+
+        DebugLog("全スロットをクリアしました");
+    }
+
+    /// <summary>
+    /// 装備解除ボタンスロットを作成（Grid内の最初の位置）
+    /// </summary>
+    private void CreateRemoveEquipmentSlot()
+    {
+        if (removeEquipmentSlotPrefab == null)
+        {
+            DebugLogError("装備解除スロットプレハブが設定されていません");
+            return;
+        }
+
+        // 装備解除スロットを生成
+        removeEquipmentSlot = Instantiate(removeEquipmentSlotPrefab, equipmentGridParent);
+
+        // 最初の位置に配置
+        removeEquipmentSlot.transform.SetSiblingIndex(0);
+
+        // Layout Elementを追加してGrid Layoutに参加させる
+        LayoutElement layoutElement = removeEquipmentSlot.GetComponent<LayoutElement>();
+        if (layoutElement == null)
+        {
+            layoutElement = removeEquipmentSlot.AddComponent<LayoutElement>();
+        }
+        // ignoreLayout = false にして Grid Layout に参加させる
+        layoutElement.ignoreLayout = false;
+
+        // Grid Layout Groupのセルサイズに合わせる（推奨サイズとして設定）
+        GridLayoutGroup gridLayout = equipmentGridParent.GetComponent<GridLayoutGroup>();
+        if (gridLayout != null)
+        {
+            layoutElement.preferredWidth = gridLayout.cellSize.x;
+            layoutElement.preferredHeight = gridLayout.cellSize.y;
+        }
+
+        // ボタンイベントを設定
+        Button removeButton = removeEquipmentSlot.GetComponent<Button>();
+        if (removeButton != null)
+        {
+            removeButton.onClick.RemoveAllListeners();
+            removeButton.onClick.AddListener(RemoveEquipment);
+        }
+
+        DebugLog("装備解除スロットを作成しました（Grid内最初の位置、Grid Layoutに参加）");
+    }
+
+    /// <summary>
+    /// 装備アイテムスロットを作成
+    /// </summary>
+    private void CreateEquipmentSlots(List<UserEquipmentData> availableEquipments)
+    {
+        foreach (var equipment in availableEquipments)
         {
             GameObject newSlot = Instantiate(equipmentSlotPrefab, equipmentGridParent);
             EquipmentSlotUI slotUI = newSlot.GetComponent<EquipmentSlotUI>();
 
             if (slotUI != null)
             {
+                slotUI.SetEquipmentData(equipment);
+                slotUI.OnSlotClicked = OnEquipmentSlotClicked;
+                slotUI.SetSelected(false);
                 equipmentSlots.Add(slotUI);
             }
         }
 
-        // 表示/非表示を制御
-        for (int i = 0; i < equipmentSlots.Count; i++)
-        {
-            equipmentSlots[i].gameObject.SetActive(i < targetCount);
-        }
+        DebugLog($"装備スロットを{availableEquipments.Count}個作成しました");
     }
 
     private void OnEquipmentSlotClicked(UserEquipmentData equipment)
@@ -386,15 +459,37 @@ public class EquipmentSelectionPopup : MonoBehaviour
             }
         }
 
-        // 装備外しボタンは、現在装備中のアイテムがある場合のみ有効
+        // Grid内の装備解除ボタンの状態を更新
+        UpdateRemoveButtonState();
+    }
+
+    /// <summary>
+    /// 装備解除ボタンの状態を更新
+    /// </summary>
+    private void UpdateRemoveButtonState()
+    {
+        bool hasEquippedItem = HasEquippedItem();
+
+        // 従来のボタン（パネル外）- もしInspectorで設定されている場合
         if (removeEquipmentButton != null)
         {
-            bool hasEquippedItem = HasEquippedItem();
-            removeEquipmentButton.interactable = true; // 常に有効
+            removeEquipmentButton.interactable = hasEquippedItem;
+        }
 
-            if (removeEquipmentButtonText != null)
+        // Grid内のボタン
+        if (removeEquipmentSlot != null)
+        {
+            Button gridRemoveButton = removeEquipmentSlot.GetComponent<Button>();
+            if (gridRemoveButton != null)
             {
-                removeEquipmentButtonText.color = hasEquippedItem ? enabledTextColor : disabledTextColor;
+                gridRemoveButton.interactable = hasEquippedItem;
+
+                // ボタンの見た目を更新
+                Image buttonImage = gridRemoveButton.GetComponent<Image>();
+                if (buttonImage != null)
+                {
+                    buttonImage.color = hasEquippedItem ? Color.white : Color.gray;
+                }
             }
         }
     }
@@ -526,6 +621,13 @@ public class EquipmentSelectionPopup : MonoBehaviour
         {
             Debug.LogWarning("装備が選択されていません");
         }
+    }
+
+    [ContextMenu("Grid内装備解除ボタンテスト")]
+    private void TestGridRemoveButton()
+    {
+        CreateRemoveEquipmentSlot();
+        Debug.Log("Grid内装備解除ボタンをテスト作成しました");
     }
 #endif
 

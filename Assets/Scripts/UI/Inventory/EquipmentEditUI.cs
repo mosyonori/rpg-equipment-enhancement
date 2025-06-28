@@ -48,6 +48,10 @@ public class EquipmentEditUI : MonoBehaviour
     [Header("装備選択ポップアップ")]
     [SerializeField] private EquipmentSelectionPopup equipmentSelectionPopup;
 
+    [Header("インベントリパネル")]
+    [SerializeField] private GameObject inventoryPanel;
+    [SerializeField] private Button inventoryCloseButton;
+
     [Header("デフォルトアイコン")]
     [SerializeField] private Sprite defaultWeaponIcon;
     [SerializeField] private Sprite defaultArmorIcon;
@@ -61,7 +65,7 @@ public class EquipmentEditUI : MonoBehaviour
     public System.Action OnInventoryButtonClicked;
     public System.Action OnEnhanceButtonClicked;
 
-    // 直前に開いた装備タイプを記録
+    // 前回に開いた装備タイプを記録
     private EquipmentType lastOpenedEquipmentType;
 
     #region Unity Lifecycle
@@ -70,6 +74,7 @@ public class EquipmentEditUI : MonoBehaviour
     {
         SetupButtons();
         SetupPopupEvents();
+        SetupInventoryPanel();
     }
 
     private void Start()
@@ -128,7 +133,8 @@ public class EquipmentEditUI : MonoBehaviour
 
         if (inventoryButton != null)
         {
-            inventoryButton.onClick.AddListener(() => OnInventoryButtonClicked?.Invoke());
+            inventoryButton.onClick.AddListener(ShowInventoryPanel);
+            DebugLog("インベントリボタンにShowInventoryPanelを設定しました");
         }
 
         if (enhanceButton != null)
@@ -144,6 +150,26 @@ public class EquipmentEditUI : MonoBehaviour
             equipmentSelectionPopup.OnEquipmentSelected += OnEquipmentSelected;
             equipmentSelectionPopup.OnEquipmentRemoved += OnEquipmentRemoved;
             equipmentSelectionPopup.OnPopupClosed += OnPopupClosed;
+        }
+    }
+
+    /// <summary>
+    /// インベントリパネルの初期化
+    /// </summary>
+    private void SetupInventoryPanel()
+    {
+        // インベントリパネルを非表示状態に設定
+        if (inventoryPanel != null)
+        {
+            inventoryPanel.SetActive(false);
+            DebugLog("インベントリパネルを非表示状態に初期化しました");
+        }
+
+        // インベントリ閉じるボタンの設定
+        if (inventoryCloseButton != null)
+        {
+            inventoryCloseButton.onClick.AddListener(HideInventoryPanel);
+            DebugLog("インベントリ閉じるボタンを設定しました");
         }
     }
 
@@ -190,6 +216,51 @@ public class EquipmentEditUI : MonoBehaviour
         UpdateDetailedStatus(); // 新規追加
 
         DebugLog("装備編集画面の表示を更新しました");
+    }
+
+    #endregion
+
+    #region インベントリパネル制御
+
+    /// <summary>
+    /// インベントリパネルを表示
+    /// </summary>
+    private void ShowInventoryPanel()
+    {
+        if (inventoryPanel == null)
+        {
+            DebugLogError("インベントリパネルが設定されていません");
+            return;
+        }
+
+        DebugLog($"インベントリパネル表示前の状態: {inventoryPanel.activeSelf}");
+
+        inventoryPanel.SetActive(true);
+
+        DebugLog($"インベントリパネル表示後の状態: {inventoryPanel.activeSelf}");
+        DebugLog("インベントリパネルを表示しました");
+
+        // 外部イベントも呼び出し（従来の機能との互換性）
+        OnInventoryButtonClicked?.Invoke();
+    }
+
+    /// <summary>
+    /// インベントリパネルを非表示
+    /// </summary>
+    private void HideInventoryPanel()
+    {
+        if (inventoryPanel == null)
+        {
+            DebugLogError("インベントリパネルが設定されていません");
+            return;
+        }
+
+        DebugLog($"インベントリパネル非表示前の状態: {inventoryPanel.activeSelf}");
+
+        inventoryPanel.SetActive(false);
+
+        DebugLog($"インベントリパネル非表示後の状態: {inventoryPanel.activeSelf}");
+        DebugLog("インベントリパネルを非表示にしました");
     }
 
     #endregion
@@ -243,7 +314,7 @@ public class EquipmentEditUI : MonoBehaviour
     /// </summary>
     private CharacterStatus GetCharacterBaseStatus()
     {
-        // キャラクターID=1の主人公データを取得（固定）
+        // キャラクターID=1の基礎値データを取得（固定）
         var characterData = MasterDataManager.Instance?.GetCharacterData(1);
 
         if (characterData == null)
@@ -473,7 +544,7 @@ public class EquipmentEditUI : MonoBehaviour
         if (success)
         {
             DebugLog($"装備を外しました: {targetType}");
-            // 表示更新は装備イベントで自動実行されるため、ここでは呼ばない
+            // 表示更新はイベントで自動実行されるため、ここでは呼ばない
         }
         else
         {
@@ -587,6 +658,18 @@ public class EquipmentEditUI : MonoBehaviour
         Debug.Log($"キャラクター基本ステータス: HP={characterStats.hp}, 攻撃={characterStats.offense}");
         Debug.Log($"装備ステータス: HP={equipmentStats.hp}, 攻撃={equipmentStats.offense}");
         Debug.Log($"合計ステータス: HP={totalStats.hp}, 攻撃={totalStats.offense}");
+    }
+
+    [ContextMenu("インベントリパネル表示テスト")]
+    private void TestShowInventoryPanel()
+    {
+        ShowInventoryPanel();
+    }
+
+    [ContextMenu("インベントリパネル非表示テスト")]
+    private void TestHideInventoryPanel()
+    {
+        HideInventoryPanel();
     }
 #endif
 
