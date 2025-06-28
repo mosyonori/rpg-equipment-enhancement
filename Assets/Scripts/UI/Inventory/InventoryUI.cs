@@ -38,10 +38,42 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI equipmentCountText;
     [SerializeField] private TextMeshProUGUI totalPowerText;
 
-    [Header("フィルタ・ソート")]
+    [Header("アイテム詳細表示")]
+    [SerializeField] private GameObject itemDetailPanel;
+    [SerializeField] private TextMeshProUGUI detailItemNameText;
+    [SerializeField] private Image detailItemIconImage;
+    [SerializeField] private TextMeshProUGUI detailItemDescriptionText;
+    [SerializeField] private TextMeshProUGUI detailItemQuantityText;
+
+    [Header("装備詳細ステータス表示")]
+    [SerializeField] private GameObject equipmentDetailPanel;
+    [SerializeField] private TextMeshProUGUI equipmentNameText;
+    [SerializeField] private Image equipmentIconImage;
+    [SerializeField] private TextMeshProUGUI equipmentEnhanceValueText;
+    [SerializeField] private TextMeshProUGUI equipmentStaminaText;
+    [SerializeField] private TextMeshProUGUI equipmentHpText;
+    [SerializeField] private TextMeshProUGUI equipmentOffenseText;
+    [SerializeField] private TextMeshProUGUI equipmentDefenseText;
+    [SerializeField] private TextMeshProUGUI equipmentSpeedText;
+    [SerializeField] private TextMeshProUGUI equipmentCriticalRateText;
+    [SerializeField] private TextMeshProUGUI equipmentCriticalDamageText;
+    [SerializeField] private TextMeshProUGUI equipmentFireOffenceText;
+    [SerializeField] private TextMeshProUGUI equipmentWaterOffenceText;
+    [SerializeField] private TextMeshProUGUI equipmentWindOffenceText;
+    [SerializeField] private TextMeshProUGUI equipmentEarthOffenceText;
+
+    [Header("フィルター・ソート")]
     [SerializeField] private TMP_Dropdown sortDropdown;
     [SerializeField] private TMP_Dropdown filterDropdown;
     [SerializeField] private Button refreshButton;
+
+    [Header("装備管理機能")]
+    [SerializeField] private Button favoriteButton;
+    [SerializeField] private TextMeshProUGUI favoriteButtonText;
+    [SerializeField] private Image favoriteButtonIcon;
+    [SerializeField] private Button lockButton;
+    [SerializeField] private TextMeshProUGUI lockButtonText;
+    [SerializeField] private Image lockButtonIcon;
 
     [Header("デバッグ")]
     [SerializeField] private bool enableDebugLog = true;
@@ -105,6 +137,18 @@ public class InventoryUI : MonoBehaviour
         {
             refreshButton.onClick.AddListener(RefreshDisplay);
         }
+
+        // お気に入りボタンの設定
+        if (favoriteButton != null)
+        {
+            favoriteButton.onClick.AddListener(OnFavoriteButtonClicked);
+        }
+
+        // ロックボタンの設定
+        if (lockButton != null)
+        {
+            lockButton.onClick.AddListener(OnLockButtonClicked);
+        }
     }
 
     private void SetupDropdowns()
@@ -127,6 +171,8 @@ public class InventoryUI : MonoBehaviour
             InventoryManager.OnInventoryChanged += OnInventoryChanged;
             InventoryManager.OnEquipmentAdded += OnEquipmentAdded;
             InventoryManager.OnItemAdded += OnItemAdded;
+            InventoryManager.OnEquipmentEquipped += OnEquipmentEquipped;
+            InventoryManager.OnEquipmentUnequipped += OnEquipmentUnequipped;
         }
 
         if (SaveDataManager.Instance != null)
@@ -142,6 +188,8 @@ public class InventoryUI : MonoBehaviour
             InventoryManager.OnInventoryChanged -= OnInventoryChanged;
             InventoryManager.OnEquipmentAdded -= OnEquipmentAdded;
             InventoryManager.OnItemAdded -= OnItemAdded;
+            InventoryManager.OnEquipmentEquipped -= OnEquipmentEquipped;
+            InventoryManager.OnEquipmentUnequipped -= OnEquipmentUnequipped;
         }
 
         if (SaveDataManager.Instance != null)
@@ -167,6 +215,7 @@ public class InventoryUI : MonoBehaviour
 
         UpdatePlayerInfo();
         UpdateCurrentTab();
+        UpdateEquipmentManagementButtons(); // 装備管理ボタンの状態更新
         DebugLog("インベントリ表示を更新しました");
     }
 
@@ -185,8 +234,18 @@ public class InventoryUI : MonoBehaviour
         // タブボタンの見た目更新
         UpdateTabButtonAppearance();
 
+        // 詳細表示を非表示（タブ切り替え時にリセット）
+        HideAllDetails();
+
         // 該当タブの内容を更新
         UpdateCurrentTab();
+
+        // 選択状態をクリア
+        selectedEquipment = null;
+        selectedItem = null;
+
+        // 装備管理ボタンの状態更新
+        UpdateEquipmentManagementButtons();
 
         DebugLog($"タブを切り替えました: {tab}");
     }
@@ -251,7 +310,7 @@ public class InventoryUI : MonoBehaviour
             equipmentSlots[i].OnSlotClicked = OnEquipmentSlotClicked;
         }
 
-        DebugLog($"装備表示を更新: {equipments.Count}件");
+        DebugLog($"装備表示を更新: {equipments.Count}個");
     }
 
     private void UpdateEnhanceItemDisplay()
@@ -270,7 +329,7 @@ public class InventoryUI : MonoBehaviour
             enhanceItemSlots[i].OnSlotClicked = OnItemSlotClicked;
         }
 
-        DebugLog($"強化アイテム表示を更新: {items.Count}件");
+        DebugLog($"強化アイテム表示を更新: {items.Count}個");
     }
 
     private void UpdateSupportItemDisplay()
@@ -289,7 +348,7 @@ public class InventoryUI : MonoBehaviour
             supportItemSlots[i].OnSlotClicked = OnItemSlotClicked;
         }
 
-        DebugLog($"補助アイテム表示を更新: {items.Count}件");
+        DebugLog($"補助アイテム表示を更新: {items.Count}個");
     }
 
     private void AdjustSlotCount<T>(List<T> slotList, int targetCount, Transform parent, GameObject prefab, bool isEquipmentSlot) where T : Component
@@ -328,8 +387,360 @@ public class InventoryUI : MonoBehaviour
         if (button == null) return;
 
         var colors = button.colors;
-        colors.normalColor = isActive ? Color.cyan : Color.white;
+        colors.normalColor = isActive ? Color.white : Color.white;
         button.colors = colors;
+    }
+
+    /// <summary>
+    /// 装備スロットの表示を強制更新 - 新規追加
+    /// </summary>
+    private void ForceUpdateEquipmentSlots()
+    {
+        if (currentTab != InventoryTab.Equipment) return;
+
+        foreach (var slot in equipmentSlots)
+        {
+            if (slot.gameObject.activeInHierarchy)
+            {
+                var equipment = slot.GetEquipmentData();
+                if (equipment != null)
+                {
+                    // SetEquipmentDataを再度呼び出してUpdateStatusMarks()も実行
+                    slot.SetEquipmentData(equipment);
+                }
+            }
+        }
+
+        DebugLog("装備スロットの表示を強制更新しました");
+    }
+
+    #endregion
+
+    #region 装備管理機能
+
+    /// <summary>
+    /// お気に入りボタンがクリックされた時の処理
+    /// </summary>
+    private void OnFavoriteButtonClicked()
+    {
+        // 装備タブでかつ装備が選択されている場合のみ処理
+        if (currentTab != InventoryTab.Equipment || selectedEquipment == null)
+        {
+            DebugLog("お気に入り操作: 装備が選択されていないか、装備タブではありません");
+            return;
+        }
+
+        // お気に入り状態をトグル
+        bool success = InventoryManager.Instance.ToggleEquipmentFavorite(selectedEquipment.userEquipmentId);
+
+        if (success)
+        {
+            DebugLog($"お気に入り状態を変更: {selectedEquipment.userEquipmentId} -> {!selectedEquipment.isFavorite}");
+
+            // 装備管理ボタンの表示を即座に更新
+            UpdateEquipmentManagementButtons();
+
+            // 選択された装備スロットの表示も更新
+            UpdateSelectionVisual();
+
+            // 装備スロットの表示を強制更新
+            ForceUpdateEquipmentSlots();
+        }
+        else
+        {
+            DebugLog($"お気に入り状態の変更に失敗: {selectedEquipment.userEquipmentId}");
+        }
+    }
+
+    /// <summary>
+    /// ロックボタンがクリックされた時の処理
+    /// </summary>
+    private void OnLockButtonClicked()
+    {
+        // 装備タブでかつ装備が選択されている場合のみ処理
+        if (currentTab != InventoryTab.Equipment || selectedEquipment == null)
+        {
+            DebugLog("ロック操作: 装備が選択されていないか、装備タブではありません");
+            return;
+        }
+
+        // ロック状態をトグル
+        bool success = InventoryManager.Instance.ToggleEquipmentLock(selectedEquipment.userEquipmentId);
+
+        if (success)
+        {
+            DebugLog($"ロック状態を変更: {selectedEquipment.userEquipmentId} -> {!selectedEquipment.isLocked}");
+
+            // 装備管理ボタンの表示を即座に更新
+            UpdateEquipmentManagementButtons();
+
+            // 選択された装備スロットの表示も更新
+            UpdateSelectionVisual();
+
+            // 装備スロットの表示を強制更新
+            ForceUpdateEquipmentSlots();
+        }
+        else
+        {
+            DebugLog($"ロック状態の変更に失敗: {selectedEquipment.userEquipmentId}");
+        }
+    }
+
+    /// <summary>
+    /// 装備管理ボタンの状態を更新
+    /// </summary>
+    private void UpdateEquipmentManagementButtons()
+    {
+        // 装備タブで装備が選択されている場合のみボタンを表示・有効化
+        bool shouldShowButtons = (currentTab == InventoryTab.Equipment) && (selectedEquipment != null);
+
+        UpdateFavoriteButton(shouldShowButtons);
+        UpdateLockButton(shouldShowButtons);
+    }
+
+    /// <summary>
+    /// お気に入りボタンの状態を更新
+    /// </summary>
+    private void UpdateFavoriteButton(bool shouldShow)
+    {
+        if (favoriteButton == null) return;
+
+        favoriteButton.gameObject.SetActive(shouldShow);
+
+        if (shouldShow)
+        {
+            // 現在のお気に入り状態に応じてボタンの表示を変更
+            bool isFavorite = selectedEquipment.isFavorite;
+
+            // ボタンテキストの更新
+            if (favoriteButtonText != null)
+            {
+                favoriteButtonText.text = isFavorite ? "お気に入り解除" : "お気に入り登録";
+            }
+
+            // ボタンアイコンの色変更（お気に入り済みなら赤、未登録なら白）
+            if (favoriteButtonIcon != null)
+            {
+                favoriteButtonIcon.color = isFavorite ? Color.red : Color.white;
+            }
+
+            // ボタンを有効化
+            favoriteButton.interactable = true;
+
+            DebugLog($"お気に入りボタン更新: 表示={shouldShow}, お気に入り={isFavorite}");
+        }
+        else
+        {
+            DebugLog("お気に入りボタンを非表示にしました");
+        }
+    }
+
+    /// <summary>
+    /// ロックボタンの状態を更新
+    /// </summary>
+    private void UpdateLockButton(bool shouldShow)
+    {
+        if (lockButton == null) return;
+
+        lockButton.gameObject.SetActive(shouldShow);
+
+        if (shouldShow)
+        {
+            // 現在のロック状態に応じてボタンの表示を変更
+            bool isLocked = selectedEquipment.isLocked;
+
+            // ボタンテキストの更新
+            if (lockButtonText != null)
+            {
+                lockButtonText.text = isLocked ? "ロック解除" : "ロック";
+            }
+
+            // ボタンアイコンの色変更（ロック済みなら灰色、未ロックなら白）
+            if (lockButtonIcon != null)
+            {
+                lockButtonIcon.color = isLocked ? Color.grey : Color.white;
+            }
+
+            // ボタンを有効化
+            lockButton.interactable = true;
+
+            DebugLog($"ロックボタン更新: 表示={shouldShow}, ロック={isLocked}");
+        }
+        else
+        {
+            DebugLog("ロックボタンを非表示にしました");
+        }
+    }
+
+    #endregion
+
+    #region アイテム詳細表示
+
+    /// <summary>
+    /// アイテム詳細を表示
+    /// </summary>
+    private void ShowItemDetail(UserItemData item)
+    {
+        if (item == null) return;
+
+        // 装備詳細パネルを明示的に非表示
+        HideEquipmentDetail();
+
+        if (itemDetailPanel == null) return;
+
+        // アイテムタイプに応じてマスターデータを取得
+        if (item.itemType == ItemType.EnhanceItem)
+        {
+            var masterData = MasterDataManager.Instance?.GetEnhanceItemData(item.itemMasterId);
+            if (masterData != null)
+            {
+                SetDetailPanelData(masterData.enhanceItemName, masterData.enhanceItemIcon,
+                                  masterData.description, item.quantity);
+            }
+        }
+        else if (item.itemType == ItemType.SupportItem)
+        {
+            var masterData = MasterDataManager.Instance?.GetSupportItemData(item.itemMasterId);
+            if (masterData != null)
+            {
+                SetDetailPanelData(masterData.supportItemName, masterData.supportItemIcon,
+                                  masterData.description, item.quantity);
+            }
+        }
+
+        // アイテム詳細パネルを表示
+        itemDetailPanel.SetActive(true);
+
+        DebugLog($"アイテム詳細を表示: {item.itemType} ID:{item.itemMasterId}");
+    }
+
+    /// <summary>
+    /// 装備詳細を表示
+    /// </summary>
+    private void ShowEquipmentDetail(UserEquipmentData equipment)
+    {
+        if (equipment == null) return;
+
+        // アイテム詳細パネルを明示的に非表示
+        HideItemDetail();
+
+        if (equipmentDetailPanel == null) return;
+
+        var masterData = MasterDataManager.Instance?.GetEquipmentData(equipment.equipmentMasterId);
+        if (masterData != null)
+        {
+            SetEquipmentDetailData(equipment, masterData);
+        }
+
+        // 装備詳細パネルを表示
+        equipmentDetailPanel.SetActive(true);
+
+        DebugLog($"装備詳細を表示: {masterData?.equipmentName} ID:{equipment.equipmentMasterId}");
+    }
+
+    /// <summary>
+    /// 装備詳細データを設定
+    /// </summary>
+    private void SetEquipmentDetailData(UserEquipmentData equipment, EquipmentMasterData masterData)
+    {
+        // 基本情報
+        if (equipmentNameText != null) equipmentNameText.text = masterData.equipmentName;
+        if (equipmentIconImage != null && masterData.equipmentIcon != null)
+            equipmentIconImage.sprite = masterData.equipmentIcon;
+
+        // 強化値・耐久
+        if (equipmentEnhanceValueText != null)
+            equipmentEnhanceValueText.text = $"+{equipment.currentEnhancedValue}";
+        if (equipmentStaminaText != null)
+            equipmentStaminaText.text = equipment.currentEnhanceStamina.ToString();
+
+        // 基本ステータス + 強化値を計算
+        int totalHp = masterData.hp + equipment.enhancedHp;
+        int totalOffense = masterData.offense + equipment.enhancedOffense;
+        int totalDefense = masterData.defense + equipment.enhancedDefense;
+        int totalSpeed = masterData.speed + equipment.enhancedSpeed;
+        int totalCriticalRate = masterData.criticalRate + equipment.enhancedCriticalRate;
+        int totalCriticalDamage = masterData.criticalDamageRate + equipment.enhancedCriticalDamageRate;
+        int totalFireOffence = masterData.fireOffence + equipment.enhancedFireOffence;
+        int totalWaterOffence = masterData.waterOffence + equipment.enhancedWaterOffence;
+        int totalWindOffence = masterData.windOffence + equipment.enhancedWindOffence;
+        int totalEarthOffence = masterData.earthOffence + equipment.enhancedEarthOffence;
+
+        // ステータス表示
+        if (equipmentHpText != null) equipmentHpText.text = totalHp.ToString();
+        if (equipmentOffenseText != null) equipmentOffenseText.text = totalOffense.ToString();
+        if (equipmentDefenseText != null) equipmentDefenseText.text = totalDefense.ToString();
+        if (equipmentSpeedText != null) equipmentSpeedText.text = totalSpeed.ToString();
+        if (equipmentCriticalRateText != null) equipmentCriticalRateText.text = $"{totalCriticalRate}%";
+        if (equipmentCriticalDamageText != null) equipmentCriticalDamageText.text = $"{totalCriticalDamage}%";
+        if (equipmentFireOffenceText != null) equipmentFireOffenceText.text = totalFireOffence.ToString();
+        if (equipmentWaterOffenceText != null) equipmentWaterOffenceText.text = totalWaterOffence.ToString();
+        if (equipmentWindOffenceText != null) equipmentWindOffenceText.text = totalWindOffence.ToString();
+        if (equipmentEarthOffenceText != null) equipmentEarthOffenceText.text = totalEarthOffence.ToString();
+    }
+
+    /// <summary>
+    /// アイテム詳細パネルにデータを設定
+    /// </summary>
+    private void SetDetailPanelData(string itemName, Sprite itemIcon, string description, int quantity)
+    {
+        if (detailItemNameText != null) detailItemNameText.text = itemName;
+        if (detailItemIconImage != null && itemIcon != null) detailItemIconImage.sprite = itemIcon;
+        if (detailItemDescriptionText != null) detailItemDescriptionText.text = description;
+        if (detailItemQuantityText != null) detailItemQuantityText.text = $"所持数: {quantity}";
+    }
+
+    /// <summary>
+    /// アイテム詳細表示を非表示
+    /// </summary>
+    private void HideItemDetail()
+    {
+        if (itemDetailPanel != null)
+        {
+            itemDetailPanel.SetActive(false);
+            DebugLog("アイテム詳細パネルを非表示にしました");
+        }
+    }
+
+    /// <summary>
+    /// 装備詳細表示を非表示
+    /// </summary>
+    private void HideEquipmentDetail()
+    {
+        if (equipmentDetailPanel != null)
+        {
+            equipmentDetailPanel.SetActive(false);
+            DebugLog("装備詳細パネルを非表示にしました");
+        }
+    }
+
+    /// <summary>
+    /// 全ての詳細表示を非表示
+    /// </summary>
+    private void HideAllDetails()
+    {
+        HideItemDetail();
+        HideEquipmentDetail();
+        DebugLog("全ての詳細パネルを非表示にしました");
+    }
+
+    /// <summary>
+    /// 装備の戦闘力を計算
+    /// </summary>
+    private int CalculateEquipmentPower(EquipmentTotalStats stats)
+    {
+        int power = 0;
+        power += stats.hp / 10;
+        power += stats.offense * 2;
+        power += stats.defense;
+        power += stats.speed;
+        power += stats.criticalRate / 5;
+        power += stats.criticalDamageRate / 10;
+        power += stats.fireOffence;
+        power += stats.waterOffence;
+        power += stats.windOffence;
+        power += stats.earthOffence;
+        return power;
     }
 
     #endregion
@@ -339,6 +750,8 @@ public class InventoryUI : MonoBehaviour
     private void OnInventoryChanged()
     {
         RefreshDisplay();
+        // 装備スロットの表示を強制更新
+        ForceUpdateEquipmentSlots();
     }
 
     private void OnEquipmentAdded(UserEquipmentData equipment)
@@ -374,9 +787,13 @@ public class InventoryUI : MonoBehaviour
         // 選択状態の見た目更新
         UpdateSelectionVisual();
 
-        DebugLog($"装備が選択されました: {equipment.userEquipmentId}");
+        // 装備詳細を表示
+        ShowEquipmentDetail(equipment);
 
-        // 装備詳細表示やコンテキストメニューの表示などをここに追加
+        // 装備管理ボタンの状態更新
+        UpdateEquipmentManagementButtons();
+
+        DebugLog($"装備が選択されました: {equipment.userEquipmentId}");
     }
 
     private void OnItemSlotClicked(UserItemData item)
@@ -387,9 +804,41 @@ public class InventoryUI : MonoBehaviour
         // 選択状態の見た目更新
         UpdateSelectionVisual();
 
-        DebugLog($"アイテムが選択されました: {item.userItemId}");
+        // アイテム詳細を表示
+        ShowItemDetail(item);
 
-        // アイテム詳細表示やコンテキストメニューの表示などをここに追加
+        // 装備管理ボタンの状態更新（装備以外では非表示）
+        UpdateEquipmentManagementButtons();
+
+        DebugLog($"アイテムが選択されました: {item.userItemId}");
+    }
+
+    /// <summary>
+    /// 装備装着イベント - 新規追加
+    /// </summary>
+    private void OnEquipmentEquipped(UserEquipmentData equipment)
+    {
+        DebugLog($"装備装着イベント: {equipment.userEquipmentId}");
+
+        // 装備スロットの表示を強制更新
+        ForceUpdateEquipmentSlots();
+
+        // 戦闘力などの情報表示も更新
+        UpdatePlayerInfo();
+    }
+
+    /// <summary>
+    /// 装備解除イベント - 新規追加
+    /// </summary>
+    private void OnEquipmentUnequipped(UserEquipmentData equipment)
+    {
+        DebugLog($"装備解除イベント: {equipment.userEquipmentId}");
+
+        // 装備スロットの表示を強制更新
+        ForceUpdateEquipmentSlots();
+
+        // 戦闘力などの情報表示も更新
+        UpdatePlayerInfo();
     }
 
     private void OnSortChanged(int sortIndex)
@@ -483,6 +932,80 @@ public class InventoryUI : MonoBehaviour
     private void ShowSupportItemTab()
     {
         ShowTab(InventoryTab.SupportItem);
+    }
+
+    [ContextMenu("詳細表示をテスト")]
+    private void TestDetailDisplay()
+    {
+        if (selectedEquipment != null)
+        {
+            ShowEquipmentDetail(selectedEquipment);
+        }
+        else if (selectedItem != null)
+        {
+            ShowItemDetail(selectedItem);
+        }
+        else
+        {
+            Debug.LogWarning("選択されたアイテムがありません");
+        }
+    }
+
+    [ContextMenu("詳細表示を非表示")]
+    private void TestHideDetail()
+    {
+        HideAllDetails();
+    }
+
+    [ContextMenu("装備管理ボタンテスト")]
+    private void TestEquipmentManagementButtons()
+    {
+        if (selectedEquipment != null)
+        {
+            Debug.Log("=== 装備管理ボタンテスト ===");
+            Debug.Log($"選択装備: {selectedEquipment.userEquipmentId}");
+            Debug.Log($"お気に入り: {selectedEquipment.isFavorite}");
+            Debug.Log($"ロック: {selectedEquipment.isLocked}");
+            Debug.Log($"装備中: {selectedEquipment.isEquipped}");
+            UpdateEquipmentManagementButtons();
+        }
+        else
+        {
+            Debug.LogWarning("装備が選択されていません");
+        }
+    }
+
+    [ContextMenu("お気に入りボタンテスト")]
+    private void TestFavoriteButton()
+    {
+        if (selectedEquipment != null)
+        {
+            OnFavoriteButtonClicked();
+        }
+        else
+        {
+            Debug.LogWarning("装備が選択されていません");
+        }
+    }
+
+    [ContextMenu("ロックボタンテスト")]
+    private void TestLockButton()
+    {
+        if (selectedEquipment != null)
+        {
+            OnLockButtonClicked();
+        }
+        else
+        {
+            Debug.LogWarning("装備が選択されていません");
+        }
+    }
+
+    [ContextMenu("装備スロット強制更新テスト")]
+    private void TestForceUpdateEquipmentSlots()
+    {
+        ForceUpdateEquipmentSlots();
+        Debug.Log("装備スロット強制更新テストを実行しました");
     }
 
     [ContextMenu("テストデータ追加")]

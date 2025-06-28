@@ -54,6 +54,6 @@ MonoBehaviour:
   accessoryEarthOffence: 0
   enhanceItemIcon: {fileID: 21300000, guid: 0e55d0ed674442c45a44a8f96ed22c21, type: 3}
   enhanceItemIconPath: 
-  description: "\u54C1\u8CEA\u306E\u826F\u3044\u5F37\u5316\u77F3\u3002\u305D\u3053\u305D\u3053\u5F37\u304F\u306A\u308B\u3002"
+  description: "\u54C1\u8CEA\u306E\u826F\u3044\u5F37\u5316\u77F3\u3002\\n\u305D\u3053\u305D\u3053\u5F37\u304F\u306A\u308B\u3002"
   completionFlag: 1
   collectionFlag: 1
