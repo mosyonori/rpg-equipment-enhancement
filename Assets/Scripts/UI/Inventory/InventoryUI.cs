@@ -75,6 +75,16 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI lockButtonText;
     [SerializeField] private Image lockButtonIcon;
 
+    [Header("装備削除機能")]
+    [SerializeField] private Button equipmentDeleteButton;          // 装備削除ボタン
+    [SerializeField] private GameObject deleteConfirmationPanel;    // 削除確認パネル
+    [SerializeField] private GameObject lockedEquipmentWarningPanel; // ロック中警告パネル
+    [SerializeField] private Button deleteConfirmYesButton;         // 削除確認「はい」ボタン
+    [SerializeField] private Button deleteConfirmNoButton;          // 削除確認「いいえ」ボタン
+    [SerializeField] private Button warningOkButton;                // 警告パネルOKボタン
+    [SerializeField] private TextMeshProUGUI deleteTargetNameText;  // 削除対象装備名
+    [SerializeField] private TextMeshProUGUI deleteTargetEnhanceText; // 削除対象強化値
+
     [Header("デバッグ")]
     [SerializeField] private bool enableDebugLog = true;
 
@@ -148,6 +158,27 @@ public class InventoryUI : MonoBehaviour
         if (lockButton != null)
         {
             lockButton.onClick.AddListener(OnLockButtonClicked);
+        }
+
+        // 装備削除機能のボタン設定（新規追加）
+        if (equipmentDeleteButton != null)
+        {
+            equipmentDeleteButton.onClick.AddListener(OnEquipmentDeleteButtonClicked);
+        }
+
+        if (deleteConfirmYesButton != null)
+        {
+            deleteConfirmYesButton.onClick.AddListener(OnDeleteConfirmYes);
+        }
+
+        if (deleteConfirmNoButton != null)
+        {
+            deleteConfirmNoButton.onClick.AddListener(OnDeleteConfirmNo);
+        }
+
+        if (warningOkButton != null)
+        {
+            warningOkButton.onClick.AddListener(OnWarningOkClicked);
         }
     }
 
@@ -423,7 +454,7 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     private void OnFavoriteButtonClicked()
     {
-        // 装備タブでかつ装備が選択されている場合のみ処理
+        // 装備タブで且つ装備が選択されている場合のみ処理
         if (currentTab != InventoryTab.Equipment || selectedEquipment == null)
         {
             DebugLog("お気に入り操作: 装備が選択されていないか、装備タブではありません");
@@ -440,7 +471,7 @@ public class InventoryUI : MonoBehaviour
             // 装備管理ボタンの表示を即座に更新
             UpdateEquipmentManagementButtons();
 
-            // 選択された装備スロットの表示も更新
+            // 選択されたスロットの表示も更新
             UpdateSelectionVisual();
 
             // 装備スロットの表示を強制更新
@@ -457,7 +488,7 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     private void OnLockButtonClicked()
     {
-        // 装備タブでかつ装備が選択されている場合のみ処理
+        // 装備タブで且つ装備が選択されている場合のみ処理
         if (currentTab != InventoryTab.Equipment || selectedEquipment == null)
         {
             DebugLog("ロック操作: 装備が選択されていないか、装備タブではありません");
@@ -474,7 +505,7 @@ public class InventoryUI : MonoBehaviour
             // 装備管理ボタンの表示を即座に更新
             UpdateEquipmentManagementButtons();
 
-            // 選択された装備スロットの表示も更新
+            // 選択されたスロットの表示も更新
             UpdateSelectionVisual();
 
             // 装備スロットの表示を強制更新
@@ -569,6 +600,299 @@ public class InventoryUI : MonoBehaviour
         else
         {
             DebugLog("ロックボタンを非表示にしました");
+        }
+    }
+
+    #endregion
+
+    #region 装備削除機能（新規追加）
+
+    /// <summary>
+    /// 装備削除ボタンがクリックされた時の処理（Null安全版）
+    /// </summary>
+    private void OnEquipmentDeleteButtonClicked()
+    {
+        DebugLog("=== 装備削除ボタン処理開始 ===");
+        DebugLog($"currentTab: {currentTab}");
+        DebugLog($"selectedEquipment: {(selectedEquipment != null ? selectedEquipment.userEquipmentId : "null")}");
+
+        // 基本的な条件チェック
+        if (currentTab != InventoryTab.Equipment)
+        {
+            DebugLog("装備削除: 装備タブではありません");
+            return;
+        }
+
+        if (selectedEquipment == null)
+        {
+            DebugLog("装備削除: 装備が選択されていません");
+            return;
+        }
+
+        // InventoryManagerの存在確認
+        if (InventoryManager.Instance == null)
+        {
+            DebugLog("エラー: InventoryManager.Instanceがnullです");
+            return;
+        }
+
+        if (!InventoryManager.Instance.IsInitialized)
+        {
+            DebugLog("エラー: InventoryManagerが初期化されていません");
+            return;
+        }
+
+        DebugLog($"装備削除ボタンがクリックされました: {selectedEquipment.userEquipmentId}");
+        ShowDeleteConfirmationPanel();
+    }
+
+    /// <summary>
+    /// 削除確認パネルを表示（Null安全版）
+    /// </summary>
+    private void ShowDeleteConfirmationPanel()
+    {
+        DebugLog("=== ShowDeleteConfirmationPanel開始 ===");
+        DebugLog($"deleteConfirmationPanel: {(deleteConfirmationPanel != null ? "存在" : "null")}");
+        DebugLog($"selectedEquipment: {(selectedEquipment != null ? "存在" : "null")}");
+
+        if (deleteConfirmationPanel == null)
+        {
+            DebugLog("エラー: deleteConfirmationPanelがnullです。Inspectorで設定してください。");
+            return;
+        }
+
+        if (selectedEquipment == null)
+        {
+            DebugLog("エラー: selectedEquipmentがnullです。");
+            return;
+        }
+
+        // MasterDataManagerの存在確認
+        if (MasterDataManager.Instance == null)
+        {
+            DebugLog("エラー: MasterDataManager.Instanceがnullです");
+            return;
+        }
+
+        try
+        {
+            // 削除対象の装備情報を表示
+            var masterData = MasterDataManager.Instance.GetEquipmentData(selectedEquipment.equipmentMasterId);
+            DebugLog($"masterData: {(masterData != null ? masterData.equipmentName : "null")}");
+
+            if (masterData != null)
+            {
+                if (deleteTargetNameText != null)
+                {
+                    deleteTargetNameText.text = masterData.equipmentName;
+                    DebugLog($"装備名を設定: {masterData.equipmentName}");
+                }
+                else
+                {
+                    DebugLog("警告: deleteTargetNameTextがnullです");
+                }
+
+                if (deleteTargetEnhanceText != null)
+                {
+                    string enhanceText = $"+{selectedEquipment.currentEnhancedValue}";
+                    deleteTargetEnhanceText.text = enhanceText;
+                    DebugLog($"強化値を設定: {enhanceText}");
+                }
+                else
+                {
+                    DebugLog("警告: deleteTargetEnhanceTextがnullです");
+                }
+            }
+
+            // 削除確認パネルを表示
+            DebugLog($"パネルアクティブ前の状態: {deleteConfirmationPanel.activeInHierarchy}");
+            deleteConfirmationPanel.SetActive(true);
+            DebugLog($"パネルアクティブ後の状態: {deleteConfirmationPanel.activeInHierarchy}");
+
+            DebugLog("削除確認パネルを表示しました");
+        }
+        catch (System.Exception ex)
+        {
+            DebugLog($"パネル表示中にエラーが発生しました: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 削除確認「はい」ボタンがクリックされた時の処理（Null安全版）
+    /// </summary>
+    private void OnDeleteConfirmYes()
+    {
+        DebugLog("=== 削除確認「はい」処理開始 ===");
+
+        if (selectedEquipment == null)
+        {
+            DebugLog("エラー: selectedEquipmentがnullです");
+            HideAllDeletePanels();
+            return;
+        }
+
+        // InventoryManagerの存在確認
+        if (InventoryManager.Instance == null)
+        {
+            DebugLog("エラー: InventoryManager.Instanceがnullです");
+            HideAllDeletePanels();
+            return;
+        }
+
+        // InventoryManagerが初期化されているか確認
+        if (!InventoryManager.Instance.IsInitialized)
+        {
+            DebugLog("エラー: InventoryManagerが初期化されていません");
+            HideAllDeletePanels();
+            return;
+        }
+
+        try
+        {
+            // 削除可能かチェック
+            var (canDelete, errorMessage) = InventoryManager.Instance.CanDeleteEquipment(selectedEquipment.userEquipmentId);
+            DebugLog($"削除チェック結果: canDelete={canDelete}, message={errorMessage}");
+
+            if (!canDelete)
+            {
+                // 削除不可の場合は警告パネルを表示
+                ShowLockedEquipmentWarning(errorMessage);
+                DebugLog($"装備削除不可: {errorMessage}");
+                return;
+            }
+
+            // 削除実行
+            bool success = InventoryManager.Instance.DeleteEquipment(selectedEquipment.userEquipmentId);
+            DebugLog($"削除実行結果: {success}");
+
+            if (success)
+            {
+                // 削除成功時の処理
+                string deletedEquipmentId = selectedEquipment.userEquipmentId; // 削除前にIDを保存
+                DebugLog($"装備を削除しました: {deletedEquipmentId}");
+
+                // 選択状態をクリアしてからパネルを非表示
+                ClearEquipmentSelection();
+                HideAllDeletePanels();
+            }
+            else
+            {
+                DebugLog($"装備削除に失敗しました: {selectedEquipment.userEquipmentId}");
+                // 削除失敗時もパネルを閉じる
+                HideAllDeletePanels();
+            }
+        }
+        catch (System.Exception ex)
+        {
+            DebugLog($"削除処理中にエラーが発生しました: {ex.Message}");
+            // エラーが発生した場合もパネルを閉じる
+            HideAllDeletePanels();
+        }
+    }
+
+    /// <summary>
+    /// 削除確認「いいえ」ボタンがクリックされた時の処理
+    /// </summary>
+    private void OnDeleteConfirmNo()
+    {
+        HideAllDeletePanels();
+        DebugLog("装備削除をキャンセルしました");
+    }
+
+    /// <summary>
+    /// ロック中警告パネルを表示（Null安全版）
+    /// </summary>
+    private void ShowLockedEquipmentWarning(string message)
+    {
+        DebugLog("=== ShowLockedEquipmentWarning開始 ===");
+        DebugLog($"lockedEquipmentWarningPanel: {(lockedEquipmentWarningPanel != null ? "存在" : "null")}");
+
+        if (lockedEquipmentWarningPanel == null)
+        {
+            DebugLog("エラー: lockedEquipmentWarningPanelがnullです。Inspectorで設定してください。");
+            return;
+        }
+
+        try
+        {
+            DebugLog($"警告パネルアクティブ前: {lockedEquipmentWarningPanel.activeInHierarchy}");
+            lockedEquipmentWarningPanel.SetActive(true);
+            DebugLog($"警告パネルアクティブ後: {lockedEquipmentWarningPanel.activeInHierarchy}");
+
+            DebugLog($"ロック中警告パネルを表示: {message}");
+        }
+        catch (System.Exception ex)
+        {
+            DebugLog($"警告パネル表示中にエラーが発生しました: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 警告パネルOKボタンがクリックされた時の処理
+    /// </summary>
+    private void OnWarningOkClicked()
+    {
+        HideAllDeletePanels();
+        DebugLog("警告パネルを閉じました");
+    }
+
+    /// <summary>
+    /// 全ての削除関連パネルを非表示にする（Null安全版）
+    /// </summary>
+    private void HideAllDeletePanels()
+    {
+        DebugLog("=== HideAllDeletePanels開始 ===");
+
+        try
+        {
+            if (deleteConfirmationPanel != null)
+            {
+                DebugLog($"削除確認パネル非表示前: {deleteConfirmationPanel.activeInHierarchy}");
+                deleteConfirmationPanel.SetActive(false);
+                DebugLog($"削除確認パネル非表示後: {deleteConfirmationPanel.activeInHierarchy}");
+            }
+
+            if (lockedEquipmentWarningPanel != null)
+            {
+                DebugLog($"警告パネル非表示前: {lockedEquipmentWarningPanel.activeInHierarchy}");
+                lockedEquipmentWarningPanel.SetActive(false);
+                DebugLog($"警告パネル非表示後: {lockedEquipmentWarningPanel.activeInHierarchy}");
+            }
+
+            DebugLog("全ての削除関連パネルを非表示にしました");
+        }
+        catch (System.Exception ex)
+        {
+            DebugLog($"パネル非表示中にエラーが発生しました: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 装備選択状態をリセット（Null安全版）
+    /// </summary>
+    private void ClearEquipmentSelection()
+    {
+        DebugLog("=== ClearEquipmentSelection開始 ===");
+
+        try
+        {
+            selectedEquipment = null;
+            selectedItem = null;
+
+            // 詳細パネルを非表示
+            HideAllDetails();
+
+            // 装備管理ボタンの状態を更新
+            UpdateEquipmentManagementButtons();
+
+            // 選択表示を更新
+            UpdateSelectionVisual();
+
+            DebugLog("装備選択状態をリセットしました");
+        }
+        catch (System.Exception ex)
+        {
+            DebugLog($"選択状態リセット中にエラーが発生しました: {ex.Message}");
         }
     }
 
@@ -975,37 +1299,17 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
-    [ContextMenu("お気に入りボタンテスト")]
-    private void TestFavoriteButton()
+    [ContextMenu("装備削除ボタンテスト")]
+    private void TestDeleteButton()
     {
         if (selectedEquipment != null)
         {
-            OnFavoriteButtonClicked();
+            OnEquipmentDeleteButtonClicked();
         }
         else
         {
             Debug.LogWarning("装備が選択されていません");
         }
-    }
-
-    [ContextMenu("ロックボタンテスト")]
-    private void TestLockButton()
-    {
-        if (selectedEquipment != null)
-        {
-            OnLockButtonClicked();
-        }
-        else
-        {
-            Debug.LogWarning("装備が選択されていません");
-        }
-    }
-
-    [ContextMenu("装備スロット強制更新テスト")]
-    private void TestForceUpdateEquipmentSlots()
-    {
-        ForceUpdateEquipmentSlots();
-        Debug.Log("装備スロット強制更新テストを実行しました");
     }
 
     [ContextMenu("テストデータ追加")]

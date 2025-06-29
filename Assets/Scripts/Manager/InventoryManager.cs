@@ -99,7 +99,7 @@ public class InventoryManager : MonoBehaviour
 
     private void OnSaveDataSaved(UserSaveData saveData)
     {
-        // 保存時に必要な処理があればここに追加
+        // 保存後に必要な処理があればここに追加
     }
 
     /// <summary>
@@ -240,6 +240,32 @@ public class InventoryManager : MonoBehaviour
         }
 
         return removed;
+    }
+
+    /// <summary>
+    /// 装備削除前の条件チェック（UI用）
+    /// </summary>
+    public (bool canDelete, string errorMessage) CanDeleteEquipment(string userEquipmentId)
+    {
+        var equipment = GetEquipment(userEquipmentId);
+        if (equipment == null)
+            return (false, "装備が見つかりません");
+
+        if (equipment.isEquipped)
+            return (false, "装備中は削除できません");
+
+        if (equipment.isLocked)
+            return (false, "装備はロック中です");
+
+        return (true, "");
+    }
+
+    /// <summary>
+    /// 装備削除（UI用ラッパー）
+    /// </summary>
+    public bool DeleteEquipment(string userEquipmentId)
+    {
+        return RemoveEquipment(userEquipmentId);
     }
 
     /// <summary>
@@ -708,7 +734,7 @@ public class InventoryManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 装備の総合戦闘力を計算
+    /// 装備の合計戦闘力を計算
     /// </summary>
     public int CalculateTotalPower(string characterId = "")
     {
@@ -883,7 +909,7 @@ public class InventoryManager : MonoBehaviour
 強化アイテム: {summary.totalEnhanceItems}種類 {summary.totalEnhanceQuantity}個
 補助アイテム: {summary.totalSupportItems}種類 {summary.totalSupportQuantity}個
 新規アイテム: {summary.newItemCount}個
-総合戦闘力: {totalPower}
+合計戦闘力: {totalPower}
 強化可能装備: {enhancableCount}個
 使用率: {GetInventoryUsageRate():P1}";
     }
@@ -924,8 +950,8 @@ equippedItemsCache Count: {equippedItemsCache?.Count ?? 0}
         var enhanceItems = GetItemsByType(ItemType.EnhanceItem);
         var supportItems = GetItemsByType(ItemType.SupportItem);
 
-        status += $"\nEnhanceItem: {enhanceItems.Count}件";
-        status += $"\nSupportItem: {supportItems.Count}件";
+        status += $"\nEnhanceItem: {enhanceItems.Count}個";
+        status += $"\nSupportItem: {supportItems.Count}個";
 
         return status;
     }
