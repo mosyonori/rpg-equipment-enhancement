@@ -1066,6 +1066,7 @@ MonoBehaviour:
   deleteConfirmYesButton: {fileID: 95089615}
   deleteConfirmNoButton: {fileID: 1921708904}
   warningOkButton: {fileID: 1526672140}
+  warningMessageText: {fileID: 1433145489}
   deleteTargetNameText: {fileID: 1122701649}
   deleteTargetEnhanceText: {fileID: 406686212}
   enableDebugLog: 1
@@ -23752,7 +23753,7 @@ GameObject:
   - component: {fileID: 1433145490}
   - component: {fileID: 1433145489}
   m_Layer: 5
-  m_Name: Lock_or_Equiped
+  m_Name: Lock
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -23797,7 +23798,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u88C5\u5099\u306F\u30ED\u30C3\u30AF\u4E2D\u3067\u3059\u3002"
+  m_text: "\u88C5\u5099\u306F\u30ED\u30C3\u30AF\u3055\u308C\u3066\u3044\u307E\u3059\u3002"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1ed5ae1fb8eb2424cb18a5134706f4f0, type: 2}
   m_sharedMaterial: {fileID: 6472761436072768340, guid: 1ed5ae1fb8eb2424cb18a5134706f4f0, type: 2}

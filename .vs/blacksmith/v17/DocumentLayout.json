@@ -102,8 +102,7 @@
               "RelativeToolTip": "Assets\\Scripts\\UI\\Inventory\\ItemSlotUI.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAHQBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-26T08:16:02.29Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-26T08:16:02.29Z"
             },
             {
               "$type": "Document",
@@ -113,7 +112,7 @@
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Inventory\\InventoryUI.cs",
               "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\InventoryUI.cs",
               "RelativeToolTip": "Assets\\Scripts\\UI\\Inventory\\InventoryUI.cs",
-              "ViewState": "AgIAABYFAAAAAAAAAAAywAwFAAAbAAAAAAAAAA==",
+              "ViewState": "AgIAAD4FAAAAAAAAAAAIwGEFAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-27T04:57:15.558Z",
               "EditorCaption": ""
@@ -152,8 +151,7 @@
               "RelativeToolTip": "Assets\\Scripts\\Manager\\InventoryManager.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAABAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-25T04:37:42.867Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-25T04:37:42.867Z"
             },
             {
               "$type": "Document",
@@ -189,8 +187,7 @@
               "RelativeToolTip": "Assets\\Scripts\\UI\\Inventory\\EquipmentSlotUI.cs",
               "ViewState": "AgIAAG0BAAAAAAAAAAAcwHwBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-26T08:15:53.588Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-26T08:15:53.588Z"
             },
             {
               "$type": "Document",
@@ -202,8 +199,7 @@
               "RelativeToolTip": "Assets\\Scripts\\Data\\EquipmentMaster\\EnhanceItemMasterData.cs",
               "ViewState": "AgIAAHcAAAAAAAAAAAAgwJEAAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-28T05:31:12.176Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-28T05:31:12.176Z"
             },
             {
               "$type": "Document",

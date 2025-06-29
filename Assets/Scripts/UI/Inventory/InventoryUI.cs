@@ -82,6 +82,7 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] private Button deleteConfirmYesButton;         // 削除確認「はい」ボタン
     [SerializeField] private Button deleteConfirmNoButton;          // 削除確認「いいえ」ボタン
     [SerializeField] private Button warningOkButton;                // 警告パネルOKボタン
+    [SerializeField] private TextMeshProUGUI warningMessageText;    // 警告メッセージテキスト（新規追加）
     [SerializeField] private TextMeshProUGUI deleteTargetNameText;  // 削除対象装備名
     [SerializeField] private TextMeshProUGUI deleteTargetEnhanceText; // 削除対象強化値
 
@@ -718,7 +719,7 @@ public class InventoryUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 削除確認「はい」ボタンがクリックされた時の処理（Null安全版）
+    /// 削除確認「はい」ボタンがクリックされた時の処理（テキスト切り替え版）
     /// </summary>
     private void OnDeleteConfirmYes()
     {
@@ -739,7 +740,6 @@ public class InventoryUI : MonoBehaviour
             return;
         }
 
-        // InventoryManagerが初期化されているか確認
         if (!InventoryManager.Instance.IsInitialized)
         {
             DebugLog("エラー: InventoryManagerが初期化されていません");
@@ -755,9 +755,23 @@ public class InventoryUI : MonoBehaviour
 
             if (!canDelete)
             {
-                // 削除不可の場合は警告パネルを表示
-                ShowLockedEquipmentWarning(errorMessage);
-                DebugLog($"装備削除不可: {errorMessage}");
+                // 削除不可の理由に応じて適切なメッセージを表示
+                if (selectedEquipment.isEquipped)
+                {
+                    ShowWarningWithMessage("装備中は削除できません");
+                    DebugLog($"装備中のため削除不可: {errorMessage}");
+                }
+                else if (selectedEquipment.isLocked)
+                {
+                    ShowWarningWithMessage("装備はロック中です");
+                    DebugLog($"ロック中のため削除不可: {errorMessage}");
+                }
+                else
+                {
+                    // その他の理由の場合はロック警告を表示（フォールバック）
+                    ShowWarningWithMessage("この装備は削除できません");
+                    DebugLog($"その他の理由で削除不可: {errorMessage}");
+                }
                 return;
             }
 
@@ -768,25 +782,70 @@ public class InventoryUI : MonoBehaviour
             if (success)
             {
                 // 削除成功時の処理
-                string deletedEquipmentId = selectedEquipment.userEquipmentId; // 削除前にIDを保存
+                string deletedEquipmentId = selectedEquipment.userEquipmentId;
                 DebugLog($"装備を削除しました: {deletedEquipmentId}");
 
-                // 選択状態をクリアしてからパネルを非表示
                 ClearEquipmentSelection();
                 HideAllDeletePanels();
             }
             else
             {
                 DebugLog($"装備削除に失敗しました: {selectedEquipment.userEquipmentId}");
-                // 削除失敗時もパネルを閉じる
                 HideAllDeletePanels();
             }
         }
         catch (System.Exception ex)
         {
             DebugLog($"削除処理中にエラーが発生しました: {ex.Message}");
-            // エラーが発生した場合もパネルを閉じる
             HideAllDeletePanels();
+        }
+    }
+
+    /// <summary>
+    /// 指定されたメッセージで警告パネルを表示（新規追加）
+    /// </summary>
+    private void ShowWarningWithMessage(string message)
+    {
+        DebugLog("=== ShowWarningWithMessage開始 ===");
+        DebugLog($"lockedEquipmentWarningPanel: {(lockedEquipmentWarningPanel != null ? "存在" : "null")}");
+        DebugLog($"warningMessageText: {(warningMessageText != null ? "存在" : "null")}");
+        DebugLog($"表示メッセージ: {message}");
+
+        if (lockedEquipmentWarningPanel == null)
+        {
+            DebugLog("エラー: lockedEquipmentWarningPanelがnullです。Inspectorで設定してください。");
+            return;
+        }
+
+        try
+        {
+            // 削除確認パネルを先に非表示
+            if (deleteConfirmationPanel != null)
+            {
+                deleteConfirmationPanel.SetActive(false);
+            }
+
+            // 警告メッセージテキストを設定
+            if (warningMessageText != null)
+            {
+                warningMessageText.text = message;
+                DebugLog($"警告メッセージを設定: {message}");
+            }
+            else
+            {
+                DebugLog("警告: warningMessageTextがnullです。Inspectorで設定してください。");
+            }
+
+            // 警告パネルを表示
+            DebugLog($"警告パネルアクティブ前: {lockedEquipmentWarningPanel.activeInHierarchy}");
+            lockedEquipmentWarningPanel.SetActive(true);
+            DebugLog($"警告パネルアクティブ後: {lockedEquipmentWarningPanel.activeInHierarchy}");
+
+            DebugLog($"警告パネルを表示しました: {message}");
+        }
+        catch (System.Exception ex)
+        {
+            DebugLog($"警告パネル表示中にエラーが発生しました: {ex.Message}");
         }
     }
 
@@ -800,31 +859,11 @@ public class InventoryUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ロック中警告パネルを表示（Null安全版）
+    /// ロック中警告パネルを表示（旧メソッド・下位互換性のため残存）
     /// </summary>
-    private void ShowLockedEquipmentWarning(string message)
+    private void ShowLockedEquipmentWarning(string message = "装備はロック中です")
     {
-        DebugLog("=== ShowLockedEquipmentWarning開始 ===");
-        DebugLog($"lockedEquipmentWarningPanel: {(lockedEquipmentWarningPanel != null ? "存在" : "null")}");
-
-        if (lockedEquipmentWarningPanel == null)
-        {
-            DebugLog("エラー: lockedEquipmentWarningPanelがnullです。Inspectorで設定してください。");
-            return;
-        }
-
-        try
-        {
-            DebugLog($"警告パネルアクティブ前: {lockedEquipmentWarningPanel.activeInHierarchy}");
-            lockedEquipmentWarningPanel.SetActive(true);
-            DebugLog($"警告パネルアクティブ後: {lockedEquipmentWarningPanel.activeInHierarchy}");
-
-            DebugLog($"ロック中警告パネルを表示: {message}");
-        }
-        catch (System.Exception ex)
-        {
-            DebugLog($"警告パネル表示中にエラーが発生しました: {ex.Message}");
-        }
+        ShowWarningWithMessage(message);
     }
 
     /// <summary>
@@ -832,12 +871,12 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     private void OnWarningOkClicked()
     {
+        DebugLog("警告パネルOKがクリックされました");
         HideAllDeletePanels();
-        DebugLog("警告パネルを閉じました");
     }
 
     /// <summary>
-    /// 全ての削除関連パネルを非表示にする（Null安全版）
+    /// 全ての削除関連パネルを非表示にする
     /// </summary>
     private void HideAllDeletePanels()
     {
