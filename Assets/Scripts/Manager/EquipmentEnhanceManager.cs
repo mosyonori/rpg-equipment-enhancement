@@ -5,7 +5,7 @@ using UnityEngine;
 
 /// <summary>
 /// 装備強化専用マネージャークラス
-/// UI層からの強化リクエストを受け付け、データ層との連携を行う
+/// UI層からの強化リクエストを受け付け、データ層との橋渡しを行う
 /// データアクセス統一ルール: UI層 → Manager層 → Data層
 /// </summary>
 public class EquipmentEnhanceManager : MonoBehaviour
@@ -87,7 +87,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
     {
         LogDebug("EquipmentEnhanceManager初期化開始 - 依存関係チェック中...");
 
-        float timeout = 15f; // タイムアウトを15秒に延長
+        float timeout = 15f;
         float elapsed = 0f;
 
         while (elapsed < timeout)
@@ -100,7 +100,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
             }
 
             elapsed += Time.deltaTime;
-            yield return new WaitForSeconds(0.1f); // 0.1秒間隔でチェック
+            yield return new WaitForSeconds(0.1f);
         }
 
         LogError($"依存関係の初期化がタイムアウトしました（{timeout}秒）");
@@ -172,7 +172,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
     #region Main API Methods
 
     /// <summary>
-    /// 装備強化を実行
+    /// 装備強化を実行（修正版：失敗時も耐久値変更を適用）
     /// </summary>
     /// <param name="equipmentId">対象装備のユーザーID</param>
     /// <param name="enhanceItemId">強化アイテムのマスターID</param>
@@ -187,7 +187,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
             // 基本的な入力チェック
             if (string.IsNullOrEmpty(equipmentId) || enhanceItemId <= 0)
             {
-                var errorMsg = "無効なパラメータです";
+                var errorMsg = "無効なパラメーター";
                 OnEnhanceError?.Invoke(errorMsg);
                 return null;
             }
@@ -234,8 +234,8 @@ public class EquipmentEnhanceManager : MonoBehaviour
             // 強化計算と実行
             var result = PerformEnhance(equipment, enhanceItem, supportItem);
 
-            // データを保存
-            if (result != null && result.isSuccess)
+            // 修正：成功・失敗に関わらずデータを保存
+            if (result != null)
             {
                 ApplyEnhanceResult(equipment, result);
                 SaveDataManager.Instance.MarkDataDirty();
@@ -245,7 +245,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
             // イベント通知
             OnEnhanceCompleted?.Invoke(result);
 
-            LogDebug($"強化実行完了: 結果={result?.isSuccess}");
+            LogDebug($"強化実行完了: 結果={result?.isSuccess}, 耐久値={equipment.currentEnhanceStamina}");
             return result;
         }
         catch (Exception ex)
@@ -311,28 +311,84 @@ public class EquipmentEnhanceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 利用可能な強化アイテム一覧を取得
+    /// 利用可能な強化アイテム一覧を取得（実際に所持しているアイテムのみ）
     /// </summary>
     /// <returns>強化アイテムのマスターデータリスト</returns>
     public List<EnhanceItemMasterData> GetAvailableEnhanceItems()
     {
         try
         {
-            var allEnhanceItems = MasterDataManager.Instance.GetEnhanceItemDataList();
-            if (allEnhanceItems == null)
+            var availableItems = new List<EnhanceItemMasterData>();
+            var saveData = SaveDataManager.Instance.CurrentSaveData;
+
+            if (saveData?.items == null)
             {
-                LogWarning("強化アイテムデータが取得できませんでした");
-                return new List<EnhanceItemMasterData>();
+                LogWarning("セーブデータまたはアイテムリストがnullです");
+                return availableItems;
             }
 
-            // 所持しているアイテムのみを返す（将来的に実装）
-            // 現在は全てのアイテムを返す
-            return allEnhanceItems;
+            // 実際に所持している強化アイテムのマスターデータを取得
+            foreach (var userItem in saveData.items)
+            {
+                // 強化アイテムタイプで、数量が1以上のもののみ
+                if (userItem.itemType == ItemType.EnhanceItem && userItem.quantity > 0)
+                {
+                    var masterData = MasterDataManager.Instance.GetEnhanceItemData(userItem.itemMasterId);
+                    if (masterData != null)
+                    {
+                        availableItems.Add(masterData);
+                    }
+                }
+            }
+
+            LogDebug($"所持している強化アイテム数: {availableItems.Count}");
+            return availableItems;
         }
         catch (Exception ex)
         {
             LogError($"強化アイテム一覧取得中にエラー: {ex.Message}");
             return new List<EnhanceItemMasterData>();
+        }
+    }
+
+    /// <summary>
+    /// 利用可能な補助材料一覧を取得（実際に所持しているアイテムのみ）
+    /// </summary>
+    /// <returns>補助材料のマスターデータリスト</returns>
+    public List<SupportItemMasterData> GetAvailableSupportItems()
+    {
+        try
+        {
+            var availableItems = new List<SupportItemMasterData>();
+            var saveData = SaveDataManager.Instance.CurrentSaveData;
+
+            if (saveData?.items == null)
+            {
+                LogWarning("セーブデータまたはアイテムリストがnullです");
+                return availableItems;
+            }
+
+            // 実際に所持している補助材料のマスターデータを取得
+            foreach (var userItem in saveData.items)
+            {
+                // 補助材料タイプで、数量が1以上のもののみ
+                if (userItem.itemType == ItemType.SupportItem && userItem.quantity > 0)
+                {
+                    var masterData = MasterDataManager.Instance.GetSupportItemData(userItem.itemMasterId);
+                    if (masterData != null)
+                    {
+                        availableItems.Add(masterData);
+                    }
+                }
+            }
+
+            LogDebug($"所持している補助材料数: {availableItems.Count}");
+            return availableItems;
+        }
+        catch (Exception ex)
+        {
+            LogError($"補助材料一覧取得中にエラー: {ex.Message}");
+            return new List<SupportItemMasterData>();
         }
     }
 
@@ -369,7 +425,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
     #region Private Methods
 
     /// <summary>
-    /// 実際の強化処理を実行
+    /// 実際の強化処理を実行（修正版：失敗時の耐久値処理を追加）
     /// </summary>
     /// <param name="equipment">対象装備</param>
     /// <param name="enhanceItem">強化アイテム</param>
@@ -388,15 +444,22 @@ public class EquipmentEnhanceManager : MonoBehaviour
         // 強化成功/失敗を判定
         bool isSuccess = EnhanceCalculationUtility.RollEnhanceSuccess(successRate);
 
-        // 耐久値変化を計算（成功・失敗に関わらず適用）
-        int newStamina = EnhanceCalculationUtility.CalculateStaminaChange(previousStamina, enhanceItem);
+        // 耐久値変化を計算（修正版：補助材料の効果を適用、成功失敗に関わらず）
+        int baseStaminaChange = EnhanceCalculationUtility.CalculateStaminaChange(previousStamina, enhanceItem) - previousStamina;
+        int finalStaminaChange = EnhanceCalculationUtility.CalculateSupportItemStaminaEffect(supportItem, baseStaminaChange);
+        int newStamina = Math.Max(0, Math.Min(100, previousStamina + finalStaminaChange));
 
         EnhanceResultData result;
 
         if (isSuccess)
         {
-            // 成功時の処理
-            int newEnhancedValue = previousEnhancedValue + enhanceItem.addEnhancedValue;
+            // 成功時の処理：補助材料の倍率効果を適用
+
+            // 強化値の計算（補助材料の倍率効果を適用）
+            int baseEnhanceValueIncrease = enhanceItem.addEnhancedValue;
+            int modifiedEnhanceValueIncrease = EnhanceCalculationUtility.CalculateSupportItemEnhanceValueEffect(supportItem, baseEnhanceValueIncrease);
+            int newEnhancedValue = previousEnhancedValue + modifiedEnhanceValueIncrease;
+
             AttributeType newAttribute = EnhanceCalculationUtility.CalculateAttributeChange(previousAttribute, enhanceItem.attributeType);
 
             result = EnhanceResultData.CreateSuccessResult(
@@ -412,20 +475,48 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 successRate
             );
 
-            // ステータス変化を計算
+            // ステータス変化を計算（補助材料の効果を適用）
             var masterData = GetEquipmentMasterData(equipment.equipmentMasterId);
             if (masterData != null)
             {
-                var statusIncrease = EnhanceCalculationUtility.CalculateStatusIncrease(masterData.equipmentType, enhanceItem);
-                foreach (var kvp in statusIncrease)
+                // 基本のステータス増加量を取得
+                var baseStatusIncrease = EnhanceCalculationUtility.CalculateStatusIncrease(masterData.equipmentType, enhanceItem);
+
+                // 補助材料の効果を適用（素晴らしい薬の倍率効果など）
+                var modifiedStatusIncrease = EnhanceCalculationUtility.CalculateSupportItemStatusEffect(supportItem, baseStatusIncrease);
+
+                // 通常のステータス増加（属性攻撃力を除く）
+                foreach (var kvp in modifiedStatusIncrease)
                 {
-                    result.AddStatusChange(kvp.Key, kvp.Value, 0); // 総量は後で計算
+                    // 属性攻撃力は別途処理するのでここでは除外
+                    if (!kvp.Key.Contains("Offence"))
+                    {
+                        result.AddStatusChange(kvp.Key, kvp.Value, 0);
+                    }
+                }
+
+                // 属性攻撃力の変更を計算（属性変更時のリセット処理込み、補助材料効果適用）
+                var baseAttributeChanges = EnhanceCalculationUtility.CalculateAttributeAttackChange(equipment, enhanceItem, newAttribute);
+
+                // 属性攻撃力にも補助材料の効果を適用
+                int multiplier = EnhanceCalculationUtility.GetStatusMultiplier(supportItem);
+                foreach (var kvp in baseAttributeChanges)
+                {
+                    int modifiedValue = kvp.Value;
+
+                    // 新しい属性攻撃力の場合（0でない場合）は補助材料効果を適用
+                    if (kvp.Value > 0 && multiplier > 1)
+                    {
+                        modifiedValue = kvp.Value * multiplier;
+                    }
+
+                    result.AddStatusChange(kvp.Key, modifiedValue, 0);
                 }
             }
         }
         else
         {
-            // 失敗時の処理
+            // 失敗時の処理（耐久値変化のみ適用、倍率効果なし）
             result = EnhanceResultData.CreateFailureResult(
                 equipment.userEquipmentId,
                 enhanceItem.enhanceItemId,
@@ -433,7 +524,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 previousEnhancedValue,
                 previousAttribute,
                 previousStamina,
-                newStamina,
+                newStamina,  // 失敗時も耐久値は変化する
                 successRate
             );
         }
@@ -445,11 +536,12 @@ public class EquipmentEnhanceManager : MonoBehaviour
             result.AddUsedItem(ItemUsageData.CreateForSupportItem(supportItem.supportItemId, 1, 1));
         }
 
+        LogDebug($"強化処理完了: 成功={isSuccess}, 耐久値変化={previousStamina}→{newStamina}");
         return result;
     }
 
     /// <summary>
-    /// 強化結果を装備データに適用
+    /// 強化結果を装備データに適用（修正版：失敗時も耐久値変化を適用）
     /// </summary>
     /// <param name="equipment">対象装備</param>
     /// <param name="result">強化結果</param>
@@ -460,37 +552,37 @@ public class EquipmentEnhanceManager : MonoBehaviour
             return;
         }
 
-        // 強化値を更新
-        equipment.currentEnhancedValue = result.newEnhancedValue;
-
-        // 属性を更新
-        equipment.currentAttributeType = result.newAttributeType;
-
-        // 耐久値を更新
+        // 耐久値は成功・失敗に関わらず常に更新
         equipment.currentEnhanceStamina = result.newEnhanceStamina;
 
-        // 強化ステータスを更新（成功時のみ）
         if (result.isSuccess)
         {
+            // 成功時のみ強化値と属性を更新
+            equipment.currentEnhancedValue = result.newEnhancedValue;
+            equipment.currentAttributeType = result.newAttributeType;
+
+            // 強化ステータスを更新
             foreach (var kvp in result.statusChanges)
             {
                 ApplyStatusChange(equipment, kvp.Key, kvp.Value);
             }
         }
+        // 失敗時は強化値、属性、ステータスは変更しない（耐久値のみ変化）
 
-        LogDebug($"装備データ更新完了: {equipment.userEquipmentId}");
+        LogDebug($"装備データ更新完了: {equipment.userEquipmentId}, 成功: {result.isSuccess}, 耐久値: {equipment.currentEnhanceStamina}");
     }
 
     /// <summary>
-    /// ステータス変化を装備に適用
+    /// ステータス変化を装備に適用（修正版：属性攻撃力と通常ステータスを区別、属性変更時は完全リセット）
     /// </summary>
     /// <param name="equipment">対象装備</param>
     /// <param name="statusName">ステータス名</param>
-    /// <param name="changeAmount">変化量</param>
+    /// <param name="changeAmount">変化量または絶対値</param>
     private void ApplyStatusChange(UserEquipmentData equipment, string statusName, int changeAmount)
     {
         switch (statusName)
         {
+            // 通常ステータスは加算
             case "hp":
                 equipment.enhancedHp += changeAmount;
                 break;
@@ -509,17 +601,83 @@ public class EquipmentEnhanceManager : MonoBehaviour
             case "criticalDamageRate":
                 equipment.enhancedCriticalDamageRate += changeAmount;
                 break;
+
+            // 属性攻撃力は絶対値で設定または計算結果を適用
             case "fireOffence":
-                equipment.enhancedFireOffence += changeAmount;
+                var masterData = GetEquipmentMasterData(equipment.equipmentMasterId);
+                if (changeAmount == 0)
+                {
+                    // 0の場合は装備の基本値を相殺して完全に0にする
+                    equipment.enhancedFireOffence = masterData != null ? -masterData.fireOffence : 0;
+                }
+                else
+                {
+                    // changeAmountが総合値の場合（属性変更時）
+                    if (equipment.currentAttributeType != AttributeType.Fire && changeAmount > 0)
+                    {
+                        // 新しい属性に変更される場合：基本値を相殺して強化分のみを設定
+                        equipment.enhancedFireOffence = changeAmount - (masterData?.fireOffence ?? 0);
+                    }
+                    else
+                    {
+                        // 同じ属性で強化される場合：changeAmountは既に総合値なので、基本値を引いて強化分を設定
+                        equipment.enhancedFireOffence = changeAmount - (masterData?.fireOffence ?? 0);
+                    }
+                }
                 break;
             case "waterOffence":
-                equipment.enhancedWaterOffence += changeAmount;
+                masterData = GetEquipmentMasterData(equipment.equipmentMasterId);
+                if (changeAmount == 0)
+                {
+                    equipment.enhancedWaterOffence = masterData != null ? -masterData.waterOffence : 0;
+                }
+                else
+                {
+                    if (equipment.currentAttributeType != AttributeType.Water && changeAmount > 0)
+                    {
+                        equipment.enhancedWaterOffence = changeAmount - (masterData?.waterOffence ?? 0);
+                    }
+                    else
+                    {
+                        equipment.enhancedWaterOffence = changeAmount - (masterData?.waterOffence ?? 0);
+                    }
+                }
                 break;
             case "windOffence":
-                equipment.enhancedWindOffence += changeAmount;
+                masterData = GetEquipmentMasterData(equipment.equipmentMasterId);
+                if (changeAmount == 0)
+                {
+                    equipment.enhancedWindOffence = masterData != null ? -masterData.windOffence : 0;
+                }
+                else
+                {
+                    if (equipment.currentAttributeType != AttributeType.Wind && changeAmount > 0)
+                    {
+                        equipment.enhancedWindOffence = changeAmount - (masterData?.windOffence ?? 0);
+                    }
+                    else
+                    {
+                        equipment.enhancedWindOffence = changeAmount - (masterData?.windOffence ?? 0);
+                    }
+                }
                 break;
             case "earthOffence":
-                equipment.enhancedEarthOffence += changeAmount;
+                masterData = GetEquipmentMasterData(equipment.equipmentMasterId);
+                if (changeAmount == 0)
+                {
+                    equipment.enhancedEarthOffence = masterData != null ? -masterData.earthOffence : 0;
+                }
+                else
+                {
+                    if (equipment.currentAttributeType != AttributeType.Earth && changeAmount > 0)
+                    {
+                        equipment.enhancedEarthOffence = changeAmount - (masterData?.earthOffence ?? 0);
+                    }
+                    else
+                    {
+                        equipment.enhancedEarthOffence = changeAmount - (masterData?.earthOffence ?? 0);
+                    }
+                }
                 break;
             default:
                 LogWarning($"未知のステータス名: {statusName}");
@@ -552,11 +710,12 @@ public class EquipmentEnhanceManager : MonoBehaviour
         preview.expectedAttributeType = EnhanceCalculationUtility.CalculateAttributeChange(equipment.currentAttributeType, enhanceItem.attributeType);
         preview.expectedEnhanceStamina = EnhanceCalculationUtility.CalculateStaminaChange(equipment.currentEnhanceStamina, enhanceItem);
 
-        // ステータス変化予測
+        // ステータス変化予想
         var masterData = GetEquipmentMasterData(equipment.equipmentMasterId);
         if (masterData != null)
         {
-            var statusIncrease = EnhanceCalculationUtility.CalculateStatusIncrease(masterData.equipmentType, enhanceItem);
+            var statusIncrease = EnhanceCalculationUtility.CalculateStatusIncrease(
+                masterData.equipmentType, enhanceItem);
             foreach (var kvp in statusIncrease)
             {
                 preview.SetExpectedStatusIncrease(kvp.Key, kvp.Value);

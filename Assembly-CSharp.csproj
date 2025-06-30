@@ -69,9 +69,11 @@
     <Compile Include="Assets\Scripts\Data\EquipmentMaster\EquipmentMasterData.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_TextSelector_A.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark02.cs" />
+    <Compile Include="Assets\Scripts\UI\Enhance\NoneSelectionSlotUI.cs" />
     <Compile Include="Assets\Scripts\SaveDataEditer\JsonSaveDataImporter.cs" />
     <Compile Include="Assets\Scripts\Data\Enhance\EnhancePreviewData.cs" />
     <Compile Include="Assets\Scripts\UI\Inventory\InventoryUI.cs" />
+    <Compile Include="Assets\Scripts\UI\Enhance\ItemSelectionSlotUI.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_ExampleScript_01.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMPro_InstructionOverlay.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\VertexShakeB.cs" />
@@ -110,6 +112,7 @@
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\CameraController.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark03.cs" />
     <Compile Include="Assets\Scripts\Data\CharacterData\CharacterExperienceTableMasterData.cs" />
+    <Compile Include="Assets\Scripts\UI\Enhance\ItemSelectionWindowUI.cs" />
     <Compile Include="Assets\Scripts\Data\CharacterData\CharacterMasterData.cs" />
     <Compile Include="Assets\Scripts\SaveDataEditer\CustomSaveDataCreator.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\DropdownSample.cs" />
@@ -123,6 +126,7 @@
     <Compile Include="Assets\Scripts\Manager\EquipmentEnhanceManager.cs" />
     <Compile Include="Assets\Scripts\Test\EnhanceSystemTest.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TextMeshProFloatingText.cs" />
+    <Compile Include="Assets\Scripts\UI\Enhance\EquipmentEnhanceUI.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\dawnloadAsetts\Cainos\Pixel Art Icon Pack - RPG\Shader\SH UI Icon Outline Color.shader" />

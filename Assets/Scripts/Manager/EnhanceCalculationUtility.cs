@@ -50,7 +50,7 @@ public static class EnhanceCalculationUtility
             return 0f;
         }
 
-        // 強化値を5で割った商がペナルティの基準
+        // 強化値を5で割った商がペナルティの基数
         int penaltyLevel = currentEnhanceValue / 5;
         return penaltyLevel * 1f; // 1%ずつ減少
     }
@@ -68,7 +68,6 @@ public static class EnhanceCalculationUtility
         }
 
         // SupportItemMasterDataの addEnhanceSuccessRate プロパティから成功率ボーナスを取得
-        // CSVの add_enhance_success_rate 列の値が設定されている
         float successRateBonus = supportItem.addEnhanceSuccessRate;
 
         // 成功率減少効果も考慮（怪しい薬など）
@@ -78,6 +77,94 @@ public static class EnhanceCalculationUtility
         float finalBonus = successRateBonus - successRatePenalty;
 
         return finalBonus;
+    }
+
+    /// <summary>
+    /// 補助材料による強化耐久値への効果を計算（修正版：単純加算）
+    /// </summary>
+    /// <param name="supportItem">補助材料</param>
+    /// <param name="baseStaminaChange">基本の耐久値変化</param>
+    /// <returns>補助材料効果を適用した耐久値変化</returns>
+    public static int CalculateSupportItemStaminaEffect(SupportItemMasterData supportItem, int baseStaminaChange)
+    {
+        if (supportItem == null)
+        {
+            return baseStaminaChange;
+        }
+
+        // 耐久保護スクロールなどの効果：成功失敗に関わらず耐久値を増加
+        return baseStaminaChange + supportItem.addEnhanceStamina;
+    }
+
+    /// <summary>
+    /// 補助材料によるステータス増加量への倍率効果を計算（修正版：CSVのmultipl_status_upを使用）
+    /// </summary>
+    /// <param name="supportItem">補助材料</param>
+    /// <param name="baseStatusIncrease">基本のステータス増加量</param>
+    /// <returns>補助材料効果を適用したステータス増加量</returns>
+    public static Dictionary<string, int> CalculateSupportItemStatusEffect(SupportItemMasterData supportItem, Dictionary<string, int> baseStatusIncrease)
+    {
+        if (supportItem == null || baseStatusIncrease == null)
+        {
+            return baseStatusIncrease ?? new Dictionary<string, int>();
+        }
+
+        var modifiedStatusIncrease = new Dictionary<string, int>();
+
+        // CSVのmultipl_status_upフィールドから倍率を取得
+        int multiplier = GetStatusMultiplier(supportItem);
+
+        foreach (var kvp in baseStatusIncrease)
+        {
+            modifiedStatusIncrease[kvp.Key] = kvp.Value * multiplier;
+        }
+
+        return modifiedStatusIncrease;
+    }
+
+    /// <summary>
+    /// 補助材料による強化値への倍率効果を計算
+    /// </summary>
+    /// <param name="supportItem">補助材料</param>
+    /// <param name="baseEnhancedValue">基本の強化値増加量</param>
+    /// <returns>補助材料効果を適用した強化値増加量</returns>
+    public static int CalculateSupportItemEnhanceValueEffect(SupportItemMasterData supportItem, int baseEnhancedValue)
+    {
+        if (supportItem == null)
+        {
+            return baseEnhancedValue;
+        }
+
+        // CSVのmultipl_status_upフィールドから倍率を取得（強化値も含む）
+        int multiplier = GetStatusMultiplier(supportItem);
+        return baseEnhancedValue * multiplier;
+    }
+
+    /// <summary>
+    /// 補助材料のステータス倍率を取得（修正版：正しいプロパティ名を使用）
+    /// </summary>
+    /// <param name="supportItem">補助材料</param>
+    /// <returns>ステータス倍率（CSVのmultipl_status_up値、デフォルト1）</returns>
+    public static int GetStatusMultiplier(SupportItemMasterData supportItem)
+    {
+        if (supportItem == null)
+        {
+            return 1;
+        }
+
+        // SupportItemMasterDataのmultiplStatusUpフィールドの値を使用
+        // 0の場合は倍率なし（1倍）として扱う
+        return supportItem.multiplStatusUp > 0 ? supportItem.multiplStatusUp : 1;
+    }
+
+    /// <summary>
+    /// 補助材料がステータス増加量を倍にする効果を持つかチェック（修正版：CSVベース）
+    /// </summary>
+    /// <param name="supportItem">補助材料</param>
+    /// <returns>倍率効果がある場合true</returns>
+    public static bool IsDoubleStatusEffect(SupportItemMasterData supportItem)
+    {
+        return GetStatusMultiplier(supportItem) > 1;
     }
 
     /// <summary>
@@ -147,7 +234,7 @@ public static class EnhanceCalculationUtility
 
     /// <summary>
     /// 属性変更を計算
-    /// 仕様: 強化アイテムに属性がある場合、装備の属性を上書き
+    /// 仕様: 強化アイテムに属性があるか場合、装備の属性を上書き
     /// </summary>
     /// <param name="currentAttribute">現在の属性</param>
     /// <param name="enhanceItemAttribute">強化アイテムの属性</param>
@@ -165,13 +252,13 @@ public static class EnhanceCalculationUtility
     }
 
     /// <summary>
-    /// 属性攻撃力の変更を計算
-    /// 仕様: 属性が変更される場合、既存の属性攻撃は消失し新しい属性攻撃に置き換わる
+    /// 属性攻撃力の変更を計算（修正版：同じ属性の場合は加算、異なる属性の場合はリセット）
+    /// 仕様: 属性変更時に他属性を強制的に0にリセット、同じ属性の場合は既存値に加算
     /// </summary>
     /// <param name="equipment">対象装備</param>
     /// <param name="enhanceItem">強化アイテム</param>
     /// <param name="newAttribute">変更後の属性</param>
-    /// <returns>属性攻撃力の変更辞書（キー: 属性名、値: 新しい値）</returns>
+    /// <returns>属性攻撃力の変更辞書（キー: 属性名、値: 新しい絶対値または変更量）</returns>
     public static Dictionary<string, int> CalculateAttributeAttackChange(UserEquipmentData equipment, EnhanceItemMasterData enhanceItem, AttributeType newAttribute)
     {
         var attributeChanges = new Dictionary<string, int>();
@@ -181,18 +268,27 @@ public static class EnhanceCalculationUtility
             return attributeChanges;
         }
 
-        // 既存の属性攻撃をリセット（0に設定）
-        attributeChanges["fireOffence"] = 0;
-        attributeChanges["waterOffence"] = 0;
-        attributeChanges["windOffence"] = 0;
-        attributeChanges["earthOffence"] = 0;
-
-        // 新しい属性攻撃を設定
-        if (newAttribute != AttributeType.None)
+        var masterData = MasterDataManager.Instance?.GetEquipmentData(equipment.equipmentMasterId);
+        if (masterData == null)
         {
-            var masterData = MasterDataManager.Instance?.GetEquipmentData(equipment.equipmentMasterId);
-            if (masterData != null)
+            return attributeChanges;
+        }
+
+        // 強化アイテムに属性が設定されている場合（属性変更が発生する場合）
+        if (newAttribute != AttributeType.None && enhanceItem.attributeType != AttributeType.None)
+        {
+            // 現在の装備の属性と強化アイテムの属性を比較
+            bool isAttributeChanging = equipment.currentAttributeType != newAttribute;
+
+            if (isAttributeChanging)
             {
+                // 属性が変更される場合：全ての属性攻撃力を0にリセット
+                attributeChanges["fireOffence"] = 0;
+                attributeChanges["waterOffence"] = 0;
+                attributeChanges["windOffence"] = 0;
+                attributeChanges["earthOffence"] = 0;
+
+                // 新しい属性の攻撃力のみを設定（強化アイテムの効果量）
                 var statusIncrease = CalculateStatusIncrease(masterData.equipmentType, enhanceItem);
 
                 switch (newAttribute)
@@ -212,6 +308,48 @@ public static class EnhanceCalculationUtility
                     case AttributeType.Earth:
                         if (statusIncrease.ContainsKey("earthOffence"))
                             attributeChanges["earthOffence"] = statusIncrease["earthOffence"];
+                        break;
+                }
+            }
+            else
+            {
+                // 同じ属性で強化する場合：該当属性の攻撃力を加算
+                var statusIncrease = CalculateStatusIncrease(masterData.equipmentType, enhanceItem);
+
+                switch (newAttribute)
+                {
+                    case AttributeType.Fire:
+                        if (statusIncrease.ContainsKey("fireOffence"))
+                        {
+                            // 現在の強化済み火属性攻撃力 + 強化アイテムの効果
+                            int currentTotal = masterData.fireOffence + equipment.enhancedFireOffence;
+                            int newTotal = currentTotal + statusIncrease["fireOffence"];
+                            attributeChanges["fireOffence"] = newTotal;
+                        }
+                        break;
+                    case AttributeType.Water:
+                        if (statusIncrease.ContainsKey("waterOffence"))
+                        {
+                            int currentTotal = masterData.waterOffence + equipment.enhancedWaterOffence;
+                            int newTotal = currentTotal + statusIncrease["waterOffence"];
+                            attributeChanges["waterOffence"] = newTotal;
+                        }
+                        break;
+                    case AttributeType.Wind:
+                        if (statusIncrease.ContainsKey("windOffence"))
+                        {
+                            int currentTotal = masterData.windOffence + equipment.enhancedWindOffence;
+                            int newTotal = currentTotal + statusIncrease["windOffence"];
+                            attributeChanges["windOffence"] = newTotal;
+                        }
+                        break;
+                    case AttributeType.Earth:
+                        if (statusIncrease.ContainsKey("earthOffence"))
+                        {
+                            int currentTotal = masterData.earthOffence + equipment.enhancedEarthOffence;
+                            int newTotal = currentTotal + statusIncrease["earthOffence"];
+                            attributeChanges["earthOffence"] = newTotal;
+                        }
                         break;
                 }
             }
@@ -340,7 +478,7 @@ public static class EnhanceCalculationUtility
     }
 
     /// <summary>
-    /// 強化値による成功率ペナルティの詳細情報を取得
+    /// 強化値によるペナルティの詳細情報を取得
     /// </summary>
     /// <param name="enhanceValue">強化値</param>
     /// <returns>ペナルティの詳細説明</returns>

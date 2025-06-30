@@ -389,8 +389,18 @@ public class SaveDataManager : MonoBehaviour
     {
         try
         {
-            string backupFileName = $"backup_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+            // ミリ秒まで含めたタイムスタンプを使用
+            string backupFileName = $"backup_{DateTime.Now:yyyyMMdd_HHmmss_fff}.json";
             string backupPath = Path.Combine(BackupFolderPath, backupFileName);
+
+            // 念のため重複チェック（通常は発生しないはず）
+            if (File.Exists(backupPath))
+            {
+                // GUIDを追加してユニークにする
+                string guid = Guid.NewGuid().ToString("N")[..8]; // 8文字のGUID
+                backupFileName = $"backup_{DateTime.Now:yyyyMMdd_HHmmss_fff}_{guid}.json";
+                backupPath = Path.Combine(BackupFolderPath, backupFileName);
+            }
 
             File.Copy(SaveFilePath, backupPath);
             DebugLog($"バックアップを作成しました: {backupFileName}");
