@@ -39,6 +39,6 @@ MonoBehaviour:
   equipmentUnlockCharacterEnhancedValue: 
   equipmentIcon: {fileID: 0}
   equipmentIconPath: 
-  description: "\u521D\u5FC3\u8005\u304C\u4F7F\u3046\u5263\u3002\u6700\u4F4E\u9650\u306E\u653B\u6483\u529B\u304C\u3042\u308B\u3002"
+  description: "\u521D\u5FC3\u8005\u304C\u4F7F\u3046\u5263\u3002\\n\u6700\u4F4E\u9650\u306E\u653B\u6483\u529B\u304C\u3042\u308B\u3002"
   completionFlag: 1
   collectionFlag: 1

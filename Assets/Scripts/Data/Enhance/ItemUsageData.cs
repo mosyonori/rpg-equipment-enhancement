@@ -75,6 +75,7 @@ public class ItemUsageData
     /// <param name="supportItemId">補助材料ID</param>
     /// <param name="quantity">使用数量</param>
     /// <param name="currentStock">現在の所持数量</param>
+    /// <param name="isSupportItem">補助材料フラグ（型安全性のため）</param>
     public ItemUsageData(int supportItemId, int quantity, int currentStock, bool isSupportItem)
     {
         if (!isSupportItem)
@@ -107,27 +108,56 @@ public class ItemUsageData
     }
 
     /// <summary>
-    /// 静的ファクトリーメソッド - 強化アイテム用
+    /// 静的ファクトリーメソッド - 強化アイテム用（実際の所持数を自動取得）
     /// </summary>
     /// <param name="enhanceItemId">強化アイテムID</param>
     /// <param name="quantity">使用数量</param>
-    /// <param name="currentStock">現在の所持数量</param>
     /// <returns>強化アイテム用のItemUsageData</returns>
     public static ItemUsageData CreateForEnhanceItem(int enhanceItemId, int quantity = 1, int currentStock = 0)
     {
+        // currentStockが0の場合は実際の所持数を取得
+        if (currentStock == 0)
+        {
+            currentStock = GetActualItemQuantity(ItemType.EnhanceItem, enhanceItemId);
+        }
+
         return new ItemUsageData(enhanceItemId, quantity, currentStock);
     }
 
     /// <summary>
-    /// 静的ファクトリーメソッド - 補助材料用
+    /// 静的ファクトリーメソッド - 補助材料用（実際の所持数を自動取得）
     /// </summary>
     /// <param name="supportItemId">補助材料ID</param>
     /// <param name="quantity">使用数量</param>
-    /// <param name="currentStock">現在の所持数量</param>
     /// <returns>補助材料用のItemUsageData</returns>
     public static ItemUsageData CreateForSupportItem(int supportItemId, int quantity = 1, int currentStock = 0)
     {
+        // currentStockが0の場合は実際の所持数を取得
+        if (currentStock == 0)
+        {
+            currentStock = GetActualItemQuantity(ItemType.SupportItem, supportItemId);
+        }
+
         return new ItemUsageData(supportItemId, quantity, currentStock, true);
+    }
+
+    /// <summary>
+    /// SaveDataManagerから実際のアイテム所持数を取得
+    /// </summary>
+    /// <param name="itemType">アイテムタイプ</param>
+    /// <param name="itemId">アイテムID</param>
+    /// <returns>実際の所持数量</returns>
+    private static int GetActualItemQuantity(ItemType itemType, int itemId)
+    {
+        if (SaveDataManager.Instance?.CurrentSaveData?.items == null)
+        {
+            return 0;
+        }
+
+        var saveData = SaveDataManager.Instance.CurrentSaveData;
+        var userItem = saveData.items.Find(item => item.itemType == itemType && item.itemMasterId == itemId);
+
+        return userItem?.quantity ?? 0;
     }
 
     /// <summary>

@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a94e971ef38bcac46b6be9c9b4a2c383, type: 3}
+  m_Name: "Equipment_011_\u30D0\u30EA\u30A2\u30EA\u30F3\u30B0"
+  m_EditorClassIdentifier: 
+  equipmentId: 11
+  equipmentName: "\u30D0\u30EA\u30A2\u30EA\u30F3\u30B0"
+  equipmentType: 2
+  rarity: 1
+  baseEnhancedValue: 0
+  maxEnhancedValue: 999
+  minEnhancedValue: 0
+  baseEnhanceStamina: 100
+  maxEnhanceStamina: 100
+  minEnhanceStamina: 0
+  baseEnhanceSuccessRate: 0
+  hp: 5
+  offense: 0
+  defense: 15
+  speed: 0
+  criticalRate: 0
+  criticalDamageRate: 0
+  fireOffence: 0
+  waterOffence: 0
+  windOffence: 0
+  earthOffence: 0
+  equipmentUnlockSkillId: 0
+  equipmentUnlockSkillEnhancedValue: 0
+  equipmentUnlockCharacterId: 
+  equipmentUnlockCharacterEnhancedValue: 
+  equipmentIcon: {fileID: -1693990453, guid: 4c391c1a42ea0ea4ab899d56caff75b4, type: 3}
+  equipmentIconPath: 
+  description: "\u30D0\u30EA\u30A2\u3092\u8CBC\u308B\u30EA\u30F3\u30B0\u3002\\n\u9632\u5FA1\u304C\u3068\u3066\u3082\u4E0A\u304C\u308B\u3002"
+  completionFlag: 1
+  collectionFlag: 1

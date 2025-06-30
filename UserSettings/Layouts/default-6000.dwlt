@@ -119,7 +119,7 @@ MonoBehaviour:
   m_MinSize: {x: 400, y: 100}
   m_MaxSize: {x: 32384, y: 16192}
   vertical: 0
-  controlID: 13852
+  controlID: 130
   draggingID: 0
 --- !u!114 &6
 MonoBehaviour:
@@ -145,7 +145,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 100}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 1
-  controlID: 13770
+  controlID: 67
   draggingID: 0
 --- !u!114 &7
 MonoBehaviour:
@@ -172,7 +172,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 50}
   m_MaxSize: {x: 24288, y: 8096}
   vertical: 0
-  controlID: 13771
+  controlID: 68
   draggingID: 0
 --- !u!114 &8
 MonoBehaviour:
@@ -219,8 +219,8 @@ MonoBehaviour:
     y: 0
     width: 543
     height: 611
-  m_MinSize: {x: 52, y: 76}
-  m_MaxSize: {x: 4002, y: 4026}
+  m_MinSize: {x: 50, y: 50}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 18}
   m_Panes:
   - {fileID: 18}
@@ -245,8 +245,8 @@ MonoBehaviour:
     y: 0
     width: 516
     height: 611
-  m_MinSize: {x: 202, y: 226}
-  m_MaxSize: {x: 4002, y: 4026}
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 15}
   m_Panes:
   - {fileID: 15}
@@ -262,7 +262,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 1
   m_Script: {fileID: 12006, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: ProjectBrowser
+  m_Name: ConsoleWindow
   m_EditorClassIdentifier: 
   m_Children: []
   m_Position:
@@ -271,14 +271,14 @@ MonoBehaviour:
     y: 611
     width: 1437
     height: 322
-  m_MinSize: {x: 231, y: 276}
-  m_MaxSize: {x: 10001, y: 10026}
-  m_ActualView: {fileID: 13}
+  m_MinSize: {x: 101, y: 126}
+  m_MaxSize: {x: 4001, y: 4026}
+  m_ActualView: {fileID: 16}
   m_Panes:
   - {fileID: 13}
   - {fileID: 16}
-  m_Selected: 0
-  m_LastSelected: 1
+  m_Selected: 1
+  m_LastSelected: 0
 --- !u!114 &12
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -352,7 +352,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scripts/SceneChange
+    - Assets/Resources/GameData/Equipment
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -362,16 +362,16 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/Scripts/SceneChange
+  - Assets/Resources/GameData/Equipment
   m_LastFoldersGridSize: -1
   m_LastProjectPath: C:\Users\aax62\blacksmith
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 188}
-    m_SelectedIDs: fcb60000
-    m_LastClickedID: 46844
-    m_ExpandedIDs: 0000000000b6000060b6000066b600006eb6000072b60000f0f4000024f5000000ca9a3bffffff7f
+    scrollPos: {x: 0, y: 111}
+    m_SelectedIDs: ca180100
+    m_LastClickedID: 71882
+    m_ExpandedIDs: 0000000050b60000b8b60000bcb60000beb60000c4b60000ccb60000feb60000e20e0100c018010000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -400,7 +400,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 3}
     m_SelectedIDs: 72aa0000
     m_LastClickedID: 43634
-    m_ExpandedIDs: 0000000000b60000
+    m_ExpandedIDs: 0000000050b60000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -428,7 +428,7 @@ MonoBehaviour:
   m_ListAreaState:
     m_SelectedInstanceIDs: 
     m_LastClickedInstanceID: 0
-    m_HadKeyboardFocusLastEvent: 0
+    m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs: c6230000b4a90000cac4000076c40000b6c400005ec400005ac40000aec400009ec4000062c400001cad000054ad0000c0b60000f8ad00001aaa0000f4a70000aab10000b4b100001cae0000b4b40000b6b40000b8b40000b2b400009eb50000824a01009ecc0000decc0000dccc000050ab000042b4000022ae0000eab20000c0b7000002b0000010b2000068d3000058be00001ceb000040b600000000000036c70000eeba0000daf40000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
@@ -499,21 +499,21 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: d6a6feffdca6feffe4a6feff8252ffff9054ffff8055ffff2471ffffc672ffff8ca9fffff0c5ffff6ac7ffff6cc7ffffbec9fffff0ceffff28d7ffff48e1ffff1cfbffff3aa90000f6ab000040ac0000a0ad000056cf0000d0cf0000e2cf000078f30000ecf300005af4000082f400009cf400000e1201003e130100b8130100242201002c220100382501002a2c0100bc2c0100f22c0100
+      m_ExpandedIDs: 1813feff2613feff1cfbffff1aa9000046a900004ea9000080a9000008ab0000ceac00002aad0000f0ad000036ae0000deae00001caf000048af000008b10000
       m_RenameOverlay:
         m_UserAcceptedRename: 0
-        m_Name: TitleButton
-        m_OriginalName: TitleButton
+        m_Name: 
+        m_OriginalName: 
         m_EditFieldRect:
           serializedVersion: 2
           x: 0
           y: 0
           width: 0
           height: 0
-        m_UserData: 76988
+        m_UserData: 0
         m_IsWaitingForDelay: 0
         m_IsRenaming: 0
-        m_OriginalEventType: 0
+        m_OriginalEventType: 11
         m_IsRenamingFilename: 0
         m_TrimLeadingAndTrailingWhitespace: 0
         m_ClientGUIView: {fileID: 8}
@@ -1005,9 +1005,9 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: 958.7879, y: 1839.0303, z: 0}
+    m_Target: {x: 475, y: 960, z: 0}
     speed: 2
-    m_Value: {x: 958.7879, y: 1839.0303, z: 0}
+    m_Value: {x: 475, y: 960, z: 0}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -1057,9 +1057,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0.0059996764, y: -0.0059999954, z: 0.000036179757, w: 0.999964}
   m_Size:
-    m_Target: 184.1716
+    m_Target: 885.93024
     speed: 2
-    m_Value: 184.1716
+    m_Value: 885.93024
   m_Ortho:
     m_Target: 0
     speed: 2

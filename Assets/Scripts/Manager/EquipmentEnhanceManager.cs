@@ -172,7 +172,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
     #region Main API Methods
 
     /// <summary>
-    /// 装備強化を実行（修正版：失敗時も耐久値変更を適用）
+    /// 装備強化を実行（修正版：失敗時も耐久値変更を適用、アイテム消費処理を追加）
     /// </summary>
     /// <param name="equipmentId">対象装備のユーザーID</param>
     /// <param name="enhanceItemId">強化アイテムのマスターID</param>
@@ -231,13 +231,27 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 return null;
             }
 
+            // アイテム所持数チェック
+            if (!CheckItemAvailability(enhanceItemId, supportItemId))
+            {
+                var errorMsg = "必要なアイテムが不足しています";
+                OnEnhanceError?.Invoke(errorMsg);
+                return null;
+            }
+
             // 強化計算と実行
             var result = PerformEnhance(equipment, enhanceItem, supportItem);
 
             // 修正：成功・失敗に関わらずデータを保存
             if (result != null)
             {
+                // 1. 装備データに強化結果を適用
                 ApplyEnhanceResult(equipment, result);
+
+                // 2. 使用したアイテムを消費（重要：この処理が抜けていた）
+                ConsumeUsedItems(result);
+
+                // 3. データ保存
                 SaveDataManager.Instance.MarkDataDirty();
                 SaveDataManager.Instance.SaveSaveData();
             }
@@ -425,7 +439,119 @@ public class EquipmentEnhanceManager : MonoBehaviour
     #region Private Methods
 
     /// <summary>
-    /// 実際の強化処理を実行（修正版：失敗時の耐久値処理を追加）
+    /// アイテム所持数チェック（新規追加）
+    /// </summary>
+    /// <param name="enhanceItemId">強化アイテムID</param>
+    /// <param name="supportItemId">補助材料ID（0の場合は未使用）</param>
+    /// <returns>必要なアイテムを所持している場合true</returns>
+    private bool CheckItemAvailability(int enhanceItemId, int supportItemId)
+    {
+        var saveData = SaveDataManager.Instance.CurrentSaveData;
+        if (saveData?.items == null)
+        {
+            LogError("セーブデータまたはアイテムリストがnullです");
+            return false;
+        }
+
+        // 強化アイテムの所持数チェック
+        var enhanceItemData = saveData.items.FirstOrDefault(item =>
+            item.itemType == ItemType.EnhanceItem && item.itemMasterId == enhanceItemId);
+
+        if (enhanceItemData == null || enhanceItemData.quantity < 1)
+        {
+            LogWarning($"強化アイテムが不足しています: ID={enhanceItemId}");
+            return false;
+        }
+
+        // 補助材料の所持数チェック（使用する場合のみ）
+        if (supportItemId > 0)
+        {
+            var supportItemData = saveData.items.FirstOrDefault(item =>
+                item.itemType == ItemType.SupportItem && item.itemMasterId == supportItemId);
+
+            if (supportItemData == null || supportItemData.quantity < 1)
+            {
+                LogWarning($"補助材料が不足しています: ID={supportItemId}");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 使用したアイテムを消費（修正版：ItemUsageDataのファクトリーメソッド使用）
+    /// </summary>
+    /// <param name="result">強化結果データ</param>
+    private void ConsumeUsedItems(EnhanceResultData result)
+    {
+        if (result?.usedItems == null || result.usedItems.Count == 0)
+        {
+            LogWarning("使用アイテム情報がありません");
+            return;
+        }
+
+        var saveData = SaveDataManager.Instance.CurrentSaveData;
+        if (saveData?.items == null)
+        {
+            LogError("セーブデータまたはアイテムリストがnullです");
+            return;
+        }
+
+        foreach (var usedItem in result.usedItems)
+        {
+            // アイテムタイプに応じて対象を検索
+            var targetItem = saveData.items.FirstOrDefault(item =>
+                item.itemType == usedItem.itemType && item.itemMasterId == usedItem.itemId);
+
+            if (targetItem != null)
+            {
+                // アイテム数量を減算
+                int previousQuantity = targetItem.quantity;
+                bool success = targetItem.UseItem(usedItem.usedQuantity);
+
+                if (success)
+                {
+                    LogDebug($"アイテム消費成功: {GetItemTypeName(usedItem.itemType)} ID={usedItem.itemId}, " +
+                            $"数量: {previousQuantity} → {targetItem.quantity} (消費: {usedItem.usedQuantity})");
+
+                    // 所持数が0になった場合、リストから削除
+                    if (targetItem.IsEmpty())
+                    {
+                        saveData.items.Remove(targetItem);
+                        LogDebug($"{GetItemTypeName(usedItem.itemType)} ID={usedItem.itemId} の所持数が0になったため、リストから削除しました");
+                    }
+                }
+                else
+                {
+                    LogError($"アイテム消費に失敗: {GetItemTypeName(usedItem.itemType)} ID={usedItem.itemId} " +
+                            $"(要求: {usedItem.usedQuantity}, 所持: {targetItem.quantity})");
+                }
+            }
+            else
+            {
+                LogError($"消費対象のアイテムが見つかりません: {GetItemTypeName(usedItem.itemType)} ID={usedItem.itemId}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// アイテムタイプ名を取得（デバッグ用）
+    /// </summary>
+    /// <param name="itemType">アイテムタイプ</param>
+    /// <returns>アイテムタイプ名</returns>
+    private string GetItemTypeName(ItemType itemType)
+    {
+        return itemType switch
+        {
+            ItemType.EnhanceItem => "強化アイテム",
+            ItemType.SupportItem => "補助材料",
+            _ => "不明なアイテム"
+        };
+    }
+
+    /// <summary>
+    /// 実際の強化処理を実行（修正版：ItemUsageDataのファクトリーメソッド使用）
     /// </summary>
     /// <param name="equipment">対象装備</param>
     /// <param name="enhanceItem">強化アイテム</param>
@@ -529,11 +655,11 @@ public class EquipmentEnhanceManager : MonoBehaviour
             );
         }
 
-        // 使用アイテム情報を追加
-        result.AddUsedItem(ItemUsageData.CreateForEnhanceItem(enhanceItem.enhanceItemId, 1, 1));
+        // 使用アイテム情報を追加（修正版：ファクトリーメソッドで実際の所持数を自動取得）
+        result.AddUsedItem(ItemUsageData.CreateForEnhanceItem(enhanceItem.enhanceItemId, 1));
         if (supportItem != null)
         {
-            result.AddUsedItem(ItemUsageData.CreateForSupportItem(supportItem.supportItemId, 1, 1));
+            result.AddUsedItem(ItemUsageData.CreateForSupportItem(supportItem.supportItemId, 1));
         }
 
         LogDebug($"強化処理完了: 成功={isSuccess}, 耐久値変化={previousStamina}→{newStamina}");
@@ -724,7 +850,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
 
         // 強化可能性とリスクを判定
         preview.canEnhance = EnhanceCalculationUtility.CanEnhance(equipment, enhanceItem);
-        preview.hasEnoughItems = true; // 将来的にアイテム所持チェックを実装
+        preview.hasEnoughItems = CheckItemAvailability(enhanceItem.enhanceItemId, supportItem?.supportItemId ?? 0);
 
         // 特殊効果フラグを設定
         preview.willAttributeChange = preview.HasAttributeChange();
@@ -741,6 +867,11 @@ public class EquipmentEnhanceManager : MonoBehaviour
         if (preview.willStaminaDecrease)
         {
             preview.AddRiskMessage("耐久値が減少します");
+        }
+
+        if (!preview.hasEnoughItems)
+        {
+            preview.AddWarningMessage("必要なアイテムが不足しています");
         }
     }
 

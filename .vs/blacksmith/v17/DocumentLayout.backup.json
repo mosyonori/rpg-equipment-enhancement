@@ -3,11 +3,15 @@
   "WorkspaceRootPath": "C:\\Users\\aax62\\blacksmith\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|c:\\users\\aax62\\blacksmith\\assets\\scripts\\scenechange\\gamescenemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\scenechange\\gamescenemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|c:\\users\\aax62\\blacksmith\\assets\\scripts\\scenechange\\transitionuicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\scenechange\\transitionuicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|c:\\users\\aax62\\blacksmith\\assets\\scripts\\scenechange\\scenenames.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|C:\\Users\\aax62\\blacksmith\\assets\\scripts\\scenechange\\scenenames.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B2075822-0030-2B3D-3846-5D2854C4960C}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\scenechange\\scenenames.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -135,19 +139,32 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "GameSceneManager.cs",
+              "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SceneChange\\GameSceneManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\SceneChange\\GameSceneManager.cs",
+              "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SceneChange\\GameSceneManager.cs",
+              "RelativeToolTip": "Assets\\Scripts\\SceneChange\\GameSceneManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAJ8BAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-30T05:04:55.476Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "TransitionUIController.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SceneChange\\TransitionUIController.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SceneChange\\TransitionUIController.cs",
               "ToolTip": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SceneChange\\TransitionUIController.cs",
               "RelativeToolTip": "Assets\\Scripts\\SceneChange\\TransitionUIController.cs",
-              "ViewState": "AgIAAAABAAAAAAAAAAAQwD4BAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAD4BAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-30T05:04:35.182Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "SceneNames.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SceneChange\\SceneNames.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SceneChange\\SceneNames.cs",
@@ -155,12 +172,11 @@
               "RelativeToolTip": "Assets\\Scripts\\SceneChange\\SceneNames.cs",
               "ViewState": "AgIAADYAAAAAAAAAAAAQwHQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-30T05:04:15.082Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-30T05:04:15.082Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "ItemSelectionSlotUI.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Enhance\\ItemSelectionSlotUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Enhance\\ItemSelectionSlotUI.cs",
@@ -172,7 +188,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "EquipmentEnhanceManager.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\EquipmentEnhanceManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Manager\\EquipmentEnhanceManager.cs",
@@ -184,7 +200,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "ItemSelectionUI.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Enhance\\ItemSelectionUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Enhance\\ItemSelectionUI.cs",
@@ -195,7 +211,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "EquipmentEnhanceUI.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Enhance\\EquipmentEnhanceUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Enhance\\EquipmentEnhanceUI.cs",
@@ -207,7 +223,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "EnhanceResultData.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\Enhance\\EnhanceResultData.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\Enhance\\EnhanceResultData.cs",
@@ -219,7 +235,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "ItemSlotUI.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\ItemSlotUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Inventory\\ItemSlotUI.cs",
@@ -231,7 +247,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "InventoryUI.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\InventoryUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Inventory\\InventoryUI.cs",
@@ -243,7 +259,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "SaveDataManager.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\SaveDataManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Manager\\SaveDataManager.cs",
@@ -255,7 +271,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "ItemSelectionWindowUI.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Enhance\\ItemSelectionWindowUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Enhance\\ItemSelectionWindowUI.cs",
@@ -267,7 +283,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "InventoryManager.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\InventoryManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Manager\\InventoryManager.cs",
@@ -279,7 +295,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "EnhanceCalculationUtility.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\EnhanceCalculationUtility.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Manager\\EnhanceCalculationUtility.cs",
@@ -291,7 +307,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "ItemUsageData.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\Enhance\\ItemUsageData.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\Enhance\\ItemUsageData.cs",
@@ -303,7 +319,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 21,
               "Title": "CSVImporter.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Editor\\CSVImporter.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Editor\\CSVImporter.cs",
@@ -315,7 +331,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 22,
               "Title": "CharacterMasterData.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\CharacterData\\CharacterMasterData.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\CharacterData\\CharacterMasterData.cs",
@@ -327,7 +343,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 23,
               "Title": "MasterDataManager.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\MasterDataManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Manager\\MasterDataManager.cs",
@@ -339,7 +355,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 19,
               "Title": "SaveDataEditorTools.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Editor\\SaveDataEditorTools.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Editor\\SaveDataEditorTools.cs",
@@ -351,7 +367,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "EquipmentSlotUI.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\EquipmentSlotUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Inventory\\EquipmentSlotUI.cs",
@@ -363,7 +379,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "EnhanceItemMasterData.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\EquipmentMaster\\EnhanceItemMasterData.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\EquipmentMaster\\EnhanceItemMasterData.cs",
@@ -375,7 +391,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 30,
               "Title": "ItemDetailManager.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\ItemDetailManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Manager\\ItemDetailManager.cs",
@@ -387,7 +403,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 17,
               "Title": "EquipmentSelectionPopupUI.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\EquipmentSelectionPopupUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Inventory\\EquipmentSelectionPopupUI.cs",
@@ -399,7 +415,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 18,
               "Title": "EquipmentEditUI.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\Inventory\\EquipmentEditUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\Inventory\\EquipmentEditUI.cs",
@@ -411,7 +427,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 20,
               "Title": "TMP_BaseEditorPanel.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Library\\PackageCache\\com.unity.ugui@9b7e7eef789d\\Editor\\TMP\\TMP_BaseEditorPanel.cs",
               "RelativeDocumentMoniker": "Library\\PackageCache\\com.unity.ugui@9b7e7eef789d\\Editor\\TMP\\TMP_BaseEditorPanel.cs",
@@ -424,7 +440,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 24,
               "Title": "CustomSaveDataCreator.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SaveDataEditer\\CustomSaveDataCreator.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SaveDataEditer\\CustomSaveDataCreator.cs",
@@ -436,7 +452,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 25,
               "Title": "SaveDataValidator.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SaveDataEditer\\SaveDataValidator.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SaveDataEditer\\SaveDataValidator.cs",
@@ -448,7 +464,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 26,
               "Title": "CharacterManager.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Manager\\CharacterManager.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Manager\\CharacterManager.cs",
@@ -460,7 +476,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 27,
               "Title": "JsonSaveDataImporter.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\SaveDataEditer\\JsonSaveDataImporter.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\SaveDataEditer\\JsonSaveDataImporter.cs",
@@ -472,7 +488,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 28,
               "Title": "UserSaveData.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\Data\\UserData\\UserSaveData.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Data\\UserData\\UserSaveData.cs",
@@ -484,7 +500,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 29,
               "Title": "ItemSlotUI.cs",
               "DocumentMoniker": "C:\\Users\\aax62\\blacksmith\\Assets\\Scripts\\UI\\ItemSlotUI.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\UI\\ItemSlotUI.cs",

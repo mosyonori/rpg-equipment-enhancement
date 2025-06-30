@@ -20,7 +20,7 @@ public class EnhancePreviewData
     public AttributeType currentAttributeType;      // 現在の属性
     public AttributeType expectedAttributeType;     // 成功時の予想属性
     public int currentEnhanceStamina;               // 現在の耐久値
-    public int expectedEnhanceStamina;              // 強化後の予想耐久値;     // 成功時の予想属性
+    public int expectedEnhanceStamina;              // 強化後の予想耐久値
 
     [Header("ステータス予測")]
     public Dictionary<string, int> currentStatuses;     // 現在のステータス
@@ -40,7 +40,7 @@ public class EnhancePreviewData
     [Header("特殊効果")]
     public bool willAttributeChange;               // 属性が変化するかどうか
     public bool willStaminaDecrease;               // 耐久値が減少するかどうか
-    public bool isStaminaRestoration;              // 耐久値復元かどうか
+    public bool isStaminaRestoration;              // 耐久値回復かどうか
     public bool isEnhanceReset;                    // 強化値リセットかどうか
 
     /// <summary>
