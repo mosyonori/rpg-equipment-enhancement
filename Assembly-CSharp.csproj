@@ -73,6 +73,7 @@
     <Compile Include="Assets\Scripts\SaveDataEditer\JsonSaveDataImporter.cs" />
     <Compile Include="Assets\Scripts\Data\Enhance\EnhancePreviewData.cs" />
     <Compile Include="Assets\Scripts\UI\Inventory\InventoryUI.cs" />
+    <Compile Include="Assets\Scripts\SceneChange\TransitionUIController.cs" />
     <Compile Include="Assets\Scripts\UI\Enhance\ItemSelectionSlotUI.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_ExampleScript_01.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMPro_InstructionOverlay.cs" />
@@ -91,6 +92,7 @@
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\SkewTextExample.cs" />
     <Compile Include="Assets\Scripts\UI\Inventory\EquipmentEditUI.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\WarpTextExample.cs" />
+    <Compile Include="Assets\Scripts\SceneChange\SceneNames.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\ShaderPropAnimator.cs" />
     <Compile Include="Assets\Scripts\Data\UserData\UserEquipmentData.cs" />
     <Compile Include="Assets\Scripts\Test\EquipmentEnhanceTestUI.cs" />
@@ -104,6 +106,7 @@
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\SimpleScript.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark04.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\ChatController.cs" />
+    <Compile Include="Assets\Scripts\SceneChange\SceneTransitionManager.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_DigitValidator.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_FrameRateCounter.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
@@ -121,12 +124,14 @@
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_PhoneNumberValidator.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TextConsoleSimulator.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TeleType.cs" />
+    <Compile Include="Assets\Scripts\SceneChange\GameSceneManager.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_TextEventCheck.cs" />
     <Compile Include="Assets\Scripts\UI\Inventory\EquipmentSelectionPopupUI.cs" />
     <Compile Include="Assets\Scripts\Manager\EquipmentEnhanceManager.cs" />
     <Compile Include="Assets\Scripts\Test\EnhanceSystemTest.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TextMeshProFloatingText.cs" />
     <Compile Include="Assets\Scripts\UI\Enhance\EquipmentEnhanceUI.cs" />
+    <Compile Include="Assets\Scripts\SceneChange\SceneTransitionButton.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\dawnloadAsetts\Cainos\Pixel Art Icon Pack - RPG\Shader\SH UI Icon Outline Color.shader" />
