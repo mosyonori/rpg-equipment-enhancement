@@ -2101,6 +2101,8 @@ MonoBehaviour:
   nameText: {fileID: 222539637072809004}
   descText: {fileID: 2946776422909907379}
   selectionFrame: {fileID: 4667662707940961933}
+  favoriteIcon: {fileID: 0}
+  lockIcon: {fileID: 8971986136385337592}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   selectedColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &8116092326826250509

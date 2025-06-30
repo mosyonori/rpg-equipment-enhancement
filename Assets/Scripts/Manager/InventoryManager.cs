@@ -11,6 +11,7 @@ public class InventoryManager : MonoBehaviour
     [Header("設定")]
     [SerializeField] private int maxEquipmentSlots = 1000;
     [SerializeField] private int maxItemTypes = 500;
+    [SerializeField] private bool enableDebugLog = true;
 
     // イベント
     public static event System.Action<UserEquipmentData> OnEquipmentAdded;
@@ -41,6 +42,8 @@ public class InventoryManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             InitializeCache();
+            // 修正: 依存関係の初期化完了を待機
+            StartCoroutine(WaitForDependenciesAndInitialize());
         }
         else
         {
@@ -48,13 +51,7 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        // SaveDataManagerのイベントを購読
-        SaveDataManager.OnDataLoaded += OnSaveDataLoaded;
-        SaveDataManager.OnDataSaved += OnSaveDataSaved;
-    }
-
+    // 修正: Start()からイベント購読を削除（初期化完了後に行う）
     private void OnDestroy()
     {
         // イベント購読解除
@@ -67,21 +64,128 @@ public class InventoryManager : MonoBehaviour
 
     #endregion
 
-    #region デバッグ
+    #region 修正: 初期化処理
 
-    private void DebugLog(string message)
+    /// <summary>
+    /// 依存関係の初期化完了を待機してから初期化
+    /// </summary>
+    private System.Collections.IEnumerator WaitForDependenciesAndInitialize()
     {
-        Debug.Log($"[InventoryManager] {message}");
+        DebugLog("InventoryManager初期化開始 - 依存関係チェック中...");
+
+        float timeout = 15f;
+        float elapsed = 0f;
+
+        while (elapsed < timeout)
+        {
+            if (CheckDependencies())
+            {
+                DebugLog("依存関係確認完了 - 初期化実行");
+                Initialize();
+                yield break;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        DebugLogError($"依存関係の初期化がタイムアウトしました（{timeout}秒）");
+        DebugLogError("MasterDataManagerとSaveDataManagerがシーンに配置され、正常に初期化されているか確認してください");
     }
 
-    private void DebugLogError(string message)
+    /// <summary>
+    /// 依存するマネージャーの初期化チェック
+    /// </summary>
+    /// <returns>全ての依存関係が満たされている場合true</returns>
+    private bool CheckDependencies()
     {
-        Debug.LogError($"[InventoryManager] {message}");
+        // MasterDataManagerチェック
+        if (MasterDataManager.Instance == null)
+        {
+            DebugLog("MasterDataManager.Instanceがnullです");
+            return false;
+        }
+
+        if (!MasterDataManager.Instance.IsDataLoaded)
+        {
+            DebugLog($"MasterDataManagerのデータ読み込みが未完了です (IsDataLoaded: {MasterDataManager.Instance.IsDataLoaded})");
+            return false;
+        }
+
+        // SaveDataManagerチェック
+        if (SaveDataManager.Instance == null)
+        {
+            DebugLog("SaveDataManager.Instanceがnullです");
+            return false;
+        }
+
+        if (!SaveDataManager.Instance.IsDataLoaded)
+        {
+            DebugLog($"SaveDataManagerのデータ読み込みが未完了です (IsDataLoaded: {SaveDataManager.Instance.IsDataLoaded})");
+            return false;
+        }
+
+        DebugLog("全ての依存関係が満たされています");
+        return true;
+    }
+
+    /// <summary>
+    /// マネージャーの初期化
+    /// </summary>
+    private void Initialize()
+    {
+        if (IsInitialized)
+        {
+            DebugLog("既に初期化済みです");
+            return;
+        }
+
+        DebugLog("InventoryManager初期化実行");
+
+        // 依存するマネージャーの最終チェック
+        if (!CheckDependencies())
+        {
+            DebugLogError("初期化時に依存関係チェックに失敗しました");
+            return;
+        }
+
+        // イベント購読をここで行う
+        SaveDataManager.OnDataLoaded += OnSaveDataLoaded;
+        SaveDataManager.OnDataSaved += OnSaveDataSaved;
+
+        // 既にデータが読み込まれている場合は即座に初期化
+        if (SaveData != null)
+        {
+            RefreshCache();
+        }
+
+        IsInitialized = true;
+        DebugLog("InventoryManager初期化完了");
     }
 
     #endregion
 
-    #region 初期化
+    #region デバッグ
+
+    private void DebugLog(string message)
+    {
+        if (enableDebugLog)
+        {
+            Debug.Log($"[InventoryManager] {message}");
+        }
+    }
+
+    private void DebugLogError(string message)
+    {
+        if (enableDebugLog)
+        {
+            Debug.LogError($"[InventoryManager] {message}");
+        }
+    }
+
+    #endregion
+
+    #region 既存の初期化（RefreshCache等）
 
     private void InitializeCache()
     {
@@ -93,8 +197,7 @@ public class InventoryManager : MonoBehaviour
     private void OnSaveDataLoaded(UserSaveData saveData)
     {
         RefreshCache();
-        IsInitialized = true;
-        Debug.Log("[InventoryManager] インベントリを初期化しました");
+        DebugLog("インベントリを初期化しました");
     }
 
     private void OnSaveDataSaved(UserSaveData saveData)
@@ -497,7 +600,7 @@ public class InventoryManager : MonoBehaviour
 
         UserItemData newItem;
 
-        // マスターデータからアイテムを作成
+        // マスターデータからアイテムを構成
         if (itemType == ItemType.EnhanceItem)
         {
             var masterData = MasterDataManager.Instance?.GetEnhanceItemData(itemMasterId);
@@ -1066,6 +1169,12 @@ equippedItemsCache Count: {equippedItemsCache?.Count ?? 0}
         AddItem(ItemType.EnhanceItem, 1, 5);
         AddItem(ItemType.SupportItem, 1, 3);
         Debug.Log("テストアイテムを追加しました");
+    }
+
+    [ContextMenu("詳細状態を表示")]
+    private void ShowDetailedStatus()
+    {
+        Debug.Log(GetDetailedInventoryStatus());
     }
 #endif
 

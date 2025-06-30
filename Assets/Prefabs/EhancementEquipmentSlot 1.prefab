@@ -1474,6 +1474,8 @@ MonoBehaviour:
   nameText: {fileID: 919185270018452458}
   descText: {fileID: 4438160399190272782}
   selectionFrame: {fileID: 4143710414035144774}
+  favoriteIcon: {fileID: 8573488481675596561}
+  lockIcon: {fileID: 7792981579767388030}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   selectedColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &6808054948850442517
@@ -1600,7 +1602,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2805705147828457148
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1680,7 +1682,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &6501382863484196397
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1755,7 +1757,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1925895513168256628
 RectTransform:
   m_ObjectHideFlags: 0

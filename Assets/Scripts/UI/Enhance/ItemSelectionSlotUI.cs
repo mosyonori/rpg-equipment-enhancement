@@ -19,6 +19,10 @@ public class ItemSelectionSlotUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI descText;
     [SerializeField] private GameObject selectionFrame;
 
+    [Header("状態表示アイコン")]
+    [SerializeField] private GameObject favoriteIcon;
+    [SerializeField] private GameObject lockIcon;
+
     [Header("選択状態の色")]
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color selectedColor = Color.yellow;
@@ -95,7 +99,10 @@ public class ItemSelectionSlotUI : MonoBehaviour
         SetIcon(masterData.equipmentIcon);
         SetSelectionState(isSelected);
 
-        Debug.Log($"[ItemSelectionSlotUI] 装備設定完了: {masterData.equipmentName} (ID: {equipment.userEquipmentId})");
+        // 修正: お気に入り・ロック状態を設定
+        SetStateIcons(equipment.isFavorite, equipment.isLocked);
+
+        Debug.Log($"[ItemSelectionSlotUI] 装備設定完了: {masterData.equipmentName} (ID: {equipment.userEquipmentId}, お気に入り: {equipment.isFavorite}, ロック: {equipment.isLocked})");
     }
 
     /// <summary>
@@ -121,6 +128,9 @@ public class ItemSelectionSlotUI : MonoBehaviour
         SetUIText(descText, $"成功率: {enhanceItem.enhanceSuccessRate}%");
         SetIcon(enhanceItem.enhanceItemIcon);
         SetSelectionState(isSelected);
+
+        // 強化アイテムは状態アイコンなし
+        SetStateIcons(false, false);
 
         Debug.Log($"[ItemSelectionSlotUI] 強化アイテム設定完了: {enhanceItem.enhanceItemName}");
     }
@@ -148,6 +158,9 @@ public class ItemSelectionSlotUI : MonoBehaviour
         SetUIText(descText, $"ボーナス: +{supportItem.addEnhanceSuccessRate}%");
         SetIcon(supportItem.supportItemIcon);
         SetSelectionState(isSelected);
+
+        // 補助材料は状態アイコンなし
+        SetStateIcons(false, false);
 
         Debug.Log($"[ItemSelectionSlotUI] 補助材料設定完了: {supportItem.supportItemName}");
     }
@@ -242,6 +255,32 @@ public class ItemSelectionSlotUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 修正: お気に入り・ロック状態アイコンを設定
+    /// </summary>
+    /// <param name="isFavorite">お気に入り状態</param>
+    /// <param name="isLocked">ロック状態</param>
+    private void SetStateIcons(bool isFavorite, bool isLocked)
+    {
+        // お気に入りアイコンの表示/非表示
+        if (favoriteIcon != null)
+        {
+            favoriteIcon.SetActive(isFavorite);
+        }
+
+        // ロックアイコンの表示/非表示
+        if (lockIcon != null)
+        {
+            lockIcon.SetActive(isLocked);
+        }
+
+        // デバッグログ（装備の場合のみ）
+        if (!string.IsNullOrEmpty(equipmentStringId))
+        {
+            Debug.Log($"[ItemSelectionSlotUI] 状態アイコン設定: お気に入り={isFavorite}, ロック={isLocked}");
+        }
+    }
+
     #endregion
 
     #region Public Properties
@@ -268,6 +307,20 @@ public class ItemSelectionSlotUI : MonoBehaviour
     {
         SetSelectionState(!isCurrentlySelected);
         Debug.Log($"[ItemSelectionSlotUI] 選択状態テスト: {isCurrentlySelected}");
+    }
+
+    /// <summary>
+    /// 修正: 状態アイコンをテスト（Inspector用）
+    /// </summary>
+    [ContextMenu("Test State Icons")]
+    public void TestStateIcons()
+    {
+        // テスト用にアイコンの表示を切り替え
+        bool testFavorite = favoriteIcon != null ? !favoriteIcon.activeSelf : true;
+        bool testLock = lockIcon != null ? !lockIcon.activeSelf : true;
+
+        SetStateIcons(testFavorite, testLock);
+        Debug.Log($"[ItemSelectionSlotUI] 状態アイコンテスト: お気に入り={testFavorite}, ロック={testLock}");
     }
 
     #endregion

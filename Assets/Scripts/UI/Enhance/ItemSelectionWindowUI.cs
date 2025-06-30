@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,16 +6,16 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// ƒAƒCƒeƒ€‘I‘ğƒ‚[ƒ_ƒ‹ƒEƒBƒ“ƒhƒEUIiƒAƒCƒeƒ€î•ñƒpƒlƒ‹’Ç‰Á”Åj
-/// ‘•”õA‹­‰»ƒAƒCƒeƒ€A•â•Ş—¿‚Ì‘I‘ğƒEƒBƒ“ƒhƒE‚ğŠÇ—
-/// ƒf[ƒ^ƒAƒNƒZƒX“ˆêƒ‹[ƒ‹: UI‘w ¨ DataManager ¨ ƒf[ƒ^‘w
+/// ã‚¢ã‚¤ãƒ†ãƒ é¸æŠãƒ¢ãƒ¼ãƒ€ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦UIï¼ˆã‚¢ã‚¤ãƒ†ãƒ è©³ç´°ãƒ‘ãƒãƒ«è¿½åŠ ç‰ˆï¼‰
+/// è£…å‚™ã€å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã€è£œåŠ©ææ–™ã®é¸æŠã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ç®¡ç†
+/// ãƒ‡ãƒ¼ã‚¿ã‚¢ã‚¯ã‚»ã‚¹çµ±ä¸€ãƒ«ãƒ¼ãƒ«: UIå±¤ â†’ DataManager â†’ ãƒ‡ãƒ¼ã‚¿å±¤
 /// </summary>
 public class ItemSelectionWindowUI : MonoBehaviour
 {
     #region Enums
 
     /// <summary>
-    /// ƒAƒCƒeƒ€ƒ^ƒCƒv’è‹`
+    /// ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—å®šç¾©
     /// </summary>
     public enum ItemType
     {
@@ -29,12 +29,12 @@ public class ItemSelectionWindowUI : MonoBehaviour
     #region Events
 
     /// <summary>
-    /// ƒAƒCƒeƒ€‘I‘ğŠ®—¹ƒCƒxƒ“ƒgi‹­‰»ƒAƒCƒeƒ€E•â•Ş—¿—pj
+    /// ã‚¢ã‚¤ãƒ†ãƒ é¸æŠå®Œäº†ã‚¤ãƒ™ãƒ³ãƒˆï¼ˆå¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒ»è£œåŠ©ææ–™ç”¨ï¼‰
     /// </summary>
     public event Action<ItemType, int> OnItemSelected;
 
     /// <summary>
-    /// ‘•”õ‘I‘ğŠ®—¹ƒCƒxƒ“ƒgi‘•”õê—pF•¶š—ñID—pj
+    /// è£…å‚™é¸æŠå®Œäº†ã‚¤ãƒ™ãƒ³ãƒˆï¼ˆè£…å‚™å°‚ç”¨ï¼šæ–‡å­—åˆ—IDç”¨ï¼‰
     /// </summary>
     public event Action<string> OnEquipmentSelected;
 
@@ -42,38 +42,38 @@ public class ItemSelectionWindowUI : MonoBehaviour
 
     #region UI References
 
-    [Header("ƒEƒBƒ“ƒhƒE‘S‘Ì")]
+    [Header("ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦å…¨ä½“")]
     [SerializeField] private GameObject windowRoot;
     [SerializeField] private GameObject backgroundDim;
-    [SerializeField] private Button backgroundButton; // ”wŒiƒNƒŠƒbƒN‚Å•Â‚¶‚é—p
+    [SerializeField] private Button backgroundButton; // èƒŒæ™¯ã‚¯ãƒªãƒƒã‚¯ã§é–‰ã˜ã‚‹ç”¨
 
-    [Header("ƒEƒBƒ“ƒhƒEƒwƒbƒ_[")]
+    [Header("ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ˜ãƒƒãƒ€ãƒ¼")]
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private Button closeButton;
 
-    [Header("ƒAƒCƒeƒ€ˆê——")]
+    [Header("ã‚¢ã‚¤ãƒ†ãƒ ä¸€è¦§")]
     [SerializeField] private ScrollRect itemScrollRect;
     [SerializeField] private Transform itemGridParent;
     [SerializeField] private GridLayoutGroup itemGridLayout;
 
-    [Header("ƒAƒCƒeƒ€î•ñƒpƒlƒ‹")]
+    [Header("ã‚¢ã‚¤ãƒ†ãƒ è©³ç´°ãƒ‘ãƒãƒ«")]
     [SerializeField] private GameObject itemInfoPanel;
     [SerializeField] private TextMeshProUGUI itemInfoTitleText;
     [SerializeField] private TextMeshProUGUI itemInfoDetailsText;
 
-    [Header("•â•Ş—¿ê—p")]
+    [Header("è£œåŠ©ææ–™å°‚ç”¨")]
     [SerializeField] private Button noneSelectionButton;
     [SerializeField] private TextMeshProUGUI noneSelectionText;
 
-    [Header("Œˆ’èEƒLƒƒƒ“ƒZƒ‹")]
+    [Header("æ±ºå®šãƒ»ã‚­ãƒ£ãƒ³ã‚»ãƒ«")]
     [SerializeField] private Button confirmButton;
     [SerializeField] private Button cancelButton;
     [SerializeField] private TextMeshProUGUI confirmButtonText;
 
-    [Header("ƒvƒŒƒnƒu")]
+    [Header("ãƒ—ãƒ¬ãƒãƒ–")]
     [SerializeField] private GameObject equipmentSlotPrefab;
     [SerializeField] private GameObject itemSlotPrefab;
-    [SerializeField] private GameObject noneSelectionSlotPrefab; // u‘I‘ğ‚È‚µvê—pƒvƒŒƒnƒu
+    [SerializeField] private GameObject noneSelectionSlotPrefab; // ã€Œé¸æŠãªã—ã€å°‚ç”¨ãƒ—ãƒ¬ãƒãƒ–
 
     #endregion
 
@@ -81,21 +81,21 @@ public class ItemSelectionWindowUI : MonoBehaviour
 
     private ItemType currentItemType;
     private int selectedItemId;
-    private int previousSelectedItemId; // ‘O‰ñ‘I‘ğ‚³‚ê‚Ä‚¢‚½ƒAƒCƒeƒ€
-    private string selectedEquipmentUserId; // ‘•”õ‘I‘ğ‚Ì•¶š—ñID
+    private int previousSelectedItemId; // å‰å›é¸æŠã•ã‚Œã¦ã„ãŸã‚¢ã‚¤ãƒ†ãƒ 
+    private string selectedEquipmentUserId; // è£…å‚™é¸æŠæ™‚ã®æ–‡å­—åˆ—ID
 
     private List<GameObject> currentSlotObjects = new List<GameObject>();
 
-    // Œ»İ•\¦’†‚Ìƒf[ƒ^•Û—p
+    // ç¾åœ¨è¡¨ç¤ºä¸­ã®ãƒ‡ãƒ¼ã‚¿ä¿æŒç”¨
     private List<UserEquipmentData> currentEquipments;
     private List<EnhanceItemMasterData> currentEnhanceItems;
     private List<SupportItemMasterData> currentSupportItems;
 
     #endregion
 
-    #region Private Fields - İ’è
+    #region Private Fields - è¨­å®š
 
-    [Header("İ’è")]
+    [Header("è¨­å®š")]
     [SerializeField] private bool enableDebugLog = true;
 
     #endregion
@@ -119,13 +119,13 @@ public class ItemSelectionWindowUI : MonoBehaviour
     #region Initialization
 
     /// <summary>
-    /// UI‰Šú‰»
+    /// UIåˆæœŸåŒ–
     /// </summary>
     private void InitializeUI()
     {
-        LogDebug("ItemSelectionWindowUI‰Šú‰»ŠJn");
+        LogDebug("ItemSelectionWindowUIåˆæœŸåŒ–é–‹å§‹");
 
-        // ‰Šúó‘Ô‚Å‚Í”ñ•\¦
+        // åˆæœŸçŠ¶æ…‹ã§ã¯éè¡¨ç¤º
         if (windowRoot != null)
         {
             windowRoot.SetActive(false);
@@ -136,33 +136,33 @@ public class ItemSelectionWindowUI : MonoBehaviour
             backgroundDim.SetActive(false);
         }
 
-        // ƒAƒCƒeƒ€î•ñƒpƒlƒ‹‚ğ‰Šú‰»
+        // ã‚¢ã‚¤ãƒ†ãƒ è©³ç´°ãƒ‘ãƒãƒ«ã‚’åˆæœŸåŒ–
         if (itemInfoPanel != null)
         {
             itemInfoPanel.SetActive(false);
         }
 
-        LogDebug("ItemSelectionWindowUI‰Šú‰»Š®—¹");
+        LogDebug("ItemSelectionWindowUIåˆæœŸåŒ–å®Œäº†");
     }
 
     /// <summary>
-    /// ƒCƒxƒ“ƒgƒŠƒXƒi[İ’è
+    /// ã‚¤ãƒ™ãƒ³ãƒˆãƒªã‚¹ãƒŠãƒ¼è¨­å®š
     /// </summary>
     private void SetupEventListeners()
     {
-        // •Â‚¶‚éƒ{ƒ^ƒ“‚ÌƒCƒxƒ“ƒg
+        // é–‰ã˜ã‚‹ãƒœã‚¿ãƒ³ã®ã‚¤ãƒ™ãƒ³ãƒˆ
         if (closeButton != null)
             closeButton.onClick.AddListener(OnCloseButtonClicked);
 
-        // ”wŒiƒ{ƒ^ƒ“‚ÌƒCƒxƒ“ƒg
+        // èƒŒæ™¯ãƒœã‚¿ãƒ³ã®ã‚¤ãƒ™ãƒ³ãƒˆ
         if (backgroundButton != null)
             backgroundButton.onClick.AddListener(OnBackgroundClicked);
 
-        // •â•Ş—¿‚Ìu‘I‘ğ–³‚µvƒ{ƒ^ƒ“‚ÌƒCƒxƒ“ƒg
+        // è£œåŠ©ææ–™ã®ã€Œé¸æŠç„¡ã—ã€ãƒœã‚¿ãƒ³ã®ã‚¤ãƒ™ãƒ³ãƒˆ
         if (noneSelectionButton != null)
             noneSelectionButton.onClick.AddListener(OnNoneSelectionClicked);
 
-        // Œˆ’èEƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“‚ÌƒCƒxƒ“ƒg
+        // æ±ºå®šãƒ»ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³ã®ã‚¤ãƒ™ãƒ³ãƒˆ
         if (confirmButton != null)
             confirmButton.onClick.AddListener(OnConfirmButtonClicked);
 
@@ -171,7 +171,7 @@ public class ItemSelectionWindowUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒCƒxƒ“ƒgƒŠƒXƒi[íœ
+    /// ã‚¤ãƒ™ãƒ³ãƒˆãƒªã‚¹ãƒŠãƒ¼å‰Šé™¤
     /// </summary>
     private void RemoveEventListeners()
     {
@@ -196,17 +196,17 @@ public class ItemSelectionWindowUI : MonoBehaviour
     #region Public Methods - Show Window
 
     /// <summary>
-    /// ‘•”õ‘I‘ğƒEƒBƒ“ƒhƒE‚ğ•\¦
+    /// è£…å‚™é¸æŠã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’è¡¨ç¤º
     /// </summary>
-    /// <param name="equipments">‘I‘ğ‰Â”\‚È‘•”õˆê——</param>
-    /// <param name="currentSelectedId">Œ»İ‘I‘ğ‚³‚ê‚Ä‚¢‚é‘•”õID</param>
+    /// <param name="equipments">é¸æŠå¯èƒ½ãªè£…å‚™ä¸€è¦§</param>
+    /// <param name="currentSelectedId">ç¾åœ¨é¸æŠã•ã‚Œã¦ã„ã‚‹è£…å‚™ID</param>
     public void ShowEquipmentSelection(List<UserEquipmentData> equipments, string currentSelectedId)
     {
-        LogDebug($"‘•”õ‘I‘ğƒEƒBƒ“ƒhƒE•\¦: {equipments?.Count}ŒÂ");
+        LogDebug($"è£…å‚™é¸æŠã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¡¨ç¤º: {equipments?.Count}å€‹");
 
         currentItemType = ItemType.Equipment;
         currentEquipments = equipments;
-        // ‘•”õ‚Ìê‡‚Í•¶š—ñID‚È‚Ì‚ÅAŒ»İ‘I‘ğ’†‚Ì‘•”õ‚Ìƒ}ƒXƒ^[ID‚ğæ“¾
+        // è£…å‚™ã®å ´åˆã¯æ–‡å­—åˆ—IDãªã®ã§ã€ç¾åœ¨é¸æŠä¸­ã®è£…å‚™ã®ãƒã‚¹ã‚¿ãƒ¼IDã‚’å–å¾—
         previousSelectedItemId = 0;
         selectedEquipmentUserId = currentSelectedId;
 
@@ -219,46 +219,46 @@ public class ItemSelectionWindowUI : MonoBehaviour
             }
         }
 
-        SetWindowTitle("‘•”õ‚ğ‘I‘ğ");
+        SetWindowTitle("è£…å‚™ã‚’é¸æŠ");
         ShowNoneSelectionButton(false);
         CreateEquipmentSlots(equipments, currentSelectedId);
         ShowWindow();
     }
 
     /// <summary>
-    /// ‹­‰»ƒAƒCƒeƒ€‘I‘ğƒEƒBƒ“ƒhƒE‚ğ•\¦
+    /// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ é¸æŠã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’è¡¨ç¤º
     /// </summary>
-    /// <param name="enhanceItems">‘I‘ğ‰Â”\‚È‹­‰»ƒAƒCƒeƒ€ˆê——</param>
-    /// <param name="currentSelectedId">Œ»İ‘I‘ğ‚³‚ê‚Ä‚¢‚é‹­‰»ƒAƒCƒeƒ€ID</param>
+    /// <param name="enhanceItems">é¸æŠå¯èƒ½ãªå¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ä¸€è¦§</param>
+    /// <param name="currentSelectedId">ç¾åœ¨é¸æŠã•ã‚Œã¦ã„ã‚‹å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ID</param>
     public void ShowEnhanceItemSelection(List<EnhanceItemMasterData> enhanceItems, int currentSelectedId)
     {
-        LogDebug($"‹­‰»ƒAƒCƒeƒ€‘I‘ğƒEƒBƒ“ƒhƒE•\¦: {enhanceItems?.Count}ŒÂ");
+        LogDebug($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ é¸æŠã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¡¨ç¤º: {enhanceItems?.Count}å€‹");
 
         currentItemType = ItemType.EnhanceItem;
         currentEnhanceItems = enhanceItems;
         previousSelectedItemId = currentSelectedId;
 
-        SetWindowTitle("‹­‰»ƒAƒCƒeƒ€‚ğ‘I‘ğ");
+        SetWindowTitle("å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚’é¸æŠ");
         ShowNoneSelectionButton(false);
         CreateEnhanceItemSlots(enhanceItems, currentSelectedId);
         ShowWindow();
     }
 
     /// <summary>
-    /// •â•Ş—¿‘I‘ğƒEƒBƒ“ƒhƒE‚ğ•\¦
+    /// è£œåŠ©ææ–™é¸æŠã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’è¡¨ç¤º
     /// </summary>
-    /// <param name="supportItems">‘I‘ğ‰Â”\‚È•â•Ş—¿ˆê——</param>
-    /// <param name="currentSelectedId">Œ»İ‘I‘ğ‚³‚ê‚Ä‚¢‚é•â•Ş—¿ID</param>
+    /// <param name="supportItems">é¸æŠå¯èƒ½ãªè£œåŠ©ææ–™ä¸€è¦§</param>
+    /// <param name="currentSelectedId">ç¾åœ¨é¸æŠã•ã‚Œã¦ã„ã‚‹è£œåŠ©ææ–™ID</param>
     public void ShowSupportItemSelection(List<SupportItemMasterData> supportItems, int currentSelectedId)
     {
-        LogDebug($"•â•Ş—¿‘I‘ğƒEƒBƒ“ƒhƒE•\¦: {supportItems?.Count}ŒÂ");
+        LogDebug($"è£œåŠ©ææ–™é¸æŠã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¡¨ç¤º: {supportItems?.Count}å€‹");
 
         currentItemType = ItemType.SupportItem;
         currentSupportItems = supportItems;
         previousSelectedItemId = currentSelectedId;
 
-        SetWindowTitle("•â•Ş—¿‚ğ‘I‘ğ");
-        ShowNoneSelectionButton(false); // ]—ˆ‚Ìu‘I‘ğ–³‚µvƒ{ƒ^ƒ“‚Í”ñ•\¦
+        SetWindowTitle("è£œåŠ©ææ–™ã‚’é¸æŠ");
+        ShowNoneSelectionButton(false); // å¾“æ¥ã®ã€Œé¸æŠç„¡ã—ã€ãƒœã‚¿ãƒ³ã¯éè¡¨ç¤º
         CreateSupportItemSlots(supportItems, currentSelectedId);
         ShowWindow();
     }
@@ -268,7 +268,7 @@ public class ItemSelectionWindowUI : MonoBehaviour
     #region Private Methods - Window Control
 
     /// <summary>
-    /// ƒEƒBƒ“ƒhƒE‚ğ•\¦
+    /// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’è¡¨ç¤º
     /// </summary>
     private void ShowWindow()
     {
@@ -278,15 +278,15 @@ public class ItemSelectionWindowUI : MonoBehaviour
         if (windowRoot != null)
             windowRoot.SetActive(true);
 
-        // ‘I‘ğó‘Ô‚ğƒŠƒZƒbƒg
+        // é¸æŠçŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆ
         selectedItemId = previousSelectedItemId;
         UpdateConfirmButton();
 
-        LogDebug("ƒAƒCƒeƒ€‘I‘ğƒEƒBƒ“ƒhƒE•\¦");
+        LogDebug("ã‚¢ã‚¤ãƒ†ãƒ é¸æŠã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¡¨ç¤º");
     }
 
     /// <summary>
-    /// ƒEƒBƒ“ƒhƒE‚ğ”ñ•\¦
+    /// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’éè¡¨ç¤º
     /// </summary>
     private void HideWindow()
     {
@@ -296,20 +296,20 @@ public class ItemSelectionWindowUI : MonoBehaviour
         if (backgroundDim != null)
             backgroundDim.SetActive(false);
 
-        // ƒAƒCƒeƒ€î•ñƒpƒlƒ‹‚ğ”ñ•\¦
+        // ã‚¢ã‚¤ãƒ†ãƒ è©³ç´°ãƒ‘ãƒãƒ«ã‚’éè¡¨ç¤º
         if (itemInfoPanel != null)
             itemInfoPanel.SetActive(false);
 
-        // ƒXƒƒbƒg‚ğƒNƒŠƒA
+        // ã‚¹ãƒ­ãƒƒãƒˆã‚’ã‚¯ãƒªã‚¢
         ClearCurrentSlots();
 
-        LogDebug("ƒAƒCƒeƒ€‘I‘ğƒEƒBƒ“ƒhƒE”ñ•\¦");
+        LogDebug("ã‚¢ã‚¤ãƒ†ãƒ é¸æŠã‚¦ã‚£ãƒ³ãƒ‰ã‚¦éè¡¨ç¤º");
     }
 
     /// <summary>
-    /// ƒEƒBƒ“ƒhƒEƒ^ƒCƒgƒ‹‚ğİ’è
+    /// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¿ã‚¤ãƒˆãƒ«ã‚’è¨­å®š
     /// </summary>
-    /// <param name="title">ƒ^ƒCƒgƒ‹</param>
+    /// <param name="title">ã‚¿ã‚¤ãƒˆãƒ«</param>
     private void SetWindowTitle(string title)
     {
         if (titleText != null)
@@ -319,9 +319,9 @@ public class ItemSelectionWindowUI : MonoBehaviour
     }
 
     /// <summary>
-    /// u‘I‘ğ–³‚µvƒ{ƒ^ƒ“‚Ì•\¦/”ñ•\¦‚ğİ’è
+    /// ã€Œé¸æŠç„¡ã—ã€ãƒœã‚¿ãƒ³ã®è¡¨ç¤º/éè¡¨ç¤ºã‚’è¨­å®š
     /// </summary>
-    /// <param name="show">•\¦‚·‚éê‡true</param>
+    /// <param name="show">è¡¨ç¤ºã™ã‚‹å ´åˆtrue</param>
     private void ShowNoneSelectionButton(bool show)
     {
         if (noneSelectionButton != null)
@@ -335,26 +335,29 @@ public class ItemSelectionWindowUI : MonoBehaviour
     #region Private Methods - Slot Creation
 
     /// <summary>
-    /// ‘•”õƒXƒƒbƒg‚ğì¬
+    /// ä¿®æ­£: è£…å‚™ã‚¹ãƒ­ãƒƒãƒˆã‚’ä½œæˆï¼ˆãŠæ°—ã«å…¥ã‚Šãƒ»ãƒ­ãƒƒã‚¯çŠ¶æ…‹ã‚’è¡¨ç¤ºé †åºã«åæ˜ ï¼‰
     /// </summary>
-    /// <param name="equipments">‘•”õˆê——</param>
-    /// <param name="currentSelectedId">Œ»İ‘I‘ğ‚³‚ê‚Ä‚¢‚é‘•”õID</param>
+    /// <param name="equipments">è£…å‚™ä¸€è¦§</param>
+    /// <param name="currentSelectedId">ç¾åœ¨é¸æŠã•ã‚Œã¦ã„ã‚‹è£…å‚™ID</param>
     private void CreateEquipmentSlots(List<UserEquipmentData> equipments, string currentSelectedId)
     {
         ClearCurrentSlots();
 
         if (equipments == null || equipmentSlotPrefab == null || itemGridParent == null)
         {
-            LogWarning("‘•”õƒXƒƒbƒgì¬‚É•K—v‚È—v‘f‚ª•s‘«‚µ‚Ä‚¢‚Ü‚·");
+            LogWarning("è£…å‚™ã‚¹ãƒ­ãƒƒãƒˆä½œæˆã«å¿…è¦ãªè¦ç´ ãŒä¸è¶³ã—ã¦ã„ã¾ã™");
             return;
         }
 
-        foreach (var equipment in equipments)
+        // ä¿®æ­£: è£…å‚™ã‚’ãŠæ°—ã«å…¥ã‚Šãƒ»ãƒ­ãƒƒã‚¯çŠ¶æ…‹ã§ä¸¦ã³æ›¿ãˆï¼ˆãŠæ°—ã«å…¥ã‚Šå„ªå…ˆã€ãã®å¾Œãƒ­ãƒƒã‚¯å„ªå…ˆï¼‰
+        var sortedEquipments = SortEquipmentsByPriority(equipments);
+
+        foreach (var equipment in sortedEquipments)
         {
             var slotObj = Instantiate(equipmentSlotPrefab, itemGridParent);
             currentSlotObjects.Add(slotObj);
 
-            // ƒXƒƒbƒg‚Éƒf[ƒ^‚ğİ’è
+            // ã‚¹ãƒ­ãƒƒãƒˆã«ãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
             var slotComponent = slotObj.GetComponent<ItemSelectionSlotUI>();
             if (slotComponent != null)
             {
@@ -365,27 +368,41 @@ public class ItemSelectionWindowUI : MonoBehaviour
                         equipment,
                         masterData,
                         equipment.userEquipmentId == currentSelectedId,
-                        () => OnEquipmentSlotClicked(equipment.userEquipmentId) // C³Fƒ†[ƒU[ID‚ğ’¼Ú“n‚·
+                        () => OnEquipmentSlotClicked(equipment.userEquipmentId) // ä¿®æ­£ï¼šãƒ¦ãƒ¼ã‚¶ãƒ¼IDã‚’ç›´æ¥æ¸¡ã™
                     );
                 }
             }
         }
 
-        LogDebug($"‘•”õƒXƒƒbƒgì¬Š®—¹: {equipments.Count}ŒÂ");
+        LogDebug($"è£…å‚™ã‚¹ãƒ­ãƒƒãƒˆä½œæˆå®Œäº†: {sortedEquipments.Count}å€‹ï¼ˆãŠæ°—ã«å…¥ã‚Šå„ªå…ˆã‚½ãƒ¼ãƒˆé©ç”¨ï¼‰");
     }
 
     /// <summary>
-    /// ‹­‰»ƒAƒCƒeƒ€ƒXƒƒbƒg‚ğì¬
+    /// ä¿®æ­£: è£…å‚™ã‚’ãŠæ°—ã«å…¥ã‚Šãƒ»ãƒ­ãƒƒã‚¯çŠ¶æ…‹ã§å„ªå…ˆé †ä½ä»˜ã‘ã—ã¦ã‚½ãƒ¼ãƒˆ
     /// </summary>
-    /// <param name="enhanceItems">‹­‰»ƒAƒCƒeƒ€ˆê——</param>
-    /// <param name="currentSelectedId">Œ»İ‘I‘ğ‚³‚ê‚Ä‚¢‚é‹­‰»ƒAƒCƒeƒ€ID</param>
+    /// <param name="equipments">ã‚½ãƒ¼ãƒˆå¯¾è±¡ã®è£…å‚™ä¸€è¦§</param>
+    /// <returns>ã‚½ãƒ¼ãƒˆæ¸ˆã¿è£…å‚™ä¸€è¦§</returns>
+    private List<UserEquipmentData> SortEquipmentsByPriority(List<UserEquipmentData> equipments)
+    {
+        return equipments.OrderByDescending(eq => eq.isFavorite ? 1 : 0)  // ãŠæ°—ã«å…¥ã‚Šå„ªå…ˆ
+                        .ThenByDescending(eq => eq.isLocked ? 1 : 0)      // æ¬¡ã«ãƒ­ãƒƒã‚¯å„ªå…ˆ
+                        .ThenByDescending(eq => eq.currentEnhancedValue)  // æ¬¡ã«å¼·åŒ–å€¤é †
+                        .ThenBy(eq => eq.equipmentMasterId)              // æœ€å¾Œã«ãƒã‚¹ã‚¿ãƒ¼IDé †
+                        .ToList();
+    }
+
+    /// <summary>
+    /// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆã‚’ä½œæˆ
+    /// </summary>
+    /// <param name="enhanceItems">å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ä¸€è¦§</param>
+    /// <param name="currentSelectedId">ç¾åœ¨é¸æŠã•ã‚Œã¦ã„ã‚‹å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ID</param>
     private void CreateEnhanceItemSlots(List<EnhanceItemMasterData> enhanceItems, int currentSelectedId)
     {
         ClearCurrentSlots();
 
         if (enhanceItems == null || itemSlotPrefab == null || itemGridParent == null)
         {
-            LogWarning("‹­‰»ƒAƒCƒeƒ€ƒXƒƒbƒgì¬‚É•K—v‚È—v‘f‚ª•s‘«‚µ‚Ä‚¢‚Ü‚·");
+            LogWarning("å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆä½œæˆã«å¿…è¦ãªè¦ç´ ãŒä¸è¶³ã—ã¦ã„ã¾ã™");
             return;
         }
 
@@ -394,7 +411,7 @@ public class ItemSelectionWindowUI : MonoBehaviour
             var slotObj = Instantiate(itemSlotPrefab, itemGridParent);
             currentSlotObjects.Add(slotObj);
 
-            // ƒXƒƒbƒg‚Éƒf[ƒ^‚ğİ’è
+            // ã‚¹ãƒ­ãƒƒãƒˆã«ãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
             var slotComponent = slotObj.GetComponent<ItemSelectionSlotUI>();
             if (slotComponent != null)
             {
@@ -406,25 +423,25 @@ public class ItemSelectionWindowUI : MonoBehaviour
             }
         }
 
-        LogDebug($"‹­‰»ƒAƒCƒeƒ€ƒXƒƒbƒgì¬Š®—¹: {enhanceItems.Count}ŒÂ");
+        LogDebug($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆä½œæˆå®Œäº†: {enhanceItems.Count}å€‹");
     }
 
     /// <summary>
-    /// •â•Ş—¿ƒXƒƒbƒg‚ğì¬iC³”ÅFu‘I‘ğ‚È‚µv‚ğGrid“à‚É‘g‚İ‚İj
+    /// è£œåŠ©ææ–™ã‚¹ãƒ­ãƒƒãƒˆã‚’ä½œæˆï¼ˆä¿®æ­£ç‰ˆï¼šã€Œé¸æŠãªã—ã€ã‚’Gridå†…ã«çµ„ã¿è¾¼ã¿ï¼‰
     /// </summary>
-    /// <param name="supportItems">•â•Ş—¿ˆê——</param>
-    /// <param name="currentSelectedId">Œ»İ‘I‘ğ‚³‚ê‚Ä‚¢‚é•â•Ş—¿ID</param>
+    /// <param name="supportItems">è£œåŠ©ææ–™ä¸€è¦§</param>
+    /// <param name="currentSelectedId">ç¾åœ¨é¸æŠã•ã‚Œã¦ã„ã‚‹è£œåŠ©ææ–™ID</param>
     private void CreateSupportItemSlots(List<SupportItemMasterData> supportItems, int currentSelectedId)
     {
         ClearCurrentSlots();
 
         if (itemSlotPrefab == null || itemGridParent == null)
         {
-            LogWarning("•â•Ş—¿ƒXƒƒbƒgì¬‚É•K—v‚È—v‘f‚ª•s‘«‚µ‚Ä‚¢‚Ü‚·");
+            LogWarning("è£œåŠ©ææ–™ã‚¹ãƒ­ãƒƒãƒˆä½œæˆã«å¿…è¦ãªè¦ç´ ãŒä¸è¶³ã—ã¦ã„ã¾ã™");
             return;
         }
 
-        // 1. Å‰‚Éu‘I‘ğ‚È‚µvƒXƒƒbƒg‚ğì¬
+        // 1. æœ€åˆã«ã€Œé¸æŠãªã—ã€ã‚¹ãƒ­ãƒƒãƒˆã‚’ä½œæˆ
         if (noneSelectionSlotPrefab != null)
         {
             var noneSlotObj = Instantiate(noneSelectionSlotPrefab, itemGridParent);
@@ -433,16 +450,17 @@ public class ItemSelectionWindowUI : MonoBehaviour
             var noneSlotComponent = noneSlotObj.GetComponent<NoneSelectionSlotUI>();
             if (noneSlotComponent != null)
             {
+                // æ—¢å­˜ã®NoneSelectionSlotUIã«åˆã‚ã›ã¦SetClickCallbackã‚’ä½¿ç”¨
                 noneSlotComponent.SetClickCallback(() => OnNoneSelectionClicked());
                 noneSlotComponent.UpdateSelectionState(currentSelectedId == 0);
             }
         }
         else
         {
-            LogWarning("noneSelectionSlotPrefab‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+            LogWarning("noneSelectionSlotPrefabãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“");
         }
 
-        // 2. •â•Ş—¿ƒXƒƒbƒg‚ğì¬
+        // 2. è£œåŠ©ææ–™ã‚¹ãƒ­ãƒƒãƒˆã‚’ä½œæˆ
         if (supportItems != null)
         {
             foreach (var supportItem in supportItems)
@@ -450,7 +468,7 @@ public class ItemSelectionWindowUI : MonoBehaviour
                 var slotObj = Instantiate(itemSlotPrefab, itemGridParent);
                 currentSlotObjects.Add(slotObj);
 
-                // ƒXƒƒbƒg‚Éƒf[ƒ^‚ğİ’è
+                // ã‚¹ãƒ­ãƒƒãƒˆã«ãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
                 var slotComponent = slotObj.GetComponent<ItemSelectionSlotUI>();
                 if (slotComponent != null)
                 {
@@ -463,11 +481,11 @@ public class ItemSelectionWindowUI : MonoBehaviour
             }
         }
 
-        LogDebug($"•â•Ş—¿ƒXƒƒbƒgì¬Š®—¹: ‘I‘ğ‚È‚µ1ŒÂ + {supportItems?.Count ?? 0}ŒÂ");
+        LogDebug($"è£œåŠ©ææ–™ã‚¹ãƒ­ãƒƒãƒˆä½œæˆå®Œäº†: é¸æŠãªã—1å€‹ + {supportItems?.Count ?? 0}å€‹");
     }
 
     /// <summary>
-    /// Œ»İ‚ÌƒXƒƒbƒg‚ğƒNƒŠƒA
+    /// ç¾åœ¨ã®ã‚¹ãƒ­ãƒƒãƒˆã‚’ã‚¯ãƒªã‚¢
     /// </summary>
     private void ClearCurrentSlots()
     {
@@ -486,30 +504,30 @@ public class ItemSelectionWindowUI : MonoBehaviour
     #region Event Handlers
 
     /// <summary>
-    /// ƒXƒƒbƒgƒNƒŠƒbƒN‚Ìˆ—i‹­‰»ƒAƒCƒeƒ€E•â•Ş—¿—pj
+    /// ã‚¹ãƒ­ãƒƒãƒˆã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç†ï¼ˆå¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒ»è£œåŠ©ææ–™ç”¨ï¼‰
     /// </summary>
-    /// <param name="itemId">ƒNƒŠƒbƒN‚³‚ê‚½ƒAƒCƒeƒ€ID</param>
+    /// <param name="itemId">ã‚¯ãƒªãƒƒã‚¯ã•ã‚ŒãŸã‚¢ã‚¤ãƒ†ãƒ ID</param>
     private void OnSlotClicked(int itemId)
     {
-        LogDebug($"ƒXƒƒbƒgƒNƒŠƒbƒN: {itemId}");
+        LogDebug($"ã‚¹ãƒ­ãƒƒãƒˆã‚¯ãƒªãƒƒã‚¯: {itemId}");
 
         selectedItemId = itemId;
         UpdateSlotSelection();
         UpdateConfirmButton();
 
-        // ƒAƒCƒeƒ€î•ñ‚ğ•\¦
+        // ã‚¢ã‚¤ãƒ†ãƒ è©³ç´°ã‚’è¡¨ç¤º
         ShowItemInfo(itemId);
     }
 
     /// <summary>
-    /// ‘•”õƒXƒƒbƒgƒNƒŠƒbƒN‚Ìˆ—i•¶š—ñID‘Î‰j
+    /// è£…å‚™ã‚¹ãƒ­ãƒƒãƒˆã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç†ï¼ˆæ–‡å­—åˆ—IDå¯¾å¿œï¼‰
     /// </summary>
-    /// <param name="equipmentUserId">ƒNƒŠƒbƒN‚³‚ê‚½‘•”õ‚Ìƒ†[ƒU[ID</param>
+    /// <param name="equipmentUserId">ã‚¯ãƒªãƒƒã‚¯ã•ã‚ŒãŸè£…å‚™ã®ãƒ¦ãƒ¼ã‚¶ãƒ¼ID</param>
     private void OnEquipmentSlotClicked(string equipmentUserId)
     {
-        LogDebug($"‘•”õƒXƒƒbƒgƒNƒŠƒbƒN: {equipmentUserId}");
+        LogDebug($"è£…å‚™ã‚¹ãƒ­ãƒƒãƒˆã‚¯ãƒªãƒƒã‚¯: {equipmentUserId}");
 
-        // ‘•”õ‚Ìê‡‚Íƒ}ƒXƒ^[ID‚ğæ“¾‚µ‚ÄUI—p‚Ég—p
+        // è£…å‚™ã®å ´åˆã¯ãƒã‚¹ã‚¿ãƒ¼IDã‚’å–å¾—ã—ã¦UIç”¨ã«ä½¿ç”¨
         var equipment = GetEquipmentByUserId(equipmentUserId);
         if (equipment != null)
         {
@@ -518,73 +536,73 @@ public class ItemSelectionWindowUI : MonoBehaviour
             UpdateSlotSelection();
             UpdateConfirmButton();
 
-            // ‘•”õî•ñ‚ğ•\¦
+            // è£…å‚™è©³ç´°ã‚’è¡¨ç¤º
             ShowEquipmentInfo(equipment);
         }
     }
 
     /// <summary>
-    /// u‘I‘ğ–³‚µvƒ{ƒ^ƒ“ƒNƒŠƒbƒN‚Ìˆ—
+    /// ã€Œé¸æŠç„¡ã—ã€ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç†
     /// </summary>
     private void OnNoneSelectionClicked()
     {
-        LogDebug("u‘I‘ğ–³‚µvƒ{ƒ^ƒ“ƒNƒŠƒbƒN");
+        LogDebug("ã€Œé¸æŠç„¡ã—ã€ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯");
 
-        selectedItemId = 0; // 0‚Í‘I‘ğ–³‚µ‚ğ•\‚·
+        selectedItemId = 0; // 0ã¯é¸æŠç„¡ã—ã‚’è¡¨ã™
         UpdateSlotSelection();
         UpdateConfirmButton();
 
-        // ƒAƒCƒeƒ€î•ñƒpƒlƒ‹‚ğ”ñ•\¦
+        // ã‚¢ã‚¤ãƒ†ãƒ è©³ç´°ãƒ‘ãƒãƒ«ã‚’éè¡¨ç¤º
         if (itemInfoPanel != null)
             itemInfoPanel.SetActive(false);
     }
 
     /// <summary>
-    /// Œˆ’èƒ{ƒ^ƒ“ƒNƒŠƒbƒN‚Ìˆ—
+    /// æ±ºå®šãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç†
     /// </summary>
     private void OnConfirmButtonClicked()
     {
-        LogDebug($"Œˆ’èƒ{ƒ^ƒ“ƒNƒŠƒbƒN: {currentItemType}, ID: {selectedItemId}");
+        LogDebug($"æ±ºå®šãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯: {currentItemType}, ID: {selectedItemId}");
 
         if (currentItemType == ItemType.Equipment && !string.IsNullOrEmpty(selectedEquipmentUserId))
         {
-            // ‘•”õ‚Ìê‡‚Í•¶š—ñID‚ÅƒCƒxƒ“ƒg‚ğ”­‰Î
+            // è£…å‚™ã®å ´åˆã¯æ–‡å­—åˆ—IDã§ã‚¤ãƒ™ãƒ³ãƒˆã‚’ç™ºç«
             OnEquipmentSelected?.Invoke(selectedEquipmentUserId);
         }
         else
         {
-            // ‚»‚Ì‘¼‚ÌƒAƒCƒeƒ€‚Í]—ˆ’Ê‚è
+            // ãã®ä»–ã®ã‚¢ã‚¤ãƒ†ãƒ ã¯å¾“æ¥é€šã‚Š
             OnItemSelected?.Invoke(currentItemType, selectedItemId);
         }
 
-        // ƒEƒBƒ“ƒhƒE‚ğ•Â‚¶‚é
+        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‰ã˜ã‚‹
         HideWindow();
     }
 
     /// <summary>
-    /// ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“ƒNƒŠƒbƒN‚Ìˆ—
+    /// ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç†
     /// </summary>
     private void OnCancelButtonClicked()
     {
-        LogDebug("ƒLƒƒƒ“ƒZƒ‹ƒ{ƒ^ƒ“ƒNƒŠƒbƒN");
+        LogDebug("ã‚­ãƒ£ãƒ³ã‚»ãƒ«ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯");
         HideWindow();
     }
 
     /// <summary>
-    /// •Â‚¶‚éƒ{ƒ^ƒ“ƒNƒŠƒbƒN‚Ìˆ—
+    /// é–‰ã˜ã‚‹ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç†
     /// </summary>
     private void OnCloseButtonClicked()
     {
-        LogDebug("•Â‚¶‚éƒ{ƒ^ƒ“ƒNƒŠƒbƒN");
+        LogDebug("é–‰ã˜ã‚‹ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯");
         HideWindow();
     }
 
     /// <summary>
-    /// ”wŒiƒNƒŠƒbƒN‚Ìˆ—
+    /// èƒŒæ™¯ã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç†
     /// </summary>
     private void OnBackgroundClicked()
     {
-        LogDebug("”wŒiƒNƒŠƒbƒN");
+        LogDebug("èƒŒæ™¯ã‚¯ãƒªãƒƒã‚¯");
         HideWindow();
     }
 
@@ -593,9 +611,9 @@ public class ItemSelectionWindowUI : MonoBehaviour
     #region Item Info Display
 
     /// <summary>
-    /// ‘•”õî•ñ‚ğ•\¦
+    /// ä¿®æ­£: è£…å‚™è©³ç´°ã‚’è¡¨ç¤ºï¼ˆãŠæ°—ã«å…¥ã‚Šãƒ»ãƒ­ãƒƒã‚¯çŠ¶æ…‹ã‚’å«ã‚€ï¼‰
     /// </summary>
-    /// <param name="equipment">‘•”õƒf[ƒ^</param>
+    /// <param name="equipment">è£…å‚™ãƒ‡ãƒ¼ã‚¿</param>
     private void ShowEquipmentInfo(UserEquipmentData equipment)
     {
         if (equipment == null || itemInfoPanel == null) return;
@@ -603,30 +621,30 @@ public class ItemSelectionWindowUI : MonoBehaviour
         var masterData = MasterDataManager.Instance.GetEquipmentData(equipment.equipmentMasterId);
         if (masterData == null) return;
 
-        // ‘‡ƒXƒe[ƒ^ƒX‚ğŒvZ
+        // åˆè¨ˆã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚’è¨ˆç®—
         var totalStats = equipment.CalculateTotalStats(masterData);
 
-        // ƒ^ƒCƒgƒ‹İ’è
+        // ã‚¿ã‚¤ãƒˆãƒ«è¨­å®š
         if (itemInfoTitleText != null)
         {
             itemInfoTitleText.text = masterData.equipmentName;
         }
 
-        // Ú×î•ñİ’è
+        // è©³ç´°æƒ…å ±è¨­å®š
         if (itemInfoDetailsText != null)
         {
-            var details = $"‹­‰»’l: +{equipment.currentEnhancedValue}\n";
-            details += $"‹­‰»‘Ï‹v’l: {equipment.currentEnhanceStamina}/100\n";
+            var details = $"å¼·åŒ–å€¤: +{equipment.currentEnhancedValue}\n";
+            details += $"å¼·åŒ–è€ä¹…å€¤: {equipment.currentEnhanceStamina}/100\n";
             details += $"HP: {totalStats.hp}\n";
-            details += $"UŒ‚: {totalStats.offense}\n";
-            details += $"–hŒä: {totalStats.defense}\n";
-            details += $"‘¬“x: {totalStats.speed}\n";
-            details += $"ƒNƒŠƒeƒBƒJƒ‹—¦: {totalStats.criticalRate}%\n";
-            details += $"ƒNƒŠƒeƒBƒJƒ‹ƒ_ƒ[ƒW: {totalStats.criticalDamageRate}%\n";
-            details += $"‰Î‘®«UŒ‚: {totalStats.fireOffence}\n";
-            details += $"…‘®«UŒ‚: {totalStats.waterOffence}\n";
-            details += $"•—‘®«UŒ‚: {totalStats.windOffence}\n";
-            details += $"“y‘®«UŒ‚: {totalStats.earthOffence}";
+            details += $"æ”»æ’ƒ: {totalStats.offense}\n";
+            details += $"é˜²å¾¡: {totalStats.defense}\n";
+            details += $"é€Ÿåº¦: {totalStats.speed}\n";
+            details += $"ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ç‡: {totalStats.criticalRate}%\n";
+            details += $"ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸: {totalStats.criticalDamageRate}%\n";
+            details += $"ç«å±æ€§æ”»æ’ƒ: {totalStats.fireOffence}\n";
+            details += $"æ°´å±æ€§æ”»æ’ƒ: {totalStats.waterOffence}\n";
+            details += $"é¢¨å±æ€§æ”»æ’ƒ: {totalStats.windOffence}\n";
+            details += $"åœŸå±æ€§æ”»æ’ƒ: {totalStats.earthOffence}";
 
             itemInfoDetailsText.text = details;
         }
@@ -635,9 +653,9 @@ public class ItemSelectionWindowUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒAƒCƒeƒ€î•ñ‚ğ•\¦i‹­‰»ƒAƒCƒeƒ€E•â•Ş—¿—pj
+    /// ã‚¢ã‚¤ãƒ†ãƒ è©³ç´°ã‚’è¡¨ç¤ºï¼ˆå¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒ»è£œåŠ©ææ–™ç”¨ï¼‰
     /// </summary>
-    /// <param name="itemId">ƒAƒCƒeƒ€ID</param>
+    /// <param name="itemId">ã‚¢ã‚¤ãƒ†ãƒ ID</param>
     private void ShowItemInfo(int itemId)
     {
         if (itemInfoPanel == null) return;
@@ -654,27 +672,27 @@ public class ItemSelectionWindowUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ‹­‰»ƒAƒCƒeƒ€î•ñ‚ğ•\¦
+    /// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ è©³ç´°ã‚’è¡¨ç¤º
     /// </summary>
-    /// <param name="enhanceItemId">‹­‰»ƒAƒCƒeƒ€ID</param>
+    /// <param name="enhanceItemId">å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ID</param>
     private void ShowEnhanceItemInfo(int enhanceItemId)
     {
         var enhanceItem = MasterDataManager.Instance.GetEnhanceItemData(enhanceItemId);
         if (enhanceItem == null) return;
 
-        // Š”‚ğæ“¾
+        // æ‰€æŒæ•°ã‚’å–å¾—
         int quantity = GetUserItemQuantity(ItemType.EnhanceItem, enhanceItemId);
 
-        // ƒ^ƒCƒgƒ‹İ’è
+        // ã‚¿ã‚¤ãƒˆãƒ«è¨­å®š
         if (itemInfoTitleText != null)
         {
             itemInfoTitleText.text = enhanceItem.enhanceItemName;
         }
 
-        // Ú×î•ñİ’è
+        // è©³ç´°æƒ…å ±è¨­å®š
         if (itemInfoDetailsText != null)
         {
-            var details = $"Š”: {quantity}ŒÂ\n\n";
+            var details = $"æ‰€æŒæ•°: {quantity}å€‹\n\n";
             details += enhanceItem.description;
 
             itemInfoDetailsText.text = details;
@@ -684,27 +702,27 @@ public class ItemSelectionWindowUI : MonoBehaviour
     }
 
     /// <summary>
-    /// •â•Ş—¿î•ñ‚ğ•\¦
+    /// è£œåŠ©ææ–™è©³ç´°ã‚’è¡¨ç¤º
     /// </summary>
-    /// <param name="supportItemId">•â•Ş—¿ID</param>
+    /// <param name="supportItemId">è£œåŠ©ææ–™ID</param>
     private void ShowSupportItemInfo(int supportItemId)
     {
         var supportItem = MasterDataManager.Instance.GetSupportItemData(supportItemId);
         if (supportItem == null) return;
 
-        // Š”‚ğæ“¾
+        // æ‰€æŒæ•°ã‚’å–å¾—
         int quantity = GetUserItemQuantity(ItemType.SupportItem, supportItemId);
 
-        // ƒ^ƒCƒgƒ‹İ’è
+        // ã‚¿ã‚¤ãƒˆãƒ«è¨­å®š
         if (itemInfoTitleText != null)
         {
             itemInfoTitleText.text = supportItem.supportItemName;
         }
 
-        // Ú×î•ñİ’è
+        // è©³ç´°æƒ…å ±è¨­å®š
         if (itemInfoDetailsText != null)
         {
-            var details = $"Š”: {quantity}ŒÂ\n\n";
+            var details = $"æ‰€æŒæ•°: {quantity}å€‹\n\n";
             details += supportItem.description;
 
             itemInfoDetailsText.text = details;
@@ -718,30 +736,30 @@ public class ItemSelectionWindowUI : MonoBehaviour
     #region Private Methods - UI Update
 
     /// <summary>
-    /// ƒXƒƒbƒg‚Ì‘I‘ğó‘Ô‚ğXViC³”ÅFu‘I‘ğ‚È‚µvƒXƒƒbƒg‚É‚à‘Î‰j
+    /// ã‚¹ãƒ­ãƒƒãƒˆã®é¸æŠçŠ¶æ…‹ã‚’æ›´æ–°ï¼ˆä¿®æ­£ç‰ˆï¼šã€Œé¸æŠãªã—ã€ã‚¹ãƒ­ãƒƒãƒˆã«ã‚‚å¯¾å¿œï¼‰
     /// </summary>
     private void UpdateSlotSelection()
     {
         foreach (var slotObj in currentSlotObjects)
         {
-            // ’Êí‚ÌƒAƒCƒeƒ€ƒXƒƒbƒg
+            // é€šå¸¸ã®ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆ
             var slotComponent = slotObj.GetComponent<ItemSelectionSlotUI>();
             if (slotComponent != null)
             {
                 if (currentItemType == ItemType.Equipment)
                 {
-                    // ‘•”õ‚Ìê‡‚Í•¶š—ñID‚Å”äŠr
+                    // è£…å‚™ã®å ´åˆã¯æ–‡å­—åˆ—IDã§æ¯”è¼ƒ
                     slotComponent.UpdateSelectionStateForEquipment(selectedEquipmentUserId);
                 }
                 else
                 {
-                    // ‚»‚Ì‘¼‚ÌƒAƒCƒeƒ€‚Í”’lID‚Å”äŠr
+                    // ãã®ä»–ã®ã‚¢ã‚¤ãƒ†ãƒ ã¯æ•°å€¤IDã§æ¯”è¼ƒ
                     slotComponent.UpdateSelectionState(selectedItemId);
                 }
                 continue;
             }
 
-            // u‘I‘ğ‚È‚µvƒXƒƒbƒg
+            // ã€Œé¸æŠãªã—ã€ã‚¹ãƒ­ãƒƒãƒˆ
             var noneSlotComponent = slotObj.GetComponent<NoneSelectionSlotUI>();
             if (noneSlotComponent != null)
             {
@@ -751,7 +769,7 @@ public class ItemSelectionWindowUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Œˆ’èƒ{ƒ^ƒ“‚Ìó‘Ô‚ğXV
+    /// æ±ºå®šãƒœã‚¿ãƒ³ã®çŠ¶æ…‹ã‚’æ›´æ–°
     /// </summary>
     private void UpdateConfirmButton()
     {
@@ -762,52 +780,52 @@ public class ItemSelectionWindowUI : MonoBehaviour
 
             if (confirmButtonText != null)
             {
-                confirmButtonText.text = canConfirm ? "Œˆ’è" : "‘I‘ğ";
+                confirmButtonText.text = canConfirm ? "æ±ºå®š" : "é¸æŠ";
             }
         }
     }
 
     /// <summary>
-    /// ‘I‘ğŠm’è‰Â”\‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN
+    /// é¸æŠç¢ºå®šå¯èƒ½ã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯
     /// </summary>
-    /// <returns>Šm’è‰Â”\‚Èê‡true</returns>
+    /// <returns>ç¢ºå®šå¯èƒ½ãªå ´åˆtrue</returns>
     private bool CanConfirmSelection()
     {
         switch (currentItemType)
         {
             case ItemType.Equipment:
-                return selectedItemId > 0; // ‘•”õ‚Í•K{‘I‘ğ
+                return selectedItemId > 0; // è£…å‚™ã¯å¿…é ˆé¸æŠ
             case ItemType.EnhanceItem:
-                return selectedItemId > 0; // ‹­‰»ƒAƒCƒeƒ€‚Í•K{‘I‘ğ
+                return selectedItemId > 0; // å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã¯å¿…é ˆé¸æŠ
             case ItemType.SupportItem:
-                return true; // •â•Ş—¿‚Í”CˆÓi0‚Å‚à‰Âj
+                return true; // è£œåŠ©ææ–™ã¯ä»»æ„ï¼ˆ0ã§ã‚‚å¯ï¼‰
             default:
                 return false;
         }
     }
 
     /// <summary>
-    /// ƒ†[ƒU[ID‚©‚ç‘•”õƒf[ƒ^‚ğæ“¾
+    /// ãƒ¦ãƒ¼ã‚¶ãƒ¼IDã‹ã‚‰è£…å‚™ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—
     /// </summary>
-    /// <param name="userId">‘•”õ‚Ìƒ†[ƒU[ID</param>
-    /// <returns>‘•”õƒf[ƒ^</returns>
+    /// <param name="userId">è£…å‚™ã®ãƒ¦ãƒ¼ã‚¶ãƒ¼ID</param>
+    /// <returns>è£…å‚™ãƒ‡ãƒ¼ã‚¿</returns>
     private UserEquipmentData GetEquipmentByUserId(string userId)
     {
         return currentEquipments?.FirstOrDefault(e => e.userEquipmentId == userId);
     }
 
     /// <summary>
-    /// ƒ†[ƒU[‚ÌƒAƒCƒeƒ€Š”‚ğæ“¾
+    /// ãƒ¦ãƒ¼ã‚¶ãƒ¼ã®ã‚¢ã‚¤ãƒ†ãƒ æ‰€æŒæ•°ã‚’å–å¾—
     /// </summary>
-    /// <param name="itemType">ƒAƒCƒeƒ€ƒ^ƒCƒv</param>
-    /// <param name="itemId">ƒAƒCƒeƒ€ID</param>
-    /// <returns>Š”</returns>
+    /// <param name="itemType">ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—</param>
+    /// <param name="itemId">ã‚¢ã‚¤ãƒ†ãƒ ID</param>
+    /// <returns>æ‰€æŒæ•°</returns>
     private int GetUserItemQuantity(ItemType itemType, int itemId)
     {
         var saveData = SaveDataManager.Instance.CurrentSaveData;
         if (saveData?.items == null) return 0;
 
-        // ƒOƒ[ƒoƒ‹‚ÈItemType‚ğg—p‚µ‚Ä”äŠr
+        // ã‚°ãƒ­ãƒ¼ãƒãƒ«ãªItemTypeã‚’ä½¿ç”¨ã—ã¦æ¯”è¼ƒ
         global::ItemType targetItemType = itemType == ItemType.EnhanceItem ?
             global::ItemType.EnhanceItem : global::ItemType.SupportItem;
 
@@ -822,9 +840,9 @@ public class ItemSelectionWindowUI : MonoBehaviour
     #region Debug Methods
 
     /// <summary>
-    /// ƒfƒoƒbƒOƒƒOo—Í
+    /// ãƒ‡ãƒãƒƒã‚°ãƒ­ã‚°å‡ºåŠ›
     /// </summary>
-    /// <param name="message">ƒƒbƒZ[ƒW</param>
+    /// <param name="message">ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸</param>
     private void LogDebug(string message)
     {
         if (enableDebugLog)
@@ -834,18 +852,18 @@ public class ItemSelectionWindowUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ŒxƒƒOo—Í
+    /// è­¦å‘Šãƒ­ã‚°å‡ºåŠ›
     /// </summary>
-    /// <param name="message">ƒƒbƒZ[ƒW</param>
+    /// <param name="message">ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸</param>
     private void LogWarning(string message)
     {
         Debug.LogWarning($"[ItemSelectionWindowUI] {message}");
     }
 
     /// <summary>
-    /// ƒGƒ‰[ƒƒOo—Í
+    /// ã‚¨ãƒ©ãƒ¼ãƒ­ã‚°å‡ºåŠ›
     /// </summary>
-    /// <param name="message">ƒƒbƒZ[ƒW</param>
+    /// <param name="message">ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸</param>
     private void LogError(string message)
     {
         Debug.LogError($"[ItemSelectionWindowUI] {message}");
@@ -856,12 +874,35 @@ public class ItemSelectionWindowUI : MonoBehaviour
     #region Inspector Context Menu
 
     /// <summary>
-    /// ƒEƒBƒ“ƒhƒE‚ğ‹­§“I‚É”ñ•\¦iInspector—pj
+    /// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’å¼·åˆ¶çš„ã«éè¡¨ç¤ºï¼ˆInspectorç”¨ï¼‰
     /// </summary>
     [ContextMenu("Force Hide Window")]
     public void ForceHideWindow()
     {
         HideWindow();
+    }
+
+    /// <summary>
+    /// ä¿®æ­£: è£…å‚™ã‚½ãƒ¼ãƒˆæ©Ÿèƒ½ã‚’ãƒ†ã‚¹ãƒˆï¼ˆInspectorç”¨ï¼‰
+    /// </summary>
+    [ContextMenu("Test Equipment Sort")]
+    public void TestEquipmentSort()
+    {
+        if (currentEquipments != null && currentEquipments.Count > 0)
+        {
+            var sorted = SortEquipmentsByPriority(currentEquipments);
+            LogDebug($"è£…å‚™ã‚½ãƒ¼ãƒˆãƒ†ã‚¹ãƒˆ: {sorted.Count}å€‹ã®è£…å‚™ã‚’ãŠæ°—ã«å…¥ã‚Šãƒ»ãƒ­ãƒƒã‚¯å„ªå…ˆã§ã‚½ãƒ¼ãƒˆ");
+
+            for (int i = 0; i < Mathf.Min(5, sorted.Count); i++)
+            {
+                var eq = sorted[i];
+                LogDebug($"  {i + 1}. {eq.userEquipmentId} (ãŠæ°—ã«å…¥ã‚Š:{eq.isFavorite}, ãƒ­ãƒƒã‚¯:{eq.isLocked})");
+            }
+        }
+        else
+        {
+            LogDebug("ãƒ†ã‚¹ãƒˆå¯¾è±¡ã®è£…å‚™ãƒ‡ãƒ¼ã‚¿ãŒã‚ã‚Šã¾ã›ã‚“");
+        }
     }
 
     #endregion
