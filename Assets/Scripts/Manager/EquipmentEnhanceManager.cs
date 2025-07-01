@@ -551,7 +551,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 実際の強化処理を実行（修正版：ItemUsageDataのファクトリーメソッド使用）
+    /// 実際の強化処理を実行（修正版v2：リザルト表示と装備更新を分離）
     /// </summary>
     /// <param name="equipment">対象装備</param>
     /// <param name="enhanceItem">強化アイテム</param>
@@ -570,7 +570,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
         // 強化成功/失敗を判定
         bool isSuccess = EnhanceCalculationUtility.RollEnhanceSuccess(successRate);
 
-        // 耐久値変化を計算（修正版：補助材料の効果を適用、成功失敗に関わらず）
+        // 耐久値変化を計算
         int baseStaminaChange = EnhanceCalculationUtility.CalculateStaminaChange(previousStamina, enhanceItem) - previousStamina;
         int finalStaminaChange = EnhanceCalculationUtility.CalculateSupportItemStaminaEffect(supportItem, baseStaminaChange);
         int newStamina = Math.Max(0, Math.Min(100, previousStamina + finalStaminaChange));
@@ -579,9 +579,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
 
         if (isSuccess)
         {
-            // 成功時の処理：補助材料の倍率効果を適用
-
-            // 強化値の計算（補助材料の倍率効果を適用）
+            // 成功時の処理
             int baseEnhanceValueIncrease = enhanceItem.addEnhancedValue;
             int modifiedEnhanceValueIncrease = EnhanceCalculationUtility.CalculateSupportItemEnhanceValueEffect(supportItem, baseEnhanceValueIncrease);
             int newEnhancedValue = previousEnhancedValue + modifiedEnhanceValueIncrease;
@@ -601,48 +599,12 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 successRate
             );
 
-            // ステータス変化を計算（補助材料の効果を適用）
-            var masterData = GetEquipmentMasterData(equipment.equipmentMasterId);
-            if (masterData != null)
-            {
-                // 基本のステータス増加量を取得
-                var baseStatusIncrease = EnhanceCalculationUtility.CalculateStatusIncrease(masterData.equipmentType, enhanceItem);
-
-                // 補助材料の効果を適用（素晴らしい薬の倍率効果など）
-                var modifiedStatusIncrease = EnhanceCalculationUtility.CalculateSupportItemStatusEffect(supportItem, baseStatusIncrease);
-
-                // 通常のステータス増加（属性攻撃力を除く）
-                foreach (var kvp in modifiedStatusIncrease)
-                {
-                    // 属性攻撃力は別途処理するのでここでは除外
-                    if (!kvp.Key.Contains("Offence"))
-                    {
-                        result.AddStatusChange(kvp.Key, kvp.Value, 0);
-                    }
-                }
-
-                // 属性攻撃力の変更を計算（属性変更時のリセット処理込み、補助材料効果適用）
-                var baseAttributeChanges = EnhanceCalculationUtility.CalculateAttributeAttackChange(equipment, enhanceItem, newAttribute);
-
-                // 属性攻撃力にも補助材料の効果を適用
-                int multiplier = EnhanceCalculationUtility.GetStatusMultiplier(supportItem);
-                foreach (var kvp in baseAttributeChanges)
-                {
-                    int modifiedValue = kvp.Value;
-
-                    // 新しい属性攻撃力の場合（0でない場合）は補助材料効果を適用
-                    if (kvp.Value > 0 && multiplier > 1)
-                    {
-                        modifiedValue = kvp.Value * multiplier;
-                    }
-
-                    result.AddStatusChange(kvp.Key, modifiedValue, 0);
-                }
-            }
+            // リザルト表示用のステータス変化を計算（表示用：増加分のみ）
+            CalculateStatusChangesForDisplay(result, equipment, enhanceItem, newAttribute, supportItem);
         }
         else
         {
-            // 失敗時の処理（耐久値変化のみ適用、倍率効果なし）
+            // 失敗時の処理
             result = EnhanceResultData.CreateFailureResult(
                 equipment.userEquipmentId,
                 enhanceItem.enhanceItemId,
@@ -650,12 +612,12 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 previousEnhancedValue,
                 previousAttribute,
                 previousStamina,
-                newStamina,  // 失敗時も耐久値は変化する
+                newStamina,
                 successRate
             );
         }
 
-        // 使用アイテム情報を追加（修正版：ファクトリーメソッドで実際の所持数を自動取得）
+        // 使用アイテム情報を追加
         result.AddUsedItem(ItemUsageData.CreateForEnhanceItem(enhanceItem.enhanceItemId, 1));
         if (supportItem != null)
         {
@@ -667,7 +629,133 @@ public class EquipmentEnhanceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 強化結果を装備データに適用（修正版：失敗時も耐久値変化を適用）
+    /// 【新規追加】リザルト表示用のステータス変化を計算（表示専用：増加分のみ）
+    /// </summary>
+    /// <param name="result">結果データ</param>
+    /// <param name="equipment">対象装備</param>
+    /// <param name="enhanceItem">強化アイテム</param>
+    /// <param name="newAttribute">変更後の属性</param>
+    /// <param name="supportItem">補助材料</param>
+    private void CalculateStatusChangesForDisplay(EnhanceResultData result, UserEquipmentData equipment,
+        EnhanceItemMasterData enhanceItem, AttributeType newAttribute, SupportItemMasterData supportItem)
+    {
+        var masterData = GetEquipmentMasterData(equipment.equipmentMasterId);
+        if (masterData == null) return;
+
+        // 基本のステータス増加量を取得
+        var baseStatusIncrease = EnhanceCalculationUtility.CalculateStatusIncrease(masterData.equipmentType, enhanceItem);
+
+        // 補助材料の効果を適用
+        var modifiedStatusIncrease = EnhanceCalculationUtility.CalculateSupportItemStatusEffect(supportItem, baseStatusIncrease);
+
+        // 通常のステータス増加（属性攻撃力を除く）- 表示用なので増加分のみ
+        foreach (var kvp in modifiedStatusIncrease)
+        {
+            if (!kvp.Key.Contains("Offence"))
+            {
+                result.AddStatusChange(kvp.Key, kvp.Value, 0);
+            }
+        }
+
+        // 属性攻撃力の表示用変化を計算
+        CalculateAttributeAttackDisplayChanges(result, equipment, enhanceItem, newAttribute, supportItem);
+    }
+
+    /// <summary>
+    /// 【新規追加】属性攻撃力の表示用変化を計算（リザルト表示専用）
+    /// </summary>
+    /// <param name="result">結果データ</param>
+    /// <param name="equipment">対象装備</param>
+    /// <param name="enhanceItem">強化アイテム</param>
+    /// <param name="newAttribute">変更後の属性</param>
+    /// <param name="supportItem">補助材料</param>
+    private void CalculateAttributeAttackDisplayChanges(EnhanceResultData result, UserEquipmentData equipment,
+        EnhanceItemMasterData enhanceItem, AttributeType newAttribute, SupportItemMasterData supportItem)
+    {
+        var masterData = GetEquipmentMasterData(equipment.equipmentMasterId);
+        if (masterData == null) return;
+
+        // 強化アイテムに属性が設定されている場合
+        if (newAttribute != AttributeType.None && enhanceItem.attributeType != AttributeType.None)
+        {
+            bool isAttributeChanging = equipment.currentAttributeType != newAttribute;
+            var statusIncrease = EnhanceCalculationUtility.CalculateStatusIncrease(masterData.equipmentType, enhanceItem);
+            int multiplier = EnhanceCalculationUtility.GetStatusMultiplier(supportItem);
+
+            if (isAttributeChanging)
+            {
+                // 属性変更時：リザルト表示では新しい属性攻撃力の増加分のみを表示
+                switch (newAttribute)
+                {
+                    case AttributeType.Fire:
+                        if (statusIncrease.ContainsKey("fireOffence"))
+                        {
+                            int increase = statusIncrease["fireOffence"] * multiplier;
+                            result.AddStatusChange("fireOffence", increase, 0);
+                        }
+                        break;
+                    case AttributeType.Water:
+                        if (statusIncrease.ContainsKey("waterOffence"))
+                        {
+                            int increase = statusIncrease["waterOffence"] * multiplier;
+                            result.AddStatusChange("waterOffence", increase, 0);
+                        }
+                        break;
+                    case AttributeType.Wind:
+                        if (statusIncrease.ContainsKey("windOffence"))
+                        {
+                            int increase = statusIncrease["windOffence"] * multiplier;
+                            result.AddStatusChange("windOffence", increase, 0);
+                        }
+                        break;
+                    case AttributeType.Earth:
+                        if (statusIncrease.ContainsKey("earthOffence"))
+                        {
+                            int increase = statusIncrease["earthOffence"] * multiplier;
+                            result.AddStatusChange("earthOffence", increase, 0);
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                // 同じ属性での強化：該当属性攻撃力の増加分を表示
+                switch (newAttribute)
+                {
+                    case AttributeType.Fire:
+                        if (statusIncrease.ContainsKey("fireOffence"))
+                        {
+                            int increase = statusIncrease["fireOffence"] * multiplier;
+                            result.AddStatusChange("fireOffence", increase, 0);
+                        }
+                        break;
+                    case AttributeType.Water:
+                        if (statusIncrease.ContainsKey("waterOffence"))
+                        {
+                            int increase = statusIncrease["waterOffence"] * multiplier;
+                            result.AddStatusChange("waterOffence", increase, 0);
+                        }
+                        break;
+                    case AttributeType.Wind:
+                        if (statusIncrease.ContainsKey("windOffence"))
+                        {
+                            int increase = statusIncrease["windOffence"] * multiplier;
+                            result.AddStatusChange("windOffence", increase, 0);
+                        }
+                        break;
+                    case AttributeType.Earth:
+                        if (statusIncrease.ContainsKey("earthOffence"))
+                        {
+                            int increase = statusIncrease["earthOffence"] * multiplier;
+                            result.AddStatusChange("earthOffence", increase, 0);
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /// 強化結果を装備データに適用（修正版：装備の実際の更新は従来通り）
     /// </summary>
     /// <param name="equipment">対象装備</param>
     /// <param name="result">強化結果</param>
@@ -687,15 +775,118 @@ public class EquipmentEnhanceManager : MonoBehaviour
             equipment.currentEnhancedValue = result.newEnhancedValue;
             equipment.currentAttributeType = result.newAttributeType;
 
-            // 強化ステータスを更新
-            foreach (var kvp in result.statusChanges)
-            {
-                ApplyStatusChange(equipment, kvp.Key, kvp.Value);
-            }
+            // 装備の実際のステータス更新（従来通りの処理で絶対値ベース）
+            ApplyActualStatusChangesToEquipment(equipment, result);
         }
         // 失敗時は強化値、属性、ステータスは変更しない（耐久値のみ変化）
 
         LogDebug($"装備データ更新完了: {equipment.userEquipmentId}, 成功: {result.isSuccess}, 耐久値: {equipment.currentEnhanceStamina}");
+    }
+
+    /// <summary>
+    /// 【新規追加】装備の実際のステータス更新（従来通りの絶対値ベース処理）
+    /// </summary>
+    /// <param name="equipment">対象装備</param>
+    /// <param name="result">強化結果</param>
+    private void ApplyActualStatusChangesToEquipment(UserEquipmentData equipment, EnhanceResultData result)
+    {
+        var masterData = GetEquipmentMasterData(equipment.equipmentMasterId);
+        if (masterData == null) return;
+
+        // 通常ステータスの更新（増加分を加算）
+        foreach (var kvp in result.statusChanges)
+        {
+            if (!kvp.Key.Contains("Offence"))
+            {
+                ApplyStatusChange(equipment, kvp.Key, kvp.Value);
+            }
+        }
+
+        // 属性攻撃力の更新（従来通りの絶対値ベース処理）
+        ApplyAttributeAttackChanges(equipment, result, masterData);
+    }
+
+    /// <summary>
+    /// 【新規追加】属性攻撃力の実際の更新処理（絶対値ベース）
+    /// </summary>
+    /// <param name="equipment">対象装備</param>
+    /// <param name="result">強化結果</param>
+    /// <param name="masterData">装備マスターデータ</param>
+    private void ApplyAttributeAttackChanges(UserEquipmentData equipment, EnhanceResultData result, EquipmentMasterData masterData)
+    {
+        // 属性が変更された場合の処理
+        if (result.previousAttributeType != result.newAttributeType)
+        {
+            // 全ての属性攻撃力をリセット
+            equipment.enhancedFireOffence = -masterData.fireOffence;
+            equipment.enhancedWaterOffence = -masterData.waterOffence;
+            equipment.enhancedWindOffence = -masterData.windOffence;
+            equipment.enhancedEarthOffence = -masterData.earthOffence;
+
+            // 新しい属性の攻撃力を設定
+            switch (result.newAttributeType)
+            {
+                case AttributeType.Fire:
+                    if (result.statusChanges.ContainsKey("fireOffence"))
+                    {
+                        int totalNewValue = result.statusChanges["fireOffence"];
+                        equipment.enhancedFireOffence = totalNewValue - masterData.fireOffence;
+                    }
+                    break;
+                case AttributeType.Water:
+                    if (result.statusChanges.ContainsKey("waterOffence"))
+                    {
+                        int totalNewValue = result.statusChanges["waterOffence"];
+                        equipment.enhancedWaterOffence = totalNewValue - masterData.waterOffence;
+                    }
+                    break;
+                case AttributeType.Wind:
+                    if (result.statusChanges.ContainsKey("windOffence"))
+                    {
+                        int totalNewValue = result.statusChanges["windOffence"];
+                        equipment.enhancedWindOffence = totalNewValue - masterData.windOffence;
+                    }
+                    break;
+                case AttributeType.Earth:
+                    if (result.statusChanges.ContainsKey("earthOffence"))
+                    {
+                        int totalNewValue = result.statusChanges["earthOffence"];
+                        equipment.enhancedEarthOffence = totalNewValue - masterData.earthOffence;
+                    }
+                    break;
+            }
+        }
+        else
+        {
+            // 同じ属性での強化：該当属性攻撃力に増加分を加算
+            switch (result.newAttributeType)
+            {
+                case AttributeType.Fire:
+                    if (result.statusChanges.ContainsKey("fireOffence"))
+                    {
+                        equipment.enhancedFireOffence += result.statusChanges["fireOffence"];
+                    }
+                    break;
+                case AttributeType.Water:
+                    if (result.statusChanges.ContainsKey("waterOffence"))
+                    {
+                        equipment.enhancedWaterOffence += result.statusChanges["waterOffence"];
+                    }
+                    break;
+                case AttributeType.Wind:
+                    if (result.statusChanges.ContainsKey("windOffence"))
+                    {
+                        equipment.enhancedWindOffence += result.statusChanges["windOffence"];
+                    }
+                    break;
+                case AttributeType.Earth:
+                    if (result.statusChanges.ContainsKey("earthOffence"))
+                    {
+                        equipment.enhancedEarthOffence += result.statusChanges["earthOffence"];
+                    }
+                    break;
+            }
+        }
     }
 
     /// <summary>
