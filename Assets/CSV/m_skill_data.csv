@@ -1,0 +1,13 @@
+skill_id,skill_name,skill_type,attribute_type,rarity,skill_damage_multiplier,skill_target_type,skill_max_cool_time,skill_hp_cost,skill_mp_cost,skill_effect,skill_effect_chance,skill_effect_chance_boss,skill_effect_duration,skill_icon_path,skill_animation_path,skill_sound_path,description,completion_flag,collection_flag
+0,通常攻撃,Attack,normal,common,1,EnemySingle,0,0,0,,0,0,0,,,,基本的な物理攻撃,1,1
+1,ファイアボール,Attack,fire,common,1.1,EnemySingle,3,0,0,,0,0,0,,,,火の玉で攻撃する,1,1
+2,ガードバッシュ,Attack,normal,common,1.15,EnemySingle,3,0,0,defense_up,100,70,2,,,,盾で攻撃し防御力を上昇させる,1,1
+3,ウィンドクロー,Attack,wind,common,1.1,EnemySingle,3,0,0,,0,0,0,,,,風の刃で攻撃する,1,1
+4,ハウル,Attack,normal,common,0.8,EnemyAll,5,0,0,attack_down,100,70,3,,,,雄叫びで全体を攻撃し\n攻撃力を低下させる,1,1
+5,アースクエイク,Attack,earth,common,0.8,EnemyAll,5,0,0,,0,0,0,,,,大地を揺らして全体を攻撃,1,1
+6,スモールヒール,Heal,normal,rare,0.3,Self,4,0,0,,0,0,0,,,,小さな回復魔法で自身のHPを回復,1,1
+7,ポイズンファング,Attack,water,rare,1.15,EnemySingle,3,0,0,poison,70,0,2,,,,毒牙で攻撃し毒状態にする,1,1
+8,スタンブロー,Attack,normal,rare,1.2,EnemySingle,4,0,0,stun,60,30,1,,,,強力な一撃で気絶させる,1,1
+9,リジェネレーション,Buff,normal,rare,0,Self,4,0,0,regen,100,100,3,,,,継続的に自身のHPを回復する魔法,1,1
+10,アーマーブレイク,Attack,normal,rare,1.15,EnemySingle,4,0,0,defense_down,100,80,3,,,,防御力を大幅に低下させる,1,1
+11,火遁の術,Attack,fire,epic,1.3,EnemySingle,3,0,0,poison,100,10,2,,,,強力な火属性攻撃で毒状態にする,1,1

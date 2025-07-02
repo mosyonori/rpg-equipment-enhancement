@@ -60,6 +60,22 @@ public class EquipmentEditUI : MonoBehaviour
     [Header("デバッグ")]
     [SerializeField] private bool enableDebugLog = true;
 
+    // ===== Header追加 =====
+    [Header("スキルスロット")]
+    [SerializeField] private Button skillSlot1Button;      // バトルスキル1ボタン
+    [SerializeField] private Button skillSlot2Button;      // バトルスキル2ボタン
+    [SerializeField] private Image skillSlot1Icon;         // バトルスキル1アイコン
+    [SerializeField] private Image skillSlot2Icon;         // バトルスキル2アイコン
+    [SerializeField] private TextMeshProUGUI skillSlot1Text; // バトルスキル1名前
+    [SerializeField] private TextMeshProUGUI skillSlot2Text; // バトルスキル2名前
+
+    [Header("スキル選択ポップアップ")]
+    [SerializeField] private SkillSelectionPopup skillSelectionPopup;
+
+    [Header("デフォルトスキルアイコン")]
+    [SerializeField] private Sprite defaultSkillIcon;
+
+
     // イベント
     public System.Action OnBackButtonClicked;
     public System.Action OnInventoryButtonClicked;
@@ -114,16 +130,19 @@ public class EquipmentEditUI : MonoBehaviour
             accessorySlotButton.onClick.AddListener(() => OpenEquipmentSelection(EquipmentType.Accessory));
         }
 
-        // 将来用スロットは無効化
-        if (futureSlot1Button != null)
+        // スキルスロットボタン（futureSlot1Button, futureSlot2Buttonを置き換え）
+        if (skillSlot1Button != null)
         {
-            futureSlot1Button.interactable = false;
+            skillSlot1Button.onClick.AddListener(() => OpenSkillSelection(1));
+            skillSlot1Button.interactable = true; // 有効化
         }
 
-        if (futureSlot2Button != null)
+        if (skillSlot2Button != null)
         {
-            futureSlot2Button.interactable = false;
+            skillSlot2Button.onClick.AddListener(() => OpenSkillSelection(2));
+            skillSlot2Button.interactable = true; // 有効化
         }
+
 
         // ナビゲーションボタン
         if (backButton != null)
@@ -143,6 +162,7 @@ public class EquipmentEditUI : MonoBehaviour
         }
     }
 
+    // ===== SetupPopupEvents()メソッドに追加 =====
     private void SetupPopupEvents()
     {
         if (equipmentSelectionPopup != null)
@@ -150,6 +170,14 @@ public class EquipmentEditUI : MonoBehaviour
             equipmentSelectionPopup.OnEquipmentSelected += OnEquipmentSelected;
             equipmentSelectionPopup.OnEquipmentRemoved += OnEquipmentRemoved;
             equipmentSelectionPopup.OnPopupClosed += OnPopupClosed;
+        }
+
+        // スキル選択ポップアップイベント追加
+        if (skillSelectionPopup != null)
+        {
+            skillSelectionPopup.OnSkillSelected += OnSkillSelected;
+            skillSelectionPopup.OnSkillRemoved += OnSkillRemoved;
+            skillSelectionPopup.OnPopupClosed += OnPopupClosed;
         }
     }
 
@@ -173,6 +201,7 @@ public class EquipmentEditUI : MonoBehaviour
         }
     }
 
+    // ===== SubscribeToEvents()メソッドに追加 =====
     private void SubscribeToEvents()
     {
         if (InventoryManager.Instance != null)
@@ -181,16 +210,18 @@ public class EquipmentEditUI : MonoBehaviour
             InventoryManager.OnEquipmentUnequipped += OnEquipmentUnequipped;
             InventoryManager.OnInventoryChanged += OnInventoryChanged;
         }
+
+        // スキルマネージャーのイベント追加
+        if (SkillManager.Instance != null)
+        {
+            SkillManager.OnSkillInventoryChanged += OnSkillInventoryChanged;
+        }
     }
 
+    // ===== UnsubscribeFromEvents()メソッドに追加 =====
     private void UnsubscribeFromEvents()
     {
-        if (InventoryManager.Instance != null)
-        {
-            InventoryManager.OnEquipmentEquipped -= OnEquipmentEquipped;
-            InventoryManager.OnEquipmentUnequipped -= OnEquipmentUnequipped;
-            InventoryManager.OnInventoryChanged -= OnInventoryChanged;
-        }
+        // 既存のInventoryManagerイベント解除...
 
         if (equipmentSelectionPopup != null)
         {
@@ -198,22 +229,210 @@ public class EquipmentEditUI : MonoBehaviour
             equipmentSelectionPopup.OnEquipmentRemoved -= OnEquipmentRemoved;
             equipmentSelectionPopup.OnPopupClosed -= OnPopupClosed;
         }
+
+        // スキル選択ポップアップイベント解除追加
+        if (skillSelectionPopup != null)
+        {
+            skillSelectionPopup.OnSkillSelected -= OnSkillSelected;
+            skillSelectionPopup.OnSkillRemoved -= OnSkillRemoved;
+            skillSelectionPopup.OnPopupClosed -= OnPopupClosed;
+        }
+
+        // スキルマネージャーのイベント解除追加
+        if (SkillManager.Instance != null)
+        {
+            SkillManager.OnSkillInventoryChanged -= OnSkillInventoryChanged;
+        }
     }
 
     #endregion
 
-    #region 公開メソッド
+    /// <summary>
+    /// スキルスロット表示を更新
+    /// </summary>
+    private void UpdateSkillSlots()
+    {
+        UpdateSkillSlot(1, skillSlot1Icon, skillSlot1Text);
+        UpdateSkillSlot(2, skillSlot2Icon, skillSlot2Text);
+    }
 
     /// <summary>
-    /// 表示を更新
+    /// 個別スキルスロット表示を更新
     /// </summary>
+    private void UpdateSkillSlot(int slotNumber, Image iconImage, TextMeshProUGUI nameText)
+    {
+        if (iconImage == null) return;
+
+        var saveData = SaveDataManager.Instance?.CurrentSaveData;
+        if (saveData == null) return;
+
+        string skillId = saveData.GetBattleSkill(slotNumber);
+
+        if (!string.IsNullOrEmpty(skillId))
+        {
+            // スキル装備中の表示
+            var skill = SkillManager.Instance?.GetSkill(skillId);
+            if (skill != null)
+            {
+                var masterData = MasterDataManager.Instance?.GetSkillData(skill.skillMasterId);
+                if (masterData != null)
+                {
+                    // アイコン設定
+                    Sprite iconToUse = masterData.skillIcon ?? defaultSkillIcon;
+                    iconImage.sprite = iconToUse;
+
+                    // 名前設定
+                    if (nameText != null)
+                    {
+                        nameText.text = masterData.skillName;
+                    }
+
+                    DebugLog($"スキル{slotNumber}表示: {masterData.skillName}");
+                    return;
+                }
+            }
+        }
+
+        // スキル未装備の表示
+        iconImage.sprite = defaultSkillIcon;
+        if (nameText != null)
+        {
+            nameText.text = $"スキル{slotNumber}";
+        }
+
+        DebugLog($"スキル{slotNumber}: 未装備");
+    }
+
+    /// <summary>
+    /// スキル解除イベント
+    /// </summary>
+    private void OnSkillRemoved()
+    {
+        // 現在のポップアップが対象とするスロット番号を取得
+        string currentSlotId = skillSelectionPopup.GetCurrentEquipmentId();
+        int slotNumber = GetSlotNumberFromId(currentSlotId);
+
+        if (slotNumber == 0)
+        {
+            DebugLogError($"無効なスロットID: {currentSlotId}");
+            return;
+        }
+
+        // セーブデータからバトルスキルを解除
+        var saveData = SaveDataManager.Instance?.CurrentSaveData;
+        if (saveData != null)
+        {
+            saveData.ClearBattleSkill(slotNumber);
+            SaveDataManager.Instance.MarkDataDirty();
+
+            DebugLog($"スキルを解除しました: スロット{slotNumber}");
+
+            // 表示更新
+            RefreshDisplay();
+        }
+    }
+
+    /// <summary>
+    /// スキルインベントリ変更イベント
+    /// </summary>
+    private void OnSkillInventoryChanged()
+    {
+        // スキル表示を更新
+        UpdateSkillSlots();
+    }
+
+    /// <summary>
+    /// スロットIDからスロット番号を取得
+    /// </summary>
+    private int GetSlotNumberFromId(string slotId)
+    {
+        if (string.IsNullOrEmpty(slotId)) return 0;
+
+        if (slotId == "battle_skill_slot_1") return 1;
+        if (slotId == "battle_skill_slot_2") return 2;
+
+        return 0;
+    }
+
+
+
+
+    /// <summary>
+    /// スキル選択完了イベント
+    /// </summary>
+    private void OnSkillSelected(UserSkillData skill)
+    {
+        if (skill == null) return;
+
+        // 現在のポップアップが対象とするスロット番号を取得
+        string currentSlotId = skillSelectionPopup.GetCurrentEquipmentId();
+        int slotNumber = GetSlotNumberFromId(currentSlotId);
+
+        if (slotNumber == 0)
+        {
+            DebugLogError($"無効なスロットID: {currentSlotId}");
+            return;
+        }
+
+        // セーブデータにバトルスキルを設定
+        var saveData = SaveDataManager.Instance?.CurrentSaveData;
+        if (saveData != null)
+        {
+            bool success = saveData.SetBattleSkill(slotNumber, skill.userSkillId);
+
+            if (success)
+            {
+                SaveDataManager.Instance.MarkDataDirty();
+                DebugLog($"スキルを装備しました: スロット{slotNumber} -> {skill.userSkillId}");
+
+                // 表示更新
+                RefreshDisplay();
+            }
+            else
+            {
+                DebugLogError($"スキルの装備に失敗: スロット{slotNumber}");
+            }
+        }
+    }
+
+
+
+    /// <summary>
+    /// スキル選択を開く
+    /// </summary>
+    private void OpenSkillSelection(int slotNumber)
+    {
+        if (skillSelectionPopup == null)
+        {
+            DebugLogError("スキル選択ポップアップが設定されていません");
+            return;
+        }
+
+        // 装備選択ポップアップを確実に閉じる
+        if (equipmentSelectionPopup != null)
+        {
+            equipmentSelectionPopup.HidePopup();
+        }
+
+        string slotId = $"battle_skill_slot_{slotNumber}";
+        skillSelectionPopup.ShowSkillSelection(slotId);
+        DebugLog($"スキル選択を開始: スロット{slotNumber}");
+    }
+
+
+
+
+    #region 公開メソッド
+
+    // ===== RefreshDisplay()メソッドに追加 =====
     public void RefreshDisplay()
     {
         if (!IsManagersReady()) return;
 
         UpdatePlayerInfo();
         UpdateEquipmentSlots();
-        UpdateDetailedStatus(); // 新規追加
+        UpdateSkillSlots(); // 追加
+        UpdateDetailedStatus();
 
         DebugLog("装備編集画面の表示を更新しました");
     }
@@ -605,6 +824,7 @@ public class EquipmentEditUI : MonoBehaviour
 
     #region ユーティリティ
 
+    // ===== IsManagersReady()メソッドに追加 =====
     private bool IsManagersReady()
     {
         return InventoryManager.Instance != null &&
@@ -612,7 +832,9 @@ public class EquipmentEditUI : MonoBehaviour
                SaveDataManager.Instance != null &&
                SaveDataManager.Instance.IsDataLoaded &&
                MasterDataManager.Instance != null &&
-               MasterDataManager.Instance.IsDataLoaded;
+               MasterDataManager.Instance.IsDataLoaded &&
+               SkillManager.Instance != null &&
+               SkillManager.Instance.IsInitialized;
     }
 
     private void DebugLog(string message)
@@ -672,6 +894,28 @@ public class EquipmentEditUI : MonoBehaviour
         HideInventoryPanel();
     }
 #endif
+
+    // ===== エディター用ツール追加 =====
+#if UNITY_EDITOR
+    [ContextMenu("スキルスロット1選択テスト")]
+    private void TestSkillSlot1Selection()
+    {
+        OpenSkillSelection(1);
+    }
+
+    [ContextMenu("スキルスロット2選択テスト")]
+    private void TestSkillSlot2Selection()
+    {
+        OpenSkillSelection(2);
+    }
+
+    [ContextMenu("スキルスロット表示更新テスト")]
+    private void TestSkillSlotsUpdate()
+    {
+        UpdateSkillSlots();
+    }
+#endif
+
 
     #endregion
 }

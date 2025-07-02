@@ -29,6 +29,9 @@ public class UserEquipmentData
     public bool isEquipped;             // 装備中かどうか
     public string equippedCharacterId;  // 装備しているキャラクターID（未装備時は空文字）
 
+    [Header("装備スキル")]
+    public string equippedSkillId;      // 装備中のスキルID（UserSkillDataのID）
+
     [Header("取得・管理情報")]
     public DateTime acquiredDate;       // 取得日時
     public bool isLocked;               // ロック状態（誤操作防止）
@@ -46,6 +49,7 @@ public class UserEquipmentData
         isFavorite = false;
         isEquipped = false;
         equippedCharacterId = "";
+        equippedSkillId = "";  // スキル未装備
     }
 
     /// <summary>
@@ -139,6 +143,38 @@ public class UserEquipmentData
     }
 
     /// <summary>
+    /// スキルを装備
+    /// </summary>
+    public void EquipSkill(string skillId)
+    {
+        equippedSkillId = skillId;
+    }
+
+    /// <summary>
+    /// スキルを解除
+    /// </summary>
+    public void UnequipSkill()
+    {
+        equippedSkillId = "";
+    }
+
+    /// <summary>
+    /// 装備中のスキルを取得
+    /// </summary>
+    public string GetEquippedSkill()
+    {
+        return equippedSkillId;
+    }
+
+    /// <summary>
+    /// スキル装備チェック
+    /// </summary>
+    public bool HasEquippedSkill()
+    {
+        return !string.IsNullOrEmpty(equippedSkillId);
+    }
+
+    /// <summary>
     /// 強化可能かどうかを判定
     /// </summary>
     public bool CanEnhance(EquipmentMasterData masterData)
@@ -150,7 +186,7 @@ public class UserEquipmentData
         if (currentEnhancedValue >= masterData.maxEnhancedValue)
             return false;
 
-        // 強化耐久値が0の場合は強化不可（耐久減少系のアイテムでは）
+        // 強化耐久値が0の場合は強化不可（耐久減少系のアイテムではNGは除く）
         if (currentEnhanceStamina <= 0)
             return false;
 
@@ -162,7 +198,8 @@ public class UserEquipmentData
     /// </summary>
     public override string ToString()
     {
-        return $"UserEquipment[ID:{userEquipmentId}, MasterID:{equipmentMasterId}, Enhanced:{currentEnhancedValue}, Stamina:{currentEnhanceStamina}, Attribute:{currentAttributeType}, Equipped:{isEquipped}]";
+        string skillInfo = HasEquippedSkill() ? $", Skill:{equippedSkillId}" : ", Skill:None";
+        return $"UserEquipment[ID:{userEquipmentId}, MasterID:{equipmentMasterId}, Enhanced:{currentEnhancedValue}, Stamina:{currentEnhanceStamina}, Attribute:{currentAttributeType}, Equipped:{isEquipped}{skillInfo}]";
     }
 }
 

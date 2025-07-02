@@ -4,6 +4,7 @@ using TMPro;
 
 /// <summary>
 /// 装備スロットUI表示コンポーネント
+/// 装備スロットとバトルスキルスロット両方に対応
 /// </summary>
 public class EquipmentSlotUI : MonoBehaviour
 {
@@ -36,13 +37,25 @@ public class EquipmentSlotUI : MonoBehaviour
     [SerializeField] private Sprite armorTypeIcon;
     [SerializeField] private Sprite accessoryTypeIcon;
 
+    [Header("スロットタイプ設定")]
+    [SerializeField] private SlotType slotType = SlotType.Equipment;
+    [SerializeField] private int battleSkillSlotNumber = 1; // バトルスキル用スロット番号（1 or 2）
+
+    [Header("バトルスキル用デフォルトアイコン")]
+    [SerializeField] private Sprite defaultBattleSkillIcon;
+    [SerializeField] private Sprite emptySkillSlotIcon;
+
     // イベント
     public System.Action<UserEquipmentData> OnSlotClicked;
     public System.Action<UserEquipmentData> OnSlotLongPressed;
 
-    // データ
+    // 装備データ
     private UserEquipmentData equipmentData;
     private EquipmentMasterData masterData;
+
+    // バトルスキル用データ
+    private UserSkillData skillData;
+    private SkillMasterData skillMasterData;
 
     #region Unity Lifecycle
 
@@ -60,11 +73,19 @@ public class EquipmentSlotUI : MonoBehaviour
     #region 公開メソッド
 
     /// <summary>
-    /// 装備データを設定して表示更新
+    /// 装備データを設定して表示更新（装備スロット用）
     /// </summary>
     public void SetEquipmentData(UserEquipmentData equipment)
     {
+        if (slotType != SlotType.Equipment)
+        {
+            DebugLogError("装備データの設定は装備スロット専用です");
+            return;
+        }
+
         equipmentData = equipment;
+        skillData = null;
+        skillMasterData = null;
 
         if (equipment == null)
         {
@@ -85,18 +106,66 @@ public class EquipmentSlotUI : MonoBehaviour
     }
 
     /// <summary>
+    /// バトルスキルデータを設定して表示更新（バトルスキルスロット用）
+    /// </summary>
+    public void SetBattleSkillData(UserSkillData skill)
+    {
+        if (slotType != SlotType.BattleSkill)
+        {
+            DebugLogError("スキルデータの設定はバトルスキルスロット専用です");
+            return;
+        }
+
+        skillData = skill;
+        equipmentData = null;
+        masterData = null;
+
+        if (skill == null)
+        {
+            SetEmpty();
+            return;
+        }
+
+        // スキルマスターデータ取得
+        skillMasterData = MasterDataManager.Instance?.GetSkillData(skill.skillMasterId);
+        if (skillMasterData == null)
+        {
+            SetEmpty();
+            Debug.LogError($"スキルマスターデータが見つかりません: {skill.skillMasterId}");
+            return;
+        }
+
+        UpdateDisplay();
+    }
+
+    /// <summary>
     /// 空のスロット表示
     /// </summary>
     public void SetEmpty()
     {
         equipmentData = null;
         masterData = null;
+        skillData = null;
+        skillMasterData = null;
 
         // UI要素を非表示/初期化
-        if (iconImage != null) iconImage.sprite = null;
-        if (nameText != null) nameText.text = "";
-        if (enhancementText != null) enhancementText.text = "";
-        if (powerText != null) powerText.text = "";
+        if (slotType == SlotType.BattleSkill)
+        {
+            // バトルスキルスロット用の空表示
+            if (iconImage != null) iconImage.sprite = emptySkillSlotIcon ?? defaultBattleSkillIcon;
+            if (nameText != null) nameText.text = $"スキルスロット{battleSkillSlotNumber}";
+            if (enhancementText != null) enhancementText.text = "";
+            if (powerText != null) powerText.text = "";
+        }
+        else
+        {
+            // 装備スロット用の空表示
+            if (iconImage != null) iconImage.sprite = null;
+            if (nameText != null) nameText.text = "";
+            if (enhancementText != null) enhancementText.text = "";
+            if (powerText != null) powerText.text = "";
+        }
+
         if (equippedMark != null) equippedMark.SetActive(false);
         if (lockMark != null) lockMark.SetActive(false);
         if (favoriteMark != null) favoriteMark.SetActive(false);
@@ -107,8 +176,8 @@ public class EquipmentSlotUI : MonoBehaviour
         // 選択フレームを非表示
         SetSelected(false);
 
-        // ボタンを無効化
-        if (slotButton != null) slotButton.interactable = false;
+        // ボタンを有効化（クリックで選択画面を開く）
+        if (slotButton != null) slotButton.interactable = true;
     }
 
     /// <summary>
@@ -117,6 +186,14 @@ public class EquipmentSlotUI : MonoBehaviour
     public UserEquipmentData GetEquipmentData()
     {
         return equipmentData;
+    }
+
+    /// <summary>
+    /// バトルスキルデータを取得
+    /// </summary>
+    public UserSkillData GetSkillData()
+    {
+        return skillData;
     }
 
     /// <summary>
@@ -130,7 +207,14 @@ public class EquipmentSlotUI : MonoBehaviour
             if (selected)
             {
                 selectionFrame.color = selectedFrameColor;
-                DebugLog($"装備選択フレーム表示: {equipmentData?.userEquipmentId}");
+                if (slotType == SlotType.BattleSkill)
+                {
+                    DebugLog($"スキル選択フレーム表示: スロット{battleSkillSlotNumber}");
+                }
+                else
+                {
+                    DebugLog($"装備選択フレーム表示: {equipmentData?.userEquipmentId}");
+                }
             }
         }
 
@@ -139,6 +223,38 @@ public class EquipmentSlotUI : MonoBehaviour
         {
             backgroundImage.color = selected ? selectedFrameColor : Color.white;
         }
+    }
+
+    /// <summary>
+    /// バトルスキルスロット番号を設定
+    /// </summary>
+    public void SetBattleSkillSlotNumber(int slotNumber)
+    {
+        battleSkillSlotNumber = slotNumber;
+    }
+
+    /// <summary>
+    /// スロットタイプを設定
+    /// </summary>
+    public void SetSlotType(SlotType type)
+    {
+        slotType = type;
+    }
+
+    /// <summary>
+    /// スロットタイプを取得
+    /// </summary>
+    public SlotType GetSlotType()
+    {
+        return slotType;
+    }
+
+    /// <summary>
+    /// バトルスキルスロット番号を取得
+    /// </summary>
+    public int GetBattleSkillSlotNumber()
+    {
+        return battleSkillSlotNumber;
     }
 
     #endregion
@@ -150,6 +266,65 @@ public class EquipmentSlotUI : MonoBehaviour
         // ボタンを有効化
         if (slotButton != null) slotButton.interactable = true;
 
+        if (slotType == SlotType.BattleSkill)
+        {
+            // バトルスキル表示
+            UpdateBattleSkillDisplay();
+        }
+        else
+        {
+            // 装備表示
+            UpdateEquipmentDisplay();
+        }
+    }
+
+    /// <summary>
+    /// バトルスキル表示を更新
+    /// </summary>
+    private void UpdateBattleSkillDisplay()
+    {
+        // アイコン設定
+        UpdateSkillIcon();
+
+        // 名前設定
+        if (nameText != null)
+        {
+            nameText.text = skillMasterData.skillName;
+        }
+
+        // レベル表示（将来拡張用）
+        if (enhancementText != null)
+        {
+            enhancementText.gameObject.SetActive(false); // バトルスキルには強化値なし
+        }
+
+        // パワー表示（スキルの場合はダメージ倍率など）
+        if (powerText != null)
+        {
+            powerText.text = $"{skillMasterData.skillDamageMultiplier:F1}倍";
+        }
+
+        // レアリティフレーム
+        if (rarityFrame != null)
+        {
+            rarityFrame.color = GetRarityColor(skillMasterData.rarity);
+        }
+
+        // ステータスマーク更新
+        UpdateSkillStatusMarks();
+
+        // 背景色
+        if (backgroundImage != null)
+        {
+            backgroundImage.color = Color.white;
+        }
+    }
+
+    /// <summary>
+    /// 装備表示を更新
+    /// </summary>
+    private void UpdateEquipmentDisplay()
+    {
         // アイコン設定
         UpdateIcon();
 
@@ -187,7 +362,7 @@ public class EquipmentSlotUI : MonoBehaviour
             rarityFrame.color = GetRarityColor(masterData.rarity);
         }
 
-        // 状態マーク更新
+        // ステータスマーク更新
         UpdateStatusMarks();
 
         // 背景色
@@ -223,11 +398,51 @@ public class EquipmentSlotUI : MonoBehaviour
             }
         }
 
-        // 3. 上記で取得できない場合のみ、フォールバック（装備タイプ別デフォルトアイコン）を使用
+        // 3. 上記で取得できない場合のフォールバック（装備タイプ別デフォルトアイコン）
         if (iconToUse == null)
         {
             iconToUse = GetFallbackIcon();
             DebugLogWarning($"フォールバックアイコンを使用: {masterData.equipmentName} (Type: {masterData.equipmentType})");
+        }
+
+        iconImage.sprite = iconToUse;
+        iconImage.gameObject.SetActive(iconToUse != null);
+    }
+
+    /// <summary>
+    /// スキルアイコンを更新
+    /// </summary>
+    private void UpdateSkillIcon()
+    {
+        if (iconImage == null) return;
+
+        Sprite iconToUse = null;
+
+        // 1. マスターデータのアイコンを最優先で使用
+        if (skillMasterData.skillIcon != null)
+        {
+            iconToUse = skillMasterData.skillIcon;
+            DebugLog($"マスターデータのアイコンを使用: {skillMasterData.skillName}");
+        }
+        // 2. アイコンがない場合、パスから読み込みを試行
+        else if (!string.IsNullOrEmpty(skillMasterData.skillIconPath))
+        {
+            iconToUse = LoadIconFromPath(skillMasterData.skillIconPath);
+            if (iconToUse != null)
+            {
+                DebugLog($"パスからアイコンを読み込み: {skillMasterData.skillIconPath}");
+            }
+            else
+            {
+                DebugLogWarning($"パスからアイコンを読み込めませんでした: {skillMasterData.skillIconPath}");
+            }
+        }
+
+        // 3. 上記で取得できない場合のフォールバック
+        if (iconToUse == null)
+        {
+            iconToUse = defaultBattleSkillIcon;
+            DebugLogWarning($"フォールバックアイコンを使用: {skillMasterData.skillName}");
         }
 
         iconImage.sprite = iconToUse;
@@ -298,30 +513,6 @@ public class EquipmentSlotUI : MonoBehaviour
         };
     }
 
-    /// <summary>
-    /// デバッグログ出力
-    /// </summary>
-    private void DebugLog(string message)
-    {
-        Debug.Log($"[EquipmentSlotUI] {message}");
-    }
-
-    /// <summary>
-    /// デバッグ警告ログ出力
-    /// </summary>
-    private void DebugLogWarning(string message)
-    {
-        Debug.LogWarning($"[EquipmentSlotUI] {message}");
-    }
-
-    /// <summary>
-    /// デバッグエラーログ出力
-    /// </summary>
-    private void DebugLogError(string message)
-    {
-        Debug.LogError($"[EquipmentSlotUI] {message}");
-    }
-
     private void UpdateStatusMarks()
     {
         // 装備中マーク
@@ -346,6 +537,37 @@ public class EquipmentSlotUI : MonoBehaviour
         if (newMark != null)
         {
             bool isNew = (System.DateTime.Now - equipmentData.acquiredDate).TotalHours < 24;
+            newMark.SetActive(isNew);
+        }
+    }
+
+    /// <summary>
+    /// スキルのステータスマークを更新
+    /// </summary>
+    private void UpdateSkillStatusMarks()
+    {
+        // 装備中マーク（バトルスキルの場合は表示しない）
+        if (equippedMark != null)
+        {
+            equippedMark.SetActive(false);
+        }
+
+        // ロックマーク
+        if (lockMark != null)
+        {
+            lockMark.SetActive(skillData != null && skillData.isLocked);
+        }
+
+        // お気に入りマーク（スキルにはない）
+        if (favoriteMark != null)
+        {
+            favoriteMark.SetActive(false);
+        }
+
+        // 新規マーク
+        if (newMark != null)
+        {
+            bool isNew = skillData != null && skillData.isNew;
             newMark.SetActive(isNew);
         }
     }
@@ -381,10 +603,47 @@ public class EquipmentSlotUI : MonoBehaviour
 
     private void OnSlotClick()
     {
-        if (equipmentData != null)
+        if (slotType == SlotType.BattleSkill)
         {
-            OnSlotClicked?.Invoke(equipmentData);
+            // バトルスキルスロットの場合：スキル選択イベントを発行
+            OnSlotClicked?.Invoke(null); // UserEquipmentDataとしてはnullを渡す
         }
+        else
+        {
+            // 装備スロットの場合：既存処理
+            if (equipmentData != null)
+            {
+                OnSlotClicked?.Invoke(equipmentData);
+            }
+        }
+    }
+
+    #endregion
+
+    #region デバッグ
+
+    /// <summary>
+    /// デバッグログ出力
+    /// </summary>
+    private void DebugLog(string message)
+    {
+        Debug.Log($"[EquipmentSlotUI] {message}");
+    }
+
+    /// <summary>
+    /// デバッグ警告ログ出力
+    /// </summary>
+    private void DebugLogWarning(string message)
+    {
+        Debug.LogWarning($"[EquipmentSlotUI] {message}");
+    }
+
+    /// <summary>
+    /// デバッグエラーログ出力
+    /// </summary>
+    private void DebugLogError(string message)
+    {
+        Debug.LogError($"[EquipmentSlotUI] {message}");
     }
 
     #endregion
@@ -392,9 +651,30 @@ public class EquipmentSlotUI : MonoBehaviour
     #region エディター用ツール
 
 #if UNITY_EDITOR
-    [ContextMenu("テストデータ設定")]
-    private void SetTestData()
+    [ContextMenu("バトルスキルスロットに設定")]
+    private void SetToBattleSkillSlot()
     {
+        slotType = SlotType.BattleSkill;
+        battleSkillSlotNumber = 1;
+        SetEmpty();
+    }
+
+    [ContextMenu("装備スロットに設定")]
+    private void SetToEquipmentSlot()
+    {
+        slotType = SlotType.Equipment;
+        SetEmpty();
+    }
+
+    [ContextMenu("テスト装備データ設定")]
+    private void SetTestEquipmentData()
+    {
+        if (slotType != SlotType.Equipment)
+        {
+            Debug.LogWarning("装備スロットに設定してからテストしてください");
+            return;
+        }
+
         // テスト用のダミーデータを設定
         var testEquipment = new UserEquipmentData
         {
@@ -410,6 +690,26 @@ public class EquipmentSlotUI : MonoBehaviour
         SetEquipmentData(testEquipment);
     }
 
+    [ContextMenu("テストスキルデータ設定")]
+    private void SetTestSkillData()
+    {
+        if (slotType != SlotType.BattleSkill)
+        {
+            Debug.LogWarning("バトルスキルスロットに設定してからテストしてください");
+            return;
+        }
+
+        // テスト用のダミーデータを設定
+        var testSkill = new UserSkillData
+        {
+            skillMasterId = 1,
+            isLocked = false,
+            isNew = true
+        };
+
+        SetBattleSkillData(testSkill);
+    }
+
     [ContextMenu("空スロット設定")]
     private void SetEmptySlot()
     {
@@ -418,4 +718,13 @@ public class EquipmentSlotUI : MonoBehaviour
 #endif
 
     #endregion
+}
+
+/// <summary>
+/// スロットタイプ定義
+/// </summary>
+public enum SlotType
+{
+    Equipment,    // 装備スロット
+    BattleSkill   // バトルスキルスロット
 }

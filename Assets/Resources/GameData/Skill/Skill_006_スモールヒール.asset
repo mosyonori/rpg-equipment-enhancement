@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc6c93fbbb2fd5345a5ed245b86f7402, type: 3}
+  m_Name: "Skill_006_\u30B9\u30E2\u30FC\u30EB\u30D2\u30FC\u30EB"
+  m_EditorClassIdentifier: 
+  skillId: 6
+  skillName: "\u30B9\u30E2\u30FC\u30EB\u30D2\u30FC\u30EB"
+  skillType: 1
+  attributeType: 0
+  rarity: 1
+  skillDamageMultiplier: 0.3
+  skillTargetType: 0
+  skillTargetCharacter: 
+  skillMaxCoolTime: 4
+  skillHpCost: 0
+  skillMpCost: 0
+  skillEffect: 
+  skillEffectTargetCharacter: 
+  skillEffectChance: 0
+  skillEffectChanceBoss: 0
+  skillEffectDuration: 0
+  skillIcon: {fileID: 21300000, guid: 231092ed509f90f4b85aa905a3ea013e, type: 3}
+  skillIconPath: 
+  skillAnimationPath: 
+  skillSoundPath: 
+  description: "\u5C0F\u3055\u306A\u56DE\u5FA9\u9B54\u6CD5\u3067\u81EA\u8EAB\u306EHP\u3092\u56DE\u5FA9"
+  completionFlag: 1
+  collectionFlag: 1

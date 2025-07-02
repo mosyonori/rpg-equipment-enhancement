@@ -9,7 +9,7 @@ using UnityEngine;
 public static class UserDataUtility
 {
     /// <summary>
-    /// 新規ユーザーデータを作成（初期装備・アイテム付き）
+    /// 新規ユーザーデータを作成（初期装備・アイテム・スキル付き）
     /// </summary>
     public static UserSaveData CreateNewUserData(string playerName = "新規プレイヤー")
     {
@@ -23,6 +23,9 @@ public static class UserDataUtility
 
         // 初期アイテムを追加
         AddInitialItems(userData);
+
+        // 初期スキルを追加
+        AddInitialSkills(userData);
 
         return userData;
     }
@@ -87,6 +90,20 @@ public static class UserDataUtility
             maxStackQuantity = 50
         };
         userData.AddItem(supportItem);
+    }
+
+    /// <summary>
+    /// 初期スキルを追加
+    /// </summary>
+    private static void AddInitialSkills(UserSaveData userData)
+    {
+        // 基本攻撃スキル（スキルID:1）
+        var basicAttackSkill = new UserSkillData(skillMasterId: 1);
+        userData.AddSkill(basicAttackSkill);
+
+        // 基本防御スキル（スキルID:2）
+        var basicDefenseSkill = new UserSkillData(skillMasterId: 2);
+        userData.AddSkill(basicDefenseSkill);
     }
 
     /// <summary>
@@ -170,6 +187,57 @@ public static class UserDataUtility
     public static List<UserItemData> GetNewItems(List<UserItemData> items)
     {
         return items.Where(item => item.isNew).ToList();
+    }
+
+    /// <summary>
+    /// スキルをレアリティでフィルタリング
+    /// </summary>
+    public static List<UserSkillData> FilterSkillsByRarity(List<UserSkillData> skills, RarityType rarity, Dictionary<int, SkillMasterData> skillMasterDict)
+    {
+        return skills.Where(skill =>
+            skillMasterDict.ContainsKey(skill.skillMasterId) &&
+            skillMasterDict[skill.skillMasterId].rarity == rarity
+        ).ToList();
+    }
+
+    /// <summary>
+    /// スキルを属性でフィルタリング
+    /// </summary>
+    public static List<UserSkillData> FilterSkillsByAttribute(List<UserSkillData> skills, AttributeType attributeType, Dictionary<int, SkillMasterData> skillMasterDict)
+    {
+        return skills.Where(skill =>
+            skillMasterDict.ContainsKey(skill.skillMasterId) &&
+            skillMasterDict[skill.skillMasterId].attributeType == attributeType
+        ).ToList();
+    }
+
+    /// <summary>
+    /// スキルをターゲットタイプでフィルタリング
+    /// </summary>
+    public static List<UserSkillData> FilterSkillsByTargetType(List<UserSkillData> skills, TargetType targetType, Dictionary<int, SkillMasterData> skillMasterDict)
+    {
+        return skills.Where(skill =>
+            skillMasterDict.ContainsKey(skill.skillMasterId) &&
+            skillMasterDict[skill.skillMasterId].skillTargetType == targetType
+        ).ToList();
+    }
+
+    /// <summary>
+    /// スキルを取得日でソート
+    /// </summary>
+    public static List<UserSkillData> SortSkillsByAcquiredDate(List<UserSkillData> skills, bool descending = true)
+    {
+        return descending
+            ? skills.OrderByDescending(skill => skill.acquiredDate).ToList()
+            : skills.OrderBy(skill => skill.acquiredDate).ToList();
+    }
+
+    /// <summary>
+    /// 新規取得スキルのみを取得
+    /// </summary>
+    public static List<UserSkillData> GetNewSkills(List<UserSkillData> skills)
+    {
+        return skills.Where(skill => skill.isNew).ToList();
     }
 
     /// <summary>
@@ -267,9 +335,11 @@ public static class UserDataUtility
 ゴールド: {userData.gold:N0}
 ジェム: {userData.gems}
 装備数: {userData.equipments.Count}
+スキル数: {userData.skills.Count}
 強化アイテム: {itemSummary.totalEnhanceItems}種類 {itemSummary.totalEnhanceQuantity}個
 補助アイテム: {itemSummary.totalSupportItems}種類 {itemSummary.totalSupportQuantity}個
 新規アイテム: {itemSummary.newItemCount}個
+新規スキル: {userData.skills.Count(s => s.isNew)}個
 最終ログイン: {userData.lastLoginDate:yyyy/MM/dd HH:mm}";
     }
 
@@ -312,6 +382,26 @@ public static class UserDataUtility
 
             if (item.quantity > item.maxStackQuantity)
                 errors.Add($"アイテム数量がスタック上限を超過: {item.userItemId}");
+        }
+
+        // スキルデータチェック
+        var duplicateSkillIds = userData.skills
+            .GroupBy(skill => skill.userSkillId)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key);
+
+        foreach (var duplicateId in duplicateSkillIds)
+            errors.Add($"重複するスキルID: {duplicateId}");
+
+        // 装備とスキルの関連性チェック
+        foreach (var equipment in userData.equipments)
+        {
+            if (!string.IsNullOrEmpty(equipment.equippedSkillId))
+            {
+                var skill = userData.GetSkill(equipment.equippedSkillId);
+                if (skill == null)
+                    errors.Add($"装備 {equipment.userEquipmentId} に存在しないスキル {equipment.equippedSkillId} が装着されています");
+            }
         }
 
         return errors;

@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc6c93fbbb2fd5345a5ed245b86f7402, type: 3}
+  m_Name: "Skill_011_\u706B\u9041\u306E\u8853"
+  m_EditorClassIdentifier: 
+  skillId: 11
+  skillName: "\u706B\u9041\u306E\u8853"
+  skillType: 0
+  attributeType: 1
+  rarity: 2
+  skillDamageMultiplier: 1.3
+  skillTargetType: 1
+  skillTargetCharacter: 
+  skillMaxCoolTime: 3
+  skillHpCost: 0
+  skillMpCost: 0
+  skillEffect: poison
+  skillEffectTargetCharacter: 
+  skillEffectChance: 100
+  skillEffectChanceBoss: 10
+  skillEffectDuration: 2
+  skillIcon: {fileID: 21300000, guid: 4e2d77b4db679e64aa06e1a11b5f96a0, type: 3}
+  skillIconPath: 
+  skillAnimationPath: 
+  skillSoundPath: 
+  description: "\u5F37\u529B\u306A\u706B\u5C5E\u6027\u653B\u6483\u3067\u6BD2\u72B6\u614B\u306B\u3059\u308B"
+  completionFlag: 1
+  collectionFlag: 1

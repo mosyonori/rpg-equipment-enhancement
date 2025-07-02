@@ -1,0 +1,8 @@
+status_effect_id,status_effect_name,status_effect_type,description,effect_type,stackable,offense_modifier,defense_modifier,offense_multiplier,defense_multiplier,fire_offense_multiplier,water_offense_multiplier,wind_offense_multiplier,earth_offense_multiplier,prevent_action,turn_start_damage_percent,turn_start_heal_percent,skill_effect_icon_id,color_code,skill_effect_priority
+1,攻撃力低下,attack_down,攻撃力と各属性攻撃が30%低下する,StatusModifier,0,0,0,0.7,1,0.7,0.7,0.7,0.7,0,0,0,,#4169e1,100
+2,防御力低下,defense_down,防御力が50%低下する,StatusModifier,0,0,0,1,0.5,1,1,1,1,0,0,0,,#4169e1,100
+3,攻撃力増加,attack_up,攻撃力と各属性攻撃が50%増加する,StatusModifier,0,0,0,1.5,1,1.5,1.5,1.5,1.5,0,0,0,,#ff6347,100
+4,防御力増加,defense_up,防御力が70%増加する,StatusModifier,0,0,0,1,1.7,1,1,1,1,0,0,0,,#ff6347,100
+6,気絶,stun,行動不能状態,ActionBlock,0,0,0,1,1,1,1,1,1,1,0,0,,#4169e1,200
+7,毒,poison,ターン開始時に最大HPの5%のダメージを受ける,Damage,0,0,0,1,1,1,1,1,1,0,5,0,,#4169e1,100
+8,継続回復,regen,ターン開始時に最大HPの10%分HPを回復する,Heal,0,0,0,1,1,1,1,1,1,0,0,10,,#ff6347,100

@@ -80,10 +80,12 @@ public class EquipmentSelectionPopup : MonoBehaviour
             confirmButton.onClick.AddListener(ConfirmSelection);
         }
 
-        // 従来の装備解除ボタンがある場合の初期化
+        // 従来の装備解除ボタンを無効化（Grid内のボタンを使用するため）
         if (removeEquipmentButton != null)
         {
-            removeEquipmentButton.onClick.AddListener(RemoveEquipment);
+            removeEquipmentButton.gameObject.SetActive(false); // 非表示にする
+            // または以下のコメントアウトでも可
+            // removeEquipmentButton.onClick.AddListener(RemoveEquipment);
         }
     }
 
@@ -92,12 +94,15 @@ public class EquipmentSelectionPopup : MonoBehaviour
     #region 公開メソッド
 
     /// <summary>
-    /// 装備選択ポップアップを表示
+    /// 装備選択ポップアップを表示（修正版）
     /// </summary>
     public void ShowEquipmentSelection(EquipmentType equipmentType)
     {
         currentEquipmentType = equipmentType;
         selectedEquipment = null;
+
+        // === 追加: 他のポップアップを確実に非表示 ===
+        EnsureOtherPopupsHidden();
 
         // タイトル設定
         UpdateTitle();
@@ -112,6 +117,22 @@ public class EquipmentSelectionPopup : MonoBehaviour
         ShowPopup();
 
         DebugLog($"装備選択ポップアップを表示: {equipmentType}");
+    }
+
+    /// <summary>
+    /// 他のポップアップを確実に非表示にする
+    /// </summary>
+    private void EnsureOtherPopupsHidden()
+    {
+        // SkillSelectionPopupを非表示にする
+        // 非推奨のFindObjectOfTypeの代わりにFindFirstObjectByTypeを使用
+        var skillPopup = FindFirstObjectByType<SkillSelectionPopup>();
+        if (skillPopup != null)
+        {
+            skillPopup.HidePopup();
+        }
+
+        DebugLog("他のポップアップを非表示にしました");
     }
 
     /// <summary>
@@ -189,11 +210,11 @@ public class EquipmentSelectionPopup : MonoBehaviour
     }
 
     /// <summary>
-    /// 全スロットをクリア
+    /// 全スロットをクリア（安全版）
     /// </summary>
     private void ClearAllSlots()
     {
-        // 装備スロットを破棄
+        // 装備スロットを破壊
         foreach (var slot in equipmentSlots)
         {
             if (slot != null && slot.gameObject != null)
@@ -203,14 +224,66 @@ public class EquipmentSelectionPopup : MonoBehaviour
         }
         equipmentSlots.Clear();
 
-        // 装備解除スロットを破棄
+        // 装備解除スロットを破壊
         if (removeEquipmentSlot != null)
         {
             DestroyImmediate(removeEquipmentSlot);
             removeEquipmentSlot = null;
         }
 
+        // グリッド内の全ての子オブジェクトを安全に削除
+        ClearAllGridChildrenSafe();
+
         DebugLog("全スロットをクリアしました");
+    }
+
+
+    /// <summary>
+    /// グリッド内の全ての子オブジェクトを安全に削除
+    /// </summary>
+    private void ClearAllGridChildrenSafe()
+    {
+        if (equipmentGridParent == null) return;
+
+        // 子オブジェクトのリストを事前に取得（破壊中の参照エラーを避けるため）
+        List<Transform> childrenToDestroy = new List<Transform>();
+
+        for (int i = 0; i < equipmentGridParent.childCount; i++)
+        {
+            var child = equipmentGridParent.GetChild(i);
+            if (child != null)
+            {
+                childrenToDestroy.Add(child);
+            }
+        }
+
+        // 事前に取得したリストから安全に削除
+        foreach (var child in childrenToDestroy)
+        {
+            if (child != null && child.gameObject != null)
+            {
+                // デバッグログは削除前に出力
+                string childName = child.name;
+                string componentType = "Unknown";
+
+                var skillSlot = child.GetComponent<SkillSlotUI>();
+                var equipmentSlot = child.GetComponent<EquipmentSlotUI>();
+
+                if (skillSlot != null)
+                    componentType = "SkillSlotUI";
+                else if (equipmentSlot != null)
+                    componentType = "EquipmentSlotUI";
+                else
+                    componentType = "Other";
+
+                DebugLog($"グリッド子オブジェクトを削除: {childName} - {componentType}");
+
+                // オブジェクトを削除
+                DestroyImmediate(child.gameObject);
+            }
+        }
+
+        DebugLog($"グリッド内の{childrenToDestroy.Count}個のオブジェクトを削除しました");
     }
 
     /// <summary>

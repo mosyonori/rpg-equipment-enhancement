@@ -52,6 +52,7 @@ public class InventoryManager : MonoBehaviour
     }
 
     // 修正: Start()からイベント購読を削除（初期化完了後に行う）
+    // ===== OnDestroy()メソッドに追加 =====
     private void OnDestroy()
     {
         // イベント購読解除
@@ -59,6 +60,12 @@ public class InventoryManager : MonoBehaviour
         {
             SaveDataManager.OnDataLoaded -= OnSaveDataLoaded;
             SaveDataManager.OnDataSaved -= OnSaveDataSaved;
+        }
+
+        // スキルマネージャーのイベント解除追加
+        if (SkillManager.Instance != null)
+        {
+            SkillManager.OnSkillInventoryChanged -= OnInventoryChanged;
         }
     }
 
@@ -93,6 +100,8 @@ public class InventoryManager : MonoBehaviour
         DebugLogError("MasterDataManagerとSaveDataManagerがシーンに配置され、正常に初期化されているか確認してください");
     }
 
+  
+    // ===== CheckDependencies()メソッドにSkillManager追加 =====
     /// <summary>
     /// 依存するマネージャーの初期化チェック
     /// </summary>
@@ -125,13 +134,219 @@ public class InventoryManager : MonoBehaviour
             return false;
         }
 
+        // SkillManagerチェック（追加）
+        if (SkillManager.Instance == null)
+        {
+            DebugLog("SkillManager.Instanceがnullです");
+            return false;
+        }
+
+        if (!SkillManager.Instance.IsInitialized)
+        {
+            DebugLog($"SkillManagerの初期化が未完了です (IsInitialized: {SkillManager.Instance.IsInitialized})");
+            return false;
+        }
+
         DebugLog("全ての依存関係が満たされています");
         return true;
     }
 
+    // ===== 新規メソッド追加: IsManagersReady() =====
+    /// <summary>
+    /// 全マネージャーの準備完了チェック（UI層用）
+    /// </summary>
+    private bool IsManagersReady()
+    {
+        return IsInitialized &&
+               SaveDataManager.Instance != null &&
+               SaveDataManager.Instance.IsDataLoaded &&
+               MasterDataManager.Instance != null &&
+               MasterDataManager.Instance.IsDataLoaded &&
+               SkillManager.Instance != null &&
+               SkillManager.Instance.IsInitialized;
+    }
+
+    // ===== 新規セクション追加: スキル橋渡しメソッド =====
+    #region スキル橋渡しメソッド（SkillManager連携）
+
+    /// <summary>
+    /// 全スキル一覧を取得（SkillManagerへの橋渡し）
+    /// </summary>
+    public List<UserSkillData> GetAllSkills()
+    {
+        if (!IsSkillManagerReady()) return new List<UserSkillData>();
+
+        return SkillManager.Instance.GetAllSkills();
+    }
+
+    /// <summary>
+    /// レアリティ別スキル一覧を取得
+    /// </summary>
+    public List<UserSkillData> GetSkillsByRarity(RarityType rarity)
+    {
+        if (!IsSkillManagerReady()) return new List<UserSkillData>();
+
+        return SkillManager.Instance.GetSkillsByRarity(rarity);
+    }
+
+    /// <summary>
+    /// 属性別スキル一覧を取得
+    /// </summary>
+    public List<UserSkillData> GetSkillsByAttribute(AttributeType attributeType)
+    {
+        if (!IsSkillManagerReady()) return new List<UserSkillData>();
+
+        return SkillManager.Instance.GetSkillsByAttribute(attributeType);
+    }
+
+    /// <summary>
+    /// ターゲットタイプ別スキル一覧を取得
+    /// </summary>
+    public List<UserSkillData> GetSkillsByTargetType(TargetType targetType)
+    {
+        if (!IsSkillManagerReady()) return new List<UserSkillData>();
+
+        return SkillManager.Instance.GetSkillsByTargetType(targetType);
+    }
+
+    /// <summary>
+    /// 新規取得スキルを取得
+    /// </summary>
+    public List<UserSkillData> GetNewSkills()
+    {
+        if (!IsSkillManagerReady()) return new List<UserSkillData>();
+
+        return SkillManager.Instance.GetNewSkills();
+    }
+
+    /// <summary>
+    /// 装備可能なスキル一覧を取得
+    /// </summary>
+    public List<UserSkillData> GetAvailableSkills()
+    {
+        if (!IsSkillManagerReady()) return new List<UserSkillData>();
+
+        return SkillManager.Instance.GetAvailableSkills();
+    }
+
+    /// <summary>
+    /// 装備中のスキル一覧を取得
+    /// </summary>
+    public List<UserSkillData> GetEquippedSkills()
+    {
+        if (!IsSkillManagerReady()) return new List<UserSkillData>();
+
+        return SkillManager.Instance.GetEquippedSkills();
+    }
+
+    /// <summary>
+    /// 個別スキルを取得
+    /// </summary>
+    public UserSkillData GetSkill(string userSkillId)
+    {
+        if (!IsSkillManagerReady()) return null;
+
+        return SkillManager.Instance.GetSkill(userSkillId);
+    }
+
+    /// <summary>
+    /// スキルを取得日でソート
+    /// </summary>
+    public List<UserSkillData> SortSkillsByAcquiredDate(bool descending = true)
+    {
+        if (!IsSkillManagerReady()) return new List<UserSkillData>();
+
+        return SkillManager.Instance.SortSkillsByAcquiredDate(descending);
+    }
+
+    /// <summary>
+    /// スキルを検索
+    /// </summary>
+    public List<UserSkillData> SearchSkills(Func<UserSkillData, bool> predicate)
+    {
+        if (!IsSkillManagerReady()) return new List<UserSkillData>();
+
+        return SkillManager.Instance.SearchSkills(predicate);
+    }
+
+    /// <summary>
+    /// スキルの新規フラグをクリア
+    /// </summary>
+    public void ClearSkillNewFlag(string userSkillId)
+    {
+        if (!IsSkillManagerReady()) return;
+
+        SkillManager.Instance.ClearSkillNewFlag(userSkillId);
+    }
+
+    /// <summary>
+    /// 全スキルの新規フラグをクリア
+    /// </summary>
+    public void ClearAllSkillNewFlags()
+    {
+        if (!IsSkillManagerReady()) return;
+
+        SkillManager.Instance.ClearAllNewFlags();
+    }
+
+    /// <summary>
+    /// スキルのロック状態を切り替え
+    /// </summary>
+    public bool ToggleSkillLock(string userSkillId)
+    {
+        if (!IsSkillManagerReady()) return false;
+
+        return SkillManager.Instance.ToggleSkillLock(userSkillId);
+    }
+
+    /// <summary>
+    /// スキル追加（デバッグ・テスト用）
+    /// </summary>
+    public bool AddSkill(int skillMasterId)
+    {
+        if (!IsSkillManagerReady()) return false;
+
+        return SkillManager.Instance.AddSkill(skillMasterId);
+    }
+
+    /// <summary>
+    /// スキル削除（デバッグ・テスト用）
+    /// </summary>
+    public bool RemoveSkill(string userSkillId)
+    {
+        if (!IsSkillManagerReady()) return false;
+
+        return SkillManager.Instance.RemoveSkill(userSkillId);
+    }
+
+    /// <summary>
+    /// SkillManager準備完了チェック
+    /// </summary>
+    private bool IsSkillManagerReady()
+    {
+        if (SkillManager.Instance == null)
+        {
+            DebugLog("SkillManager.Instanceがnullです");
+            return false;
+        }
+
+        if (!SkillManager.Instance.IsInitialized)
+        {
+            DebugLog("SkillManagerが初期化されていません");
+            return false;
+        }
+
+        return true;
+    }
+
+    #endregion
+
+
+
     /// <summary>
     /// マネージャーの初期化
     /// </summary>
+    // ===== Initialize()メソッドに追加 =====
     private void Initialize()
     {
         if (IsInitialized)
@@ -145,13 +360,19 @@ public class InventoryManager : MonoBehaviour
         // 依存するマネージャーの最終チェック
         if (!CheckDependencies())
         {
-            DebugLogError("初期化時に依存関係チェックに失敗しました");
+            DebugLogError("初期化後に依存関係チェックに失敗しました");
             return;
         }
 
         // イベント購読をここで行う
         SaveDataManager.OnDataLoaded += OnSaveDataLoaded;
         SaveDataManager.OnDataSaved += OnSaveDataSaved;
+
+        // スキルマネージャーのイベント追加
+        if (SkillManager.Instance != null)
+        {
+            SkillManager.OnSkillInventoryChanged += OnInventoryChanged;
+        }
 
         // 既にデータが読み込まれている場合は即座に初期化
         if (SaveData != null)
@@ -934,6 +1155,7 @@ public class InventoryManager : MonoBehaviour
 
     #region ユーティリティ
 
+    // ===== ValidateInventoryData()メソッドに追加 =====
     /// <summary>
     /// インベントリデータの整合性をチェック
     /// </summary>
@@ -946,6 +1168,13 @@ public class InventoryManager : MonoBehaviour
         // 装備の重複チェックを追加
         var equipmentDuplicateErrors = CheckEquipmentDuplicates();
         errors.AddRange(equipmentDuplicateErrors);
+
+        // スキルデータ検証追加
+        if (IsSkillManagerReady())
+        {
+            var skillErrors = SkillManager.Instance.ValidateSkillData();
+            errors.AddRange(skillErrors);
+        }
 
         return errors;
     }
@@ -998,6 +1227,10 @@ public class InventoryManager : MonoBehaviour
     /// <summary>
     /// インベントリの統計情報を取得
     /// </summary>
+    // ===== GetInventoryStatistics()メソッドに追加 =====
+    /// <summary>
+    /// インベントリの統計情報を取得
+    /// </summary>
     public string GetInventoryStatistics()
     {
         if (!IsInitialized) return "データが読み込まれていません";
@@ -1007,6 +1240,9 @@ public class InventoryManager : MonoBehaviour
         var totalPower = CalculateTotalPower();
         var enhancableCount = GetEnhancableEquipmentCount();
 
+        // スキル統計追加
+        var skillSummary = GetSkillInventorySummary();
+
         return $@"=== インベントリ統計 ===
 装備数: {SaveData.equipments.Count}/{maxEquipmentSlots} (空き: {availableSlots})
 強化アイテム: {summary.totalEnhanceItems}種類 {summary.totalEnhanceQuantity}個
@@ -1014,7 +1250,23 @@ public class InventoryManager : MonoBehaviour
 新規アイテム: {summary.newItemCount}個
 合計戦闘力: {totalPower}
 強化可能装備: {enhancableCount}個
-使用率: {GetInventoryUsageRate():P1}";
+使用率: {GetInventoryUsageRate():P1}
+
+=== スキル統計 ===
+スキル数: {skillSummary.totalSkills}個
+新規スキル: {skillSummary.newSkillCount}個
+装備中スキル: {skillSummary.equippedSkillCount}個
+利用可能スキル: {skillSummary.availableSkillCount}個";
+    }
+
+    /// <summary>
+    /// スキルインベントリサマリーを取得
+    /// </summary>
+    public SkillInventorySummary GetSkillInventorySummary()
+    {
+        if (!IsSkillManagerReady()) return new SkillInventorySummary();
+
+        return SkillManager.Instance.GetSkillInventorySummary();
     }
 
     /// <summary>
@@ -1077,6 +1329,17 @@ equippedItemsCache Count: {equippedItemsCache?.Count ?? 0}
         if (!IsInitialized) return 0;
 
         return SaveData.items.Count(predicate);
+    }
+
+    // ===== CountItems()メソッドにスキル用オーバーロード追加 =====
+    /// <summary>
+    /// 特定の条件に一致するスキルの数を取得
+    /// </summary>
+    public int CountSkills(Func<UserSkillData, bool> predicate)
+    {
+        if (!IsSkillManagerReady()) return 0;
+
+        return SkillManager.Instance.CountSkills(predicate);
     }
 
     /// <summary>
@@ -1175,6 +1438,56 @@ equippedItemsCache Count: {equippedItemsCache?.Count ?? 0}
     private void ShowDetailedStatus()
     {
         Debug.Log(GetDetailedInventoryStatus());
+    }
+#endif
+
+    // ===== エディター用ツール追加 =====
+#if UNITY_EDITOR
+    [ContextMenu("スキル統計を表示")]
+    private void ShowSkillStatistics()
+    {
+        if (IsSkillManagerReady())
+        {
+            Debug.Log(SkillManager.Instance.GetSkillStatistics());
+        }
+        else
+        {
+            Debug.LogWarning("SkillManagerが準備できていません");
+        }
+    }
+
+    [ContextMenu("テストスキルを追加")]
+    private void AddTestSkill()
+    {
+        bool success = AddSkill(1); // 基本攻撃スキル
+        Debug.Log($"テストスキル追加: {(success ? "成功" : "失敗")}");
+    }
+
+    [ContextMenu("スキルデータを検証")]
+    private void ValidateSkills()
+    {
+        if (IsSkillManagerReady())
+        {
+            var errors = SkillManager.Instance.ValidateSkillData();
+            if (errors.Count == 0)
+            {
+                Debug.Log("スキルデータに問題はありません");
+            }
+            else
+            {
+                Debug.LogError($"スキルデータに{errors.Count}個の問題があります:\n" + string.Join("\n", errors));
+            }
+        }
+        else
+        {
+            Debug.LogWarning("SkillManagerが準備できていません");
+        }
+    }
+
+    [ContextMenu("統合インベントリ統計を表示")]
+    private void ShowIntegratedStatistics()
+    {
+        Debug.Log(GetInventoryStatistics());
     }
 #endif
 

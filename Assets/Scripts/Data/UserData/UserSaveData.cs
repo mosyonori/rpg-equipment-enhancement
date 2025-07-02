@@ -36,6 +36,13 @@ public class UserSaveData
     [Header("アイテムデータ")]
     public List<UserItemData> items;                    // 所持アイテムリスト
 
+    [Header("スキルデータ")]
+    public List<UserSkillData> skills;                  // 所持スキルリスト
+
+    [Header("戦闘用スキル")]
+    public string battleSkill1Id = "";                  // 戦闘用スキル1のID
+    public string battleSkill2Id = "";                  // 戦闘用スキル2のID
+
     [Header("設定・フラグ")]
     public GameSettings gameSettings;                   // ゲーム設定
     public List<string> clearedStages;                  // クリア済みステージリスト
@@ -72,6 +79,11 @@ public class UserSaveData
         equippedAccessoryIds = new List<string>();
 
         items = new List<UserItemData>();
+        skills = new List<UserSkillData>();
+
+        // 戦闘用スキル初期化
+        battleSkill1Id = "";
+        battleSkill2Id = "";
 
         gameSettings = new GameSettings();
         clearedStages = new List<string>();
@@ -166,6 +178,88 @@ public class UserSaveData
     }
 
     /// <summary>
+    /// スキルを追加
+    /// </summary>
+    public void AddSkill(UserSkillData skill)
+    {
+        if (skill == null) return;
+        skills.Add(skill);
+    }
+
+    /// <summary>
+    /// スキルを削除
+    /// </summary>
+    public bool RemoveSkill(string userSkillId)
+    {
+        // 戦闘用スキルに設定されている場合は解除
+        if (battleSkill1Id == userSkillId)
+        {
+            battleSkill1Id = "";
+        }
+        if (battleSkill2Id == userSkillId)
+        {
+            battleSkill2Id = "";
+        }
+
+        return skills.RemoveAll(s => s.userSkillId == userSkillId) > 0;
+    }
+
+    /// <summary>
+    /// スキルを取得
+    /// </summary>
+    public UserSkillData GetSkill(string userSkillId)
+    {
+        return skills.Find(s => s.userSkillId == userSkillId);
+    }
+
+    /// <summary>
+    /// 戦闘用スキルを設定
+    /// </summary>
+    public bool SetBattleSkill(int slotNumber, string skillId)
+    {
+        if (slotNumber == 1)
+        {
+            battleSkill1Id = skillId ?? "";
+            return true;
+        }
+        else if (slotNumber == 2)
+        {
+            battleSkill2Id = skillId ?? "";
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 戦闘用スキルを取得
+    /// </summary>
+    public string GetBattleSkill(int slotNumber)
+    {
+        return slotNumber switch
+        {
+            1 => battleSkill1Id,
+            2 => battleSkill2Id,
+            _ => ""
+        };
+    }
+
+    /// <summary>
+    /// 戦闘用スキルに設定されているかチェック
+    /// </summary>
+    public bool IsBattleSkillEquipped(string skillId)
+    {
+        return battleSkill1Id == skillId || battleSkill2Id == skillId;
+    }
+
+    /// <summary>
+    /// 戦闘用スキルをクリア
+    /// </summary>
+    public void ClearBattleSkill(int slotNumber)
+    {
+        SetBattleSkill(slotNumber, "");
+    }
+
+    /// <summary>
     /// 装備をキャラクターに装着
     /// </summary>
     public bool EquipItem(string userEquipmentId, string characterId, EquipmentMasterData masterData)
@@ -243,7 +337,6 @@ public class UserSaveData
 
         return true;
     }
-
 
     /// <summary>
     /// 最終ログイン日時を更新

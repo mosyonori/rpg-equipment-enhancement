@@ -1,6 +1,8 @@
 using System;
-using System.IO;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -110,6 +112,7 @@ public class SaveDataManager : MonoBehaviour
 
     #region 公開メソッド
 
+    // ===== LoadSaveData()メソッドにスキル検証追加 =====
     /// <summary>
     /// セーブデータを読み込み
     /// </summary>
@@ -136,8 +139,26 @@ public class SaveDataManager : MonoBehaviour
                     // スタミナ回復処理
                     CurrentSaveData.RecoverStamina(100, 1); // 最大100、1分間に1回復
 
+                    // スキルデータの検証と修復
+                    var skillErrors = ValidateSkillData();
+                    if (skillErrors.Count > 0)
+                    {
+                        DebugLog($"スキルデータに{skillErrors.Count}個の問題を検出し、自動修復を実行しました");
+                        foreach (var error in skillErrors.Take(5)) // 最初の5個のエラーのみログ出力
+                        {
+                            DebugLog($"- {error}");
+                        }
+                    }
+
+                    // 無効なスキルデータをクリーンアップ
+                    int cleanedSkills = CleanupSkillData();
+                    if (cleanedSkills > 0)
+                    {
+                        DebugLog($"スキルデータクリーンアップ: {cleanedSkills}個の無効データを除去");
+                    }
+
                     IsDataLoaded = true;
-                    isDirty = true; // ログイン日時更新により変更フラグを立てる
+                    isDirty = true; // ログイン日時更新等により変更フラグを立てる
 
                     DebugLog($"セーブデータを読み込みました: {CurrentSaveData.playerName}");
                     OnDataLoaded?.Invoke(CurrentSaveData);
@@ -156,11 +177,12 @@ public class SaveDataManager : MonoBehaviour
             DebugLogError(error);
             OnLoadError?.Invoke(error);
 
-            // エラー時は新規データを作成
+            // エラー後は新規データを作成
             CreateNewSaveData();
             return false;
         }
     }
+
 
     /// <summary>
     /// セーブデータを保存
@@ -205,6 +227,7 @@ public class SaveDataManager : MonoBehaviour
         }
     }
 
+    // ===== CreateNewSaveData()メソッドに追加 =====
     /// <summary>
     /// 新規セーブデータを作成
     /// </summary>
@@ -288,6 +311,7 @@ public class SaveDataManager : MonoBehaviour
         return File.Exists(SaveFilePath);
     }
 
+    // ===== SetSaveData()メソッドを修正 =====
     /// <summary>
     /// 外部からセーブデータを設定（エディター用）
     /// </summary>
@@ -315,6 +339,186 @@ public class SaveDataManager : MonoBehaviour
         OnDataLoaded?.Invoke(CurrentSaveData);
     }
 
+    // ===== 新規メソッド追加: スキル統計情報 =====
+    /// <summary>
+    /// スキル関連の統計情報を文字列で取得
+    /// </summary>
+    public string GetSkillDataSummary()
+    {
+        if (CurrentSaveData?.skills == null)
+            return "スキルデータなし";
+
+        int totalSkillCount = CurrentSaveData.skills.Count;
+        int newSkillCount = CurrentSaveData.skills.Count(s => s.isNew);
+        int lockedSkillCount = CurrentSaveData.skills.Count(s => s.isLocked);
+
+        // バトルスキル設定状況
+        bool hasBattleSkill1 = !string.IsNullOrEmpty(CurrentSaveData.battleSkill1Id);
+        bool hasBattleSkill2 = !string.IsNullOrEmpty(CurrentSaveData.battleSkill2Id);
+
+        // 装備中スキル数（装備にスキルが装着されている数）
+        int equippedSkillCount = CurrentSaveData.equipments?.Count(eq => !string.IsNullOrEmpty(eq.equippedSkillId)) ?? 0;
+
+        return $@"=== スキル統計 ===
+総スキル数: {totalSkillCount}
+新規スキル: {newSkillCount}
+ロック中スキル: {lockedSkillCount}
+装備中スキル: {equippedSkillCount}
+バトルスキル1: {(hasBattleSkill1 ? "設定済み" : "未設定")} ({CurrentSaveData.battleSkill1Id})
+バトルスキル2: {(hasBattleSkill2 ? "設定済み" : "未設定")} ({CurrentSaveData.battleSkill2Id})";
+    }
+
+
+    // ===== 新規メソッド追加: スキルデータ検証 =====
+    /// <summary>
+    /// スキルデータの整合性をチェック
+    /// </summary>
+    public List<string> ValidateSkillData()
+    {
+        var errors = new List<string>();
+
+        if (CurrentSaveData == null)
+        {
+            errors.Add("セーブデータが読み込まれていません");
+            return errors;
+        }
+
+        // スキルデータの基本検証
+        if (CurrentSaveData.skills == null)
+        {
+            errors.Add("スキルリストがnullです");
+            CurrentSaveData.skills = new List<UserSkillData>();
+            MarkDataDirty();
+        }
+
+        // バトルスキルの検証
+        ValidateBattleSkills(errors);
+
+        // スキル重複チェック
+        var duplicateSkills = CurrentSaveData.skills
+            .GroupBy(s => s.userSkillId)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key);
+
+        foreach (var duplicateId in duplicateSkills)
+        {
+            errors.Add($"重複するスキルID: {duplicateId}");
+        }
+
+        // 存在しないマスターIDのチェック
+        if (MasterDataManager.Instance != null && MasterDataManager.Instance.IsDataLoaded)
+        {
+            foreach (var skill in CurrentSaveData.skills)
+            {
+                var masterData = MasterDataManager.Instance.GetSkillData(skill.skillMasterId);
+                if (masterData == null)
+                {
+                    errors.Add($"存在しないスキルマスターID: {skill.skillMasterId} (UserSkillId: {skill.userSkillId})");
+                }
+            }
+        }
+
+        return errors;
+    }
+
+    /// <summary>
+    /// バトルスキルの整合性をチェック
+    /// </summary>
+    private void ValidateBattleSkills(List<string> errors)
+    {
+        // バトルスキル1の検証
+        if (!string.IsNullOrEmpty(CurrentSaveData.battleSkill1Id))
+        {
+            var battleSkill1 = CurrentSaveData.GetSkill(CurrentSaveData.battleSkill1Id);
+            if (battleSkill1 == null)
+            {
+                errors.Add($"バトルスキル1のスキルが見つかりません: {CurrentSaveData.battleSkill1Id}");
+                CurrentSaveData.battleSkill1Id = "";
+                MarkDataDirty();
+            }
+        }
+
+        // バトルスキル2の検証
+        if (!string.IsNullOrEmpty(CurrentSaveData.battleSkill2Id))
+        {
+            var battleSkill2 = CurrentSaveData.GetSkill(CurrentSaveData.battleSkill2Id);
+            if (battleSkill2 == null)
+            {
+                errors.Add($"バトルスキル2のスキルが見つかりません: {CurrentSaveData.battleSkill2Id}");
+                CurrentSaveData.battleSkill2Id = "";
+                MarkDataDirty();
+            }
+        }
+
+        // 同じスキルが両方に設定されていないかチェック
+        if (!string.IsNullOrEmpty(CurrentSaveData.battleSkill1Id) &&
+            !string.IsNullOrEmpty(CurrentSaveData.battleSkill2Id) &&
+            CurrentSaveData.battleSkill1Id == CurrentSaveData.battleSkill2Id)
+        {
+            errors.Add("同じスキルがバトルスキル1と2の両方に設定されています");
+            CurrentSaveData.battleSkill2Id = "";
+            MarkDataDirty();
+        }
+    }
+
+
+
+
+
+    // ===== 新規メソッド追加: スキルデータクリーンアップ =====
+    /// <summary>
+    /// 無効なスキルデータを自動修復
+    /// </summary>
+    public int CleanupSkillData()
+    {
+        if (CurrentSaveData?.skills == null)
+            return 0;
+
+        int cleanedCount = 0;
+        var validSkills = new List<UserSkillData>();
+
+        foreach (var skill in CurrentSaveData.skills)
+        {
+            bool isValid = true;
+
+            // 基本的な整合性チェック
+            if (string.IsNullOrEmpty(skill.userSkillId))
+            {
+                DebugLog($"無効なスキルを除去: userSkillIdが空");
+                isValid = false;
+                cleanedCount++;
+            }
+            else if (skill.skillMasterId <= 0)
+            {
+                DebugLog($"無効なスキルを除去: 無効なmasterId {skill.skillMasterId}");
+                isValid = false;
+                cleanedCount++;
+            }
+            else if (MasterDataManager.Instance?.GetSkillData(skill.skillMasterId) == null)
+            {
+                DebugLog($"無効なスキルを除去: 存在しないmasterId {skill.skillMasterId}");
+                isValid = false;
+                cleanedCount++;
+            }
+
+            if (isValid)
+            {
+                validSkills.Add(skill);
+            }
+        }
+
+        if (cleanedCount > 0)
+        {
+            CurrentSaveData.skills = validSkills;
+            MarkDataDirty();
+            DebugLog($"スキルデータクリーンアップ完了: {cleanedCount}個の無効データを除去");
+        }
+
+        return cleanedCount;
+    }
+
+
+    // ===== DelayedCacheRefresh()メソッドを修正 =====
     /// <summary>
     /// 遅延キャッシュ更新
     /// </summary>
@@ -326,6 +530,13 @@ public class SaveDataManager : MonoBehaviour
         {
             InventoryManager.Instance.RefreshCache();
             DebugLog("InventoryManagerのキャッシュを自動更新しました");
+        }
+
+        // SkillManagerのキャッシュ更新追加
+        if (SkillManager.Instance != null && SkillManager.Instance.IsInitialized)
+        {
+            SkillManager.Instance.RefreshCache();
+            DebugLog("SkillManagerのキャッシュを自動更新しました");
         }
     }
 
@@ -522,6 +733,60 @@ public class SaveDataManager : MonoBehaviour
     private void CreateNewSave()
     {
         CreateNewSaveData("テストプレイヤー");
+    }
+#endif
+
+    // ===== エディター用ツール追加 =====
+#if UNITY_EDITOR
+    [ContextMenu("スキルデータを検証")]
+    private void ValidateSkillDataEditor()
+    {
+        var errors = ValidateSkillData();
+        if (errors.Count == 0)
+        {
+            Debug.Log("スキルデータに問題はありません");
+        }
+        else
+        {
+            Debug.LogWarning($"スキルデータに{errors.Count}個の問題があります:\n" + string.Join("\n", errors));
+        }
+    }
+
+    [ContextMenu("スキルデータをクリーンアップ")]
+    private void CleanupSkillDataEditor()
+    {
+        int cleaned = CleanupSkillData();
+        Debug.Log($"スキルデータクリーンアップ完了: {cleaned}個のデータを修復");
+    }
+
+    [ContextMenu("スキル統計を表示")]
+    private void ShowSkillStatistics()
+    {
+        string summary = GetSkillDataSummary();
+        Debug.Log(summary);
+    }
+
+    [ContextMenu("テストスキルを追加")]
+    private void AddTestSkillData()
+    {
+        if (CurrentSaveData?.skills == null)
+        {
+            Debug.LogWarning("セーブデータが読み込まれていません");
+            return;
+        }
+
+        // テスト用スキルデータを追加
+        if (MasterDataManager.Instance?.GetSkillData(1) != null)
+        {
+            var testSkill = new UserSkillData(MasterDataManager.Instance.GetSkillData(1));
+            CurrentSaveData.AddSkill(testSkill);
+            MarkDataDirty();
+            Debug.Log($"テストスキルを追加: {testSkill.userSkillId}");
+        }
+        else
+        {
+            Debug.LogWarning("スキルマスターデータ(ID:1)が見つかりません");
+        }
     }
 #endif
 

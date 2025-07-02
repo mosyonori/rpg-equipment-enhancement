@@ -1,6 +1,7 @@
-using UnityEngine;
-using UnityEditor;
 using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
 #if UNITY_EDITOR
 public class SaveDataEditorTools : EditorWindow
@@ -10,6 +11,13 @@ public class SaveDataEditorTools : EditorWindow
     private int addItemId = 1;
     private int addItemQuantity = 1;
     private ItemType selectedItemType = ItemType.EnhanceItem;
+
+    // スキル関連の新しいフィールド
+    private int addSkillId = 1;
+    private string selectedSkillIdForRemove = "";
+    private string selectedEquipmentIdForSkill = "";
+    private string selectedSkillIdForEquip = "";
+
     private Vector2 scrollPosition;
 
     [MenuItem("Tools/Save Data/Save Data Editor")]
@@ -32,6 +40,9 @@ public class SaveDataEditorTools : EditorWindow
         GUILayout.Space(10);
 
         DrawInventoryOperations();
+        GUILayout.Space(10);
+
+        DrawSkillOperations();
         GUILayout.Space(10);
 
         DrawTestDataOperations();
@@ -65,6 +76,7 @@ public class SaveDataEditorTools : EditorWindow
             EditorGUILayout.LabelField("ジェム", saveData.gems.ToString());
             EditorGUILayout.LabelField("装備数", saveData.equipments.Count.ToString());
             EditorGUILayout.LabelField("アイテム種類数", saveData.items.Count.ToString());
+            EditorGUILayout.LabelField("スキル数", saveData.skills.Count.ToString());
             EditorGUILayout.LabelField("最終ログイン", saveData.lastLoginDate.ToString("yyyy/MM/dd HH:mm"));
 
             GUILayout.Space(5);
@@ -73,6 +85,10 @@ public class SaveDataEditorTools : EditorWindow
             EditorGUILayout.LabelField("強化アイテム", $"{summary.totalEnhanceItems}種類 {summary.totalEnhanceQuantity}個");
             EditorGUILayout.LabelField("補助アイテム", $"{summary.totalSupportItems}種類 {summary.totalSupportQuantity}個");
             EditorGUILayout.LabelField("新規アイテム", summary.newItemCount.ToString());
+
+            // スキル情報追加
+            int newSkillCount = saveData.skills.Count(s => s.isNew);
+            EditorGUILayout.LabelField("新規スキル", newSkillCount.ToString());
         }
 
         GUILayout.Space(5);
@@ -181,7 +197,7 @@ public class SaveDataEditorTools : EditorWindow
             Debug.Log(InventoryManager.Instance.GetInventoryStatistics());
         }
 
-        if (GUILayout.Button("詳細状態確認"))
+        if (GUILayout.Button("詳細状況確認"))
         {
             Debug.Log(InventoryManager.Instance.GetDetailedInventoryStatus());
         }
@@ -226,6 +242,230 @@ public class SaveDataEditorTools : EditorWindow
         EditorGUILayout.EndHorizontal();
     }
 
+    private void DrawSkillOperations()
+    {
+        GUILayout.Label("スキル操作", EditorStyles.boldLabel);
+
+        if (SkillManager.Instance == null)
+        {
+            EditorGUILayout.HelpBox("SkillManagerが見つかりません", MessageType.Warning);
+            return;
+        }
+
+        if (!SkillManager.Instance.IsInitialized)
+        {
+            EditorGUILayout.HelpBox("SkillManagerが初期化されていません", MessageType.Warning);
+            return;
+        }
+
+        var saveData = SaveDataManager.Instance?.CurrentSaveData;
+        if (saveData == null)
+        {
+            EditorGUILayout.HelpBox("セーブデータが読み込まれていません", MessageType.Warning);
+            return;
+        }
+
+        // スキル追加
+        EditorGUILayout.BeginHorizontal();
+        addSkillId = EditorGUILayout.IntField("スキルID", addSkillId);
+        if (GUILayout.Button("スキル追加", GUILayout.Width(80)))
+        {
+            bool success = SkillManager.Instance.AddSkill(addSkillId);
+            if (success)
+            {
+                Debug.Log($"スキルID {addSkillId} を追加しました");
+            }
+            else
+            {
+                Debug.LogError($"スキルID {addSkillId} の追加に失敗しました");
+            }
+        }
+        EditorGUILayout.EndHorizontal();
+
+        // スキル削除
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("スキル削除", GUILayout.Width(80));
+
+        // 所持スキルのドロップダウン
+        var skillOptions = new string[saveData.skills.Count + 1];
+        skillOptions[0] = "選択してください";
+        for (int i = 0; i < saveData.skills.Count; i++)
+        {
+            var skill = saveData.skills[i];
+            var masterData = MasterDataManager.Instance?.GetSkillData(skill.skillMasterId);
+            string skillName = masterData != null ? masterData.skillName : $"Unknown({skill.skillMasterId})";
+            skillOptions[i + 1] = $"{skillName} (ID:{skill.userSkillId.Substring(0, 8)}...)";
+        }
+
+        int selectedIndex = 0;
+        if (!string.IsNullOrEmpty(selectedSkillIdForRemove))
+        {
+            for (int i = 0; i < saveData.skills.Count; i++)
+            {
+                if (saveData.skills[i].userSkillId == selectedSkillIdForRemove)
+                {
+                    selectedIndex = i + 1;
+                    break;
+                }
+            }
+        }
+
+        int newSelectedIndex = EditorGUILayout.Popup(selectedIndex, skillOptions);
+        if (newSelectedIndex != selectedIndex)
+        {
+            selectedSkillIdForRemove = newSelectedIndex > 0 ? saveData.skills[newSelectedIndex - 1].userSkillId : "";
+        }
+
+        if (GUILayout.Button("削除", GUILayout.Width(50)) && !string.IsNullOrEmpty(selectedSkillIdForRemove))
+        {
+            bool success = SkillManager.Instance.RemoveSkill(selectedSkillIdForRemove);
+            if (success)
+            {
+                Debug.Log($"スキルを削除しました: {selectedSkillIdForRemove}");
+                selectedSkillIdForRemove = "";
+            }
+        }
+        EditorGUILayout.EndHorizontal();
+
+        // スキル装備機能
+        GUILayout.Space(5);
+        EditorGUILayout.LabelField("スキル装備", EditorStyles.miniBoldLabel);
+
+        // 装備選択
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("装備選択", GUILayout.Width(80));
+
+        var equipmentOptions = new string[saveData.equipments.Count + 1];
+        equipmentOptions[0] = "選択してください";
+        for (int i = 0; i < saveData.equipments.Count; i++)
+        {
+            var equipment = saveData.equipments[i];
+            var masterData = MasterDataManager.Instance?.GetEquipmentData(equipment.equipmentMasterId);
+            string equipmentName = masterData != null ? masterData.equipmentName : $"Unknown({equipment.equipmentMasterId})";
+            string skillInfo = equipment.HasEquippedSkill() ? " [スキル装備済み]" : "";
+            equipmentOptions[i + 1] = $"{equipmentName}{skillInfo} (ID:{equipment.userEquipmentId.Substring(0, 8)}...)";
+        }
+
+        int selectedEquipmentIndex = 0;
+        if (!string.IsNullOrEmpty(selectedEquipmentIdForSkill))
+        {
+            for (int i = 0; i < saveData.equipments.Count; i++)
+            {
+                if (saveData.equipments[i].userEquipmentId == selectedEquipmentIdForSkill)
+                {
+                    selectedEquipmentIndex = i + 1;
+                    break;
+                }
+            }
+        }
+
+        int newSelectedEquipmentIndex = EditorGUILayout.Popup(selectedEquipmentIndex, equipmentOptions);
+        if (newSelectedEquipmentIndex != selectedEquipmentIndex)
+        {
+            selectedEquipmentIdForSkill = newSelectedEquipmentIndex > 0 ? saveData.equipments[newSelectedEquipmentIndex - 1].userEquipmentId : "";
+        }
+        EditorGUILayout.EndHorizontal();
+
+        // スキル選択
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("スキル選択", GUILayout.Width(80));
+
+        // 利用可能なスキルのみ表示
+        var availableSkills = SkillManager.Instance.GetAvailableSkills();
+        var skillEquipOptions = new string[availableSkills.Count + 1];
+        skillEquipOptions[0] = "選択してください";
+        for (int i = 0; i < availableSkills.Count; i++)
+        {
+            var skill = availableSkills[i];
+            var masterData = MasterDataManager.Instance?.GetSkillData(skill.skillMasterId);
+            string skillName = masterData != null ? masterData.skillName : $"Unknown({skill.skillMasterId})";
+            skillEquipOptions[i + 1] = $"{skillName} (ID:{skill.userSkillId.Substring(0, 8)}...)";
+        }
+
+        int selectedSkillEquipIndex = 0;
+        if (!string.IsNullOrEmpty(selectedSkillIdForEquip))
+        {
+            for (int i = 0; i < availableSkills.Count; i++)
+            {
+                if (availableSkills[i].userSkillId == selectedSkillIdForEquip)
+                {
+                    selectedSkillEquipIndex = i + 1;
+                    break;
+                }
+            }
+        }
+
+        int newSelectedSkillEquipIndex = EditorGUILayout.Popup(selectedSkillEquipIndex, skillEquipOptions);
+        if (newSelectedSkillEquipIndex != selectedSkillEquipIndex)
+        {
+            selectedSkillIdForEquip = newSelectedSkillEquipIndex > 0 ? availableSkills[newSelectedSkillEquipIndex - 1].userSkillId : "";
+        }
+        EditorGUILayout.EndHorizontal();
+
+        // 装備・解除ボタン
+        EditorGUILayout.BeginHorizontal();
+        if (GUILayout.Button("スキル装備") && !string.IsNullOrEmpty(selectedEquipmentIdForSkill) && !string.IsNullOrEmpty(selectedSkillIdForEquip))
+        {
+            bool success = SkillManager.Instance.EquipSkillToEquipment(selectedEquipmentIdForSkill, selectedSkillIdForEquip);
+            if (success)
+            {
+                Debug.Log($"スキルを装備しました: 装備{selectedEquipmentIdForSkill} にスキル{selectedSkillIdForEquip}");
+                selectedSkillIdForEquip = "";
+            }
+        }
+
+        if (GUILayout.Button("スキル解除") && !string.IsNullOrEmpty(selectedEquipmentIdForSkill))
+        {
+            bool success = SkillManager.Instance.UnequipSkillFromEquipment(selectedEquipmentIdForSkill);
+            if (success)
+            {
+                Debug.Log($"スキルを解除しました: 装備{selectedEquipmentIdForSkill}");
+            }
+        }
+        EditorGUILayout.EndHorizontal();
+
+        GUILayout.Space(5);
+
+        // スキル統計・管理
+        EditorGUILayout.BeginHorizontal();
+
+        if (GUILayout.Button("スキル統計"))
+        {
+            Debug.Log(SkillManager.Instance.GetSkillStatistics());
+        }
+
+        if (GUILayout.Button("スキルデータ検証"))
+        {
+            var errors = SkillManager.Instance.ValidateSkillData();
+            if (errors.Count == 0)
+            {
+                Debug.Log("スキルデータに問題はありません");
+            }
+            else
+            {
+                Debug.LogError($"スキルデータに{errors.Count}個の問題があります:\n" + string.Join("\n", errors));
+            }
+        }
+
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.BeginHorizontal();
+
+        if (GUILayout.Button("スキル新規フラグクリア"))
+        {
+            SkillManager.Instance.ClearAllNewFlags();
+            Debug.Log("全スキルの新規フラグをクリアしました");
+        }
+
+        if (GUILayout.Button("スキルキャッシュ更新"))
+        {
+            SkillManager.Instance.RefreshCache();
+            Debug.Log("スキルキャッシュを更新しました");
+        }
+
+        EditorGUILayout.EndHorizontal();
+    }
+
     private void DrawTestDataOperations()
     {
         GUILayout.Label("テストデータ操作", EditorStyles.boldLabel);
@@ -236,13 +476,19 @@ public class SaveDataEditorTools : EditorWindow
             return;
         }
 
+        if (SkillManager.Instance == null || !SkillManager.Instance.IsInitialized)
+        {
+            EditorGUILayout.HelpBox("SkillManagerが利用できません", MessageType.Warning);
+            return;
+        }
+
         EditorGUILayout.BeginHorizontal();
 
         if (GUILayout.Button("基本装備セット追加"))
         {
             InventoryManager.Instance.AddEquipment(1); // 初心者の剣
             InventoryManager.Instance.AddEquipment(2); // 初心者の鎧
-            InventoryManager.Instance.AddEquipment(3); // 古びた首飾り
+            InventoryManager.Instance.AddEquipment(3); // 古ぼけた首飾り
             Debug.Log("基本装備セットを追加しました");
         }
 
@@ -264,6 +510,18 @@ public class SaveDataEditorTools : EditorWindow
             Debug.Log("基本アイテムセットを追加しました");
         }
 
+        if (GUILayout.Button("基本スキルセット追加"))
+        {
+            SkillManager.Instance.AddSkill(1); // 基本攻撃スキル
+            SkillManager.Instance.AddSkill(2); // 基本防御スキル
+            SkillManager.Instance.AddSkill(3); // 火属性攻撃スキル（仮）
+            Debug.Log("基本スキルセットを追加しました");
+        }
+
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.BeginHorizontal();
+
         if (GUILayout.Button("通貨追加"))
         {
             var saveData = SaveDataManager.Instance.CurrentSaveData;
@@ -274,6 +532,33 @@ public class SaveDataEditorTools : EditorWindow
                 SaveDataManager.Instance.MarkDataDirty();
                 Debug.Log("通貨を追加しました（ゴールド+10000、ジェム+100）");
             }
+        }
+
+        if (GUILayout.Button("全種類テストデータ追加"))
+        {
+            // 装備
+            InventoryManager.Instance.AddEquipment(1);
+            InventoryManager.Instance.AddEquipment(2);
+            InventoryManager.Instance.AddEquipment(3);
+
+            // アイテム
+            InventoryManager.Instance.AddItem(ItemType.EnhanceItem, 1, 10);
+            InventoryManager.Instance.AddItem(ItemType.SupportItem, 1, 5);
+
+            // スキル
+            SkillManager.Instance.AddSkill(1);
+            SkillManager.Instance.AddSkill(2);
+
+            // 通貨
+            var saveData = SaveDataManager.Instance.CurrentSaveData;
+            if (saveData != null)
+            {
+                saveData.gold += 5000;
+                saveData.gems += 50;
+                SaveDataManager.Instance.MarkDataDirty();
+            }
+
+            Debug.Log("全種類のテストデータを追加しました");
         }
 
         EditorGUILayout.EndHorizontal();
@@ -331,9 +616,9 @@ public class SaveDataEditorTools : EditorWindow
                 string fileName = Path.GetFileName(backupFiles[i]);
                 EditorGUILayout.LabelField(fileName, GUILayout.ExpandWidth(true));
 
-                if (GUILayout.Button("復元", GUILayout.Width(50)))
+                if (GUILayout.Button("復旧", GUILayout.Width(50)))
                 {
-                    if (EditorUtility.DisplayDialog("確認", $"バックアップから復元しますか？\n{fileName}", "はい", "いいえ"))
+                    if (EditorUtility.DisplayDialog("確認", $"バックアップから復旧しますか？\n{fileName}", "はい", "いいえ"))
                     {
                         SaveDataManager.Instance.RestoreFromBackup(fileName);
                     }

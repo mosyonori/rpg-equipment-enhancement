@@ -4,7 +4,8 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// インベントリUI全体を管理するメインコンポーネント
+/// InventoryUI - スキル機能完全実装版
+/// 装備、強化アイテム、補助アイテム、スキルの4つのタブを管理
 /// </summary>
 public class InventoryUI : MonoBehaviour
 {
@@ -12,9 +13,11 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] private Button equipmentTabButton;
     [SerializeField] private Button enhanceItemTabButton;
     [SerializeField] private Button supportItemTabButton;
+    [SerializeField] private Button skillTabButton; // スキルタブボタン
     [SerializeField] private GameObject equipmentPanel;
     [SerializeField] private GameObject enhanceItemPanel;
     [SerializeField] private GameObject supportItemPanel;
+    [SerializeField] private GameObject skillPanel; // スキルパネル
 
     [Header("装備パネル")]
     [SerializeField] private Transform equipmentGridParent;
@@ -29,6 +32,11 @@ public class InventoryUI : MonoBehaviour
     [Header("補助アイテムパネル")]
     [SerializeField] private Transform supportItemGridParent;
     [SerializeField] private ScrollRect supportItemScrollRect;
+
+    [Header("スキルパネル")]
+    [SerializeField] private Transform skillGridParent; // スキルグリッド親オブジェクト
+    [SerializeField] private GameObject skillSlotPrefab; // スキルスロットプレハブ
+    [SerializeField] private ScrollRect skillScrollRect; // スキルスクロールビュー
 
     [Header("情報表示")]
     [SerializeField] private TextMeshProUGUI playerNameText;
@@ -62,6 +70,20 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI equipmentWindOffenceText;
     [SerializeField] private TextMeshProUGUI equipmentEarthOffenceText;
 
+    [Header("スキル詳細表示")]
+    [SerializeField] private GameObject skillDetailPanel; // スキル詳細パネル
+    [SerializeField] private TextMeshProUGUI skillNameText;
+    [SerializeField] private Image skillIconImage;
+    [SerializeField] private TextMeshProUGUI skillTypeText;
+    [SerializeField] private TextMeshProUGUI skillAttributeText;
+    [SerializeField] private TextMeshProUGUI skillRarityText;
+    [SerializeField] private TextMeshProUGUI skillDamageText;
+    [SerializeField] private TextMeshProUGUI skillTargetText;
+    [SerializeField] private TextMeshProUGUI skillCoolTimeText;
+    [SerializeField] private TextMeshProUGUI skillHpCostText;
+    [SerializeField] private TextMeshProUGUI skillMpCostText;
+    [SerializeField] private TextMeshProUGUI skillDescriptionText;
+
     [Header("フィルター・ソート")]
     [SerializeField] private TMP_Dropdown sortDropdown;
     [SerializeField] private TMP_Dropdown filterDropdown;
@@ -76,15 +98,15 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] private Image lockButtonIcon;
 
     [Header("装備削除機能")]
-    [SerializeField] private Button equipmentDeleteButton;          // 装備削除ボタン
-    [SerializeField] private GameObject deleteConfirmationPanel;    // 削除確認パネル
-    [SerializeField] private GameObject lockedEquipmentWarningPanel; // ロック中警告パネル
-    [SerializeField] private Button deleteConfirmYesButton;         // 削除確認「はい」ボタン
-    [SerializeField] private Button deleteConfirmNoButton;          // 削除確認「いいえ」ボタン
-    [SerializeField] private Button warningOkButton;                // 警告パネルOKボタン
-    [SerializeField] private TextMeshProUGUI warningMessageText;    // 警告メッセージテキスト（新規追加）
-    [SerializeField] private TextMeshProUGUI deleteTargetNameText;  // 削除対象装備名
-    [SerializeField] private TextMeshProUGUI deleteTargetEnhanceText; // 削除対象強化値
+    [SerializeField] private Button equipmentDeleteButton;
+    [SerializeField] private GameObject deleteConfirmationPanel;
+    [SerializeField] private GameObject lockedEquipmentWarningPanel;
+    [SerializeField] private Button deleteConfirmYesButton;
+    [SerializeField] private Button deleteConfirmNoButton;
+    [SerializeField] private Button warningOkButton;
+    [SerializeField] private TextMeshProUGUI warningMessageText;
+    [SerializeField] private TextMeshProUGUI deleteTargetNameText;
+    [SerializeField] private TextMeshProUGUI deleteTargetEnhanceText;
 
     [Header("デバッグ")]
     [SerializeField] private bool enableDebugLog = true;
@@ -94,10 +116,12 @@ public class InventoryUI : MonoBehaviour
     private List<EquipmentSlotUI> equipmentSlots = new List<EquipmentSlotUI>();
     private List<ItemSlotUI> enhanceItemSlots = new List<ItemSlotUI>();
     private List<ItemSlotUI> supportItemSlots = new List<ItemSlotUI>();
+    private List<SkillSlotUI> skillSlots = new List<SkillSlotUI>(); // スキルスロットリスト
 
     // 選択状態
     private UserEquipmentData selectedEquipment;
     private UserItemData selectedItem;
+    private UserSkillData selectedSkill; // 選択されたスキル
 
     #region Unity Lifecycle
 
@@ -129,6 +153,7 @@ public class InventoryUI : MonoBehaviour
 
     private void SetupButtons()
     {
+        // タブボタン設定
         if (equipmentTabButton != null)
         {
             equipmentTabButton.onClick.AddListener(() => ShowTab(InventoryTab.Equipment));
@@ -144,24 +169,29 @@ public class InventoryUI : MonoBehaviour
             supportItemTabButton.onClick.AddListener(() => ShowTab(InventoryTab.SupportItem));
         }
 
+        // スキルタブボタン設定
+        if (skillTabButton != null)
+        {
+            skillTabButton.onClick.AddListener(() => ShowTab(InventoryTab.Skill));
+        }
+
         if (refreshButton != null)
         {
             refreshButton.onClick.AddListener(RefreshDisplay);
         }
 
-        // お気に入りボタンの設定
+        // 装備管理ボタン設定
         if (favoriteButton != null)
         {
             favoriteButton.onClick.AddListener(OnFavoriteButtonClicked);
         }
 
-        // ロックボタンの設定
         if (lockButton != null)
         {
             lockButton.onClick.AddListener(OnLockButtonClicked);
         }
 
-        // 装備削除機能のボタン設定（新規追加）
+        // 装備削除機能のボタン設定
         if (equipmentDeleteButton != null)
         {
             equipmentDeleteButton.onClick.AddListener(OnEquipmentDeleteButtonClicked);
@@ -211,6 +241,14 @@ public class InventoryUI : MonoBehaviour
         {
             SaveDataManager.OnDataLoaded += OnSaveDataLoaded;
         }
+
+        // スキルマネージャーのイベント購読
+        if (SkillManager.Instance != null)
+        {
+            SkillManager.OnSkillAdded += OnSkillAdded;
+            SkillManager.OnSkillRemoved += OnSkillRemoved;
+            SkillManager.OnSkillInventoryChanged += OnSkillInventoryChanged;
+        }
     }
 
     private void UnsubscribeFromEvents()
@@ -227,6 +265,14 @@ public class InventoryUI : MonoBehaviour
         if (SaveDataManager.Instance != null)
         {
             SaveDataManager.OnDataLoaded -= OnSaveDataLoaded;
+        }
+
+        // スキルマネージャーのイベント購読解除
+        if (SkillManager.Instance != null)
+        {
+            SkillManager.OnSkillAdded -= OnSkillAdded;
+            SkillManager.OnSkillRemoved -= OnSkillRemoved;
+            SkillManager.OnSkillInventoryChanged -= OnSkillInventoryChanged;
         }
     }
 
@@ -247,7 +293,7 @@ public class InventoryUI : MonoBehaviour
 
         UpdatePlayerInfo();
         UpdateCurrentTab();
-        UpdateEquipmentManagementButtons(); // 装備管理ボタンの状態更新
+        UpdateEquipmentManagementButtons();
         DebugLog("インベントリ表示を更新しました");
     }
 
@@ -262,11 +308,12 @@ public class InventoryUI : MonoBehaviour
         if (equipmentPanel != null) equipmentPanel.SetActive(tab == InventoryTab.Equipment);
         if (enhanceItemPanel != null) enhanceItemPanel.SetActive(tab == InventoryTab.EnhanceItem);
         if (supportItemPanel != null) supportItemPanel.SetActive(tab == InventoryTab.SupportItem);
+        if (skillPanel != null) skillPanel.SetActive(tab == InventoryTab.Skill); // スキルパネル
 
         // タブボタンの見た目更新
         UpdateTabButtonAppearance();
 
-        // 詳細表示を非表示（タブ切り替え時にリセット）
+        // 詳細表示を非表示（タブ切り替え後にリセット）
         HideAllDetails();
 
         // 該当タブの内容を更新
@@ -275,6 +322,7 @@ public class InventoryUI : MonoBehaviour
         // 選択状態をクリア
         selectedEquipment = null;
         selectedItem = null;
+        selectedSkill = null; // スキル選択状態もクリア
 
         // 装備管理ボタンの状態更新
         UpdateEquipmentManagementButtons();
@@ -299,6 +347,9 @@ public class InventoryUI : MonoBehaviour
             case InventoryTab.SupportItem:
                 UpdateSupportItemDisplay();
                 break;
+            case InventoryTab.Skill:
+                UpdateSkillDisplay(); // スキル表示更新
+                break;
         }
     }
 
@@ -315,7 +366,7 @@ public class InventoryUI : MonoBehaviour
         if (equipmentCountText != null)
         {
             int currentCount = saveData.equipments.Count;
-            int maxCount = 1000; // 最大スロット数（設定可能にする）
+            int maxCount = 1000;
             equipmentCountText.text = $"{currentCount}/{maxCount}";
         }
 
@@ -383,6 +434,52 @@ public class InventoryUI : MonoBehaviour
         DebugLog($"補助アイテム表示を更新: {items.Count}個");
     }
 
+    /// <summary>
+    /// スキル表示を更新
+    /// </summary>
+    private void UpdateSkillDisplay()
+    {
+        if (skillGridParent == null || skillSlotPrefab == null) return;
+
+        var skills = InventoryManager.Instance.GetAllSkills();
+
+        // 必要な数だけスキルスロットを作成/削除
+        AdjustSkillSlotCount(skills.Count);
+
+        // データを設定
+        for (int i = 0; i < skills.Count; i++)
+        {
+            skillSlots[i].SetSkillData(skills[i]);
+            skillSlots[i].OnSlotClicked = OnSkillSlotClicked;
+        }
+
+        DebugLog($"スキル表示を更新: {skills.Count}個");
+    }
+
+    /// <summary>
+    /// スキルスロット数を調整
+    /// </summary>
+    private void AdjustSkillSlotCount(int targetCount)
+    {
+        // 不足分を作成
+        while (skillSlots.Count < targetCount)
+        {
+            GameObject newSlot = Instantiate(skillSlotPrefab, skillGridParent);
+            SkillSlotUI slotComponent = newSlot.GetComponent<SkillSlotUI>();
+
+            if (slotComponent != null)
+            {
+                skillSlots.Add(slotComponent);
+            }
+        }
+
+        // 余分なものを非表示
+        for (int i = 0; i < skillSlots.Count; i++)
+        {
+            skillSlots[i].gameObject.SetActive(i < targetCount);
+        }
+    }
+
     private void AdjustSlotCount<T>(List<T> slotList, int targetCount, Transform parent, GameObject prefab, bool isEquipmentSlot) where T : Component
     {
         // 不足分を作成
@@ -412,6 +509,7 @@ public class InventoryUI : MonoBehaviour
         SetTabButtonActive(equipmentTabButton, currentTab == InventoryTab.Equipment);
         SetTabButtonActive(enhanceItemTabButton, currentTab == InventoryTab.EnhanceItem);
         SetTabButtonActive(supportItemTabButton, currentTab == InventoryTab.SupportItem);
+        SetTabButtonActive(skillTabButton, currentTab == InventoryTab.Skill); // スキルタブボタン
     }
 
     private void SetTabButtonActive(Button button, bool isActive)
@@ -424,7 +522,7 @@ public class InventoryUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 装備スロットの表示を強制更新 - 新規追加
+    /// 装備スロットの表示を強制更新
     /// </summary>
     private void ForceUpdateEquipmentSlots()
     {
@@ -437,7 +535,6 @@ public class InventoryUI : MonoBehaviour
                 var equipment = slot.GetEquipmentData();
                 if (equipment != null)
                 {
-                    // SetEquipmentDataを再度呼び出してUpdateStatusMarks()も実行
                     slot.SetEquipmentData(equipment);
                 }
             }
@@ -450,89 +547,52 @@ public class InventoryUI : MonoBehaviour
 
     #region 装備管理機能
 
-    /// <summary>
-    /// お気に入りボタンがクリックされた時の処理
-    /// </summary>
     private void OnFavoriteButtonClicked()
     {
-        // 装備タブで且つ装備が選択されている場合のみ処理
         if (currentTab != InventoryTab.Equipment || selectedEquipment == null)
         {
             DebugLog("お気に入り操作: 装備が選択されていないか、装備タブではありません");
             return;
         }
 
-        // お気に入り状態をトグル
         bool success = InventoryManager.Instance.ToggleEquipmentFavorite(selectedEquipment.userEquipmentId);
 
         if (success)
         {
             DebugLog($"お気に入り状態を変更: {selectedEquipment.userEquipmentId} -> {!selectedEquipment.isFavorite}");
-
-            // 装備管理ボタンの表示を即座に更新
             UpdateEquipmentManagementButtons();
-
-            // 選択されたスロットの表示も更新
             UpdateSelectionVisual();
-
-            // 装備スロットの表示を強制更新
             ForceUpdateEquipmentSlots();
-        }
-        else
-        {
-            DebugLog($"お気に入り状態の変更に失敗: {selectedEquipment.userEquipmentId}");
         }
     }
 
-    /// <summary>
-    /// ロックボタンがクリックされた時の処理
-    /// </summary>
     private void OnLockButtonClicked()
     {
-        // 装備タブで且つ装備が選択されている場合のみ処理
         if (currentTab != InventoryTab.Equipment || selectedEquipment == null)
         {
             DebugLog("ロック操作: 装備が選択されていないか、装備タブではありません");
             return;
         }
 
-        // ロック状態をトグル
         bool success = InventoryManager.Instance.ToggleEquipmentLock(selectedEquipment.userEquipmentId);
 
         if (success)
         {
             DebugLog($"ロック状態を変更: {selectedEquipment.userEquipmentId} -> {!selectedEquipment.isLocked}");
-
-            // 装備管理ボタンの表示を即座に更新
             UpdateEquipmentManagementButtons();
-
-            // 選択されたスロットの表示も更新
             UpdateSelectionVisual();
-
-            // 装備スロットの表示を強制更新
             ForceUpdateEquipmentSlots();
-        }
-        else
-        {
-            DebugLog($"ロック状態の変更に失敗: {selectedEquipment.userEquipmentId}");
         }
     }
 
-    /// <summary>
-    /// 装備管理ボタンの状態を更新
-    /// </summary>
     private void UpdateEquipmentManagementButtons()
     {
-        // 装備タブで装備が選択されている場合のみボタンを表示・有効化
         bool shouldShowButtons = (currentTab == InventoryTab.Equipment) && (selectedEquipment != null);
 
         UpdateFavoriteButton(shouldShowButtons);
         UpdateLockButton(shouldShowButtons);
     }
 
-    /// <summary>
-    /// お気に入りボタンの状態を更新
-    /// </summary>
     private void UpdateFavoriteButton(bool shouldShow)
     {
         if (favoriteButton == null) return;
@@ -541,35 +601,22 @@ public class InventoryUI : MonoBehaviour
 
         if (shouldShow)
         {
-            // 現在のお気に入り状態に応じてボタンの表示を変更
             bool isFavorite = selectedEquipment.isFavorite;
 
-            // ボタンテキストの更新
             if (favoriteButtonText != null)
             {
                 favoriteButtonText.text = isFavorite ? "お気に入り解除" : "お気に入り登録";
             }
 
-            // ボタンアイコンの色変更（お気に入り済みなら赤、未登録なら白）
             if (favoriteButtonIcon != null)
             {
                 favoriteButtonIcon.color = isFavorite ? Color.red : Color.white;
             }
 
-            // ボタンを有効化
             favoriteButton.interactable = true;
-
-            DebugLog($"お気に入りボタン更新: 表示={shouldShow}, お気に入り={isFavorite}");
-        }
-        else
-        {
-            DebugLog("お気に入りボタンを非表示にしました");
         }
     }
 
-    /// <summary>
-    /// ロックボタンの状態を更新
-    /// </summary>
     private void UpdateLockButton(bool shouldShow)
     {
         if (lockButton == null) return;
@@ -578,360 +625,186 @@ public class InventoryUI : MonoBehaviour
 
         if (shouldShow)
         {
-            // 現在のロック状態に応じてボタンの表示を変更
             bool isLocked = selectedEquipment.isLocked;
 
-            // ボタンテキストの更新
             if (lockButtonText != null)
             {
                 lockButtonText.text = isLocked ? "ロック解除" : "ロック";
             }
 
-            // ボタンアイコンの色変更（ロック済みなら灰色、未ロックなら白）
             if (lockButtonIcon != null)
             {
                 lockButtonIcon.color = isLocked ? Color.grey : Color.white;
             }
 
-            // ボタンを有効化
             lockButton.interactable = true;
-
-            DebugLog($"ロックボタン更新: 表示={shouldShow}, ロック={isLocked}");
-        }
-        else
-        {
-            DebugLog("ロックボタンを非表示にしました");
         }
     }
 
     #endregion
 
-    #region 装備削除機能（新規追加）
+    #region 装備削除機能
 
-    /// <summary>
-    /// 装備削除ボタンがクリックされた時の処理（Null安全版）
-    /// </summary>
     private void OnEquipmentDeleteButtonClicked()
     {
-        DebugLog("=== 装備削除ボタン処理開始 ===");
-        DebugLog($"currentTab: {currentTab}");
-        DebugLog($"selectedEquipment: {(selectedEquipment != null ? selectedEquipment.userEquipmentId : "null")}");
+        if (currentTab != InventoryTab.Equipment || selectedEquipment == null) return;
 
-        // 基本的な条件チェック
-        if (currentTab != InventoryTab.Equipment)
-        {
-            DebugLog("装備削除: 装備タブではありません");
-            return;
-        }
-
-        if (selectedEquipment == null)
-        {
-            DebugLog("装備削除: 装備が選択されていません");
-            return;
-        }
-
-        // InventoryManagerの存在確認
-        if (InventoryManager.Instance == null)
-        {
-            DebugLog("エラー: InventoryManager.Instanceがnullです");
-            return;
-        }
-
-        if (!InventoryManager.Instance.IsInitialized)
-        {
-            DebugLog("エラー: InventoryManagerが初期化されていません");
-            return;
-        }
-
-        DebugLog($"装備削除ボタンがクリックされました: {selectedEquipment.userEquipmentId}");
         ShowDeleteConfirmationPanel();
     }
 
-    /// <summary>
-    /// 削除確認パネルを表示（Null安全版）
-    /// </summary>
     private void ShowDeleteConfirmationPanel()
     {
-        DebugLog("=== ShowDeleteConfirmationPanel開始 ===");
-        DebugLog($"deleteConfirmationPanel: {(deleteConfirmationPanel != null ? "存在" : "null")}");
-        DebugLog($"selectedEquipment: {(selectedEquipment != null ? "存在" : "null")}");
+        if (deleteConfirmationPanel == null || selectedEquipment == null) return;
 
-        if (deleteConfirmationPanel == null)
+        var masterData = MasterDataManager.Instance.GetEquipmentData(selectedEquipment.equipmentMasterId);
+        if (masterData != null)
         {
-            DebugLog("エラー: deleteConfirmationPanelがnullです。Inspectorで設定してください。");
-            return;
-        }
-
-        if (selectedEquipment == null)
-        {
-            DebugLog("エラー: selectedEquipmentがnullです。");
-            return;
-        }
-
-        // MasterDataManagerの存在確認
-        if (MasterDataManager.Instance == null)
-        {
-            DebugLog("エラー: MasterDataManager.Instanceがnullです");
-            return;
-        }
-
-        try
-        {
-            // 削除対象の装備情報を表示
-            var masterData = MasterDataManager.Instance.GetEquipmentData(selectedEquipment.equipmentMasterId);
-            DebugLog($"masterData: {(masterData != null ? masterData.equipmentName : "null")}");
-
-            if (masterData != null)
+            if (deleteTargetNameText != null)
             {
-                if (deleteTargetNameText != null)
-                {
-                    deleteTargetNameText.text = masterData.equipmentName;
-                    DebugLog($"装備名を設定: {masterData.equipmentName}");
-                }
-                else
-                {
-                    DebugLog("警告: deleteTargetNameTextがnullです");
-                }
-
-                if (deleteTargetEnhanceText != null)
-                {
-                    string enhanceText = $"+{selectedEquipment.currentEnhancedValue}";
-                    deleteTargetEnhanceText.text = enhanceText;
-                    DebugLog($"強化値を設定: {enhanceText}");
-                }
-                else
-                {
-                    DebugLog("警告: deleteTargetEnhanceTextがnullです");
-                }
+                deleteTargetNameText.text = masterData.equipmentName;
             }
 
-            // 削除確認パネルを表示
-            DebugLog($"パネルアクティブ前の状態: {deleteConfirmationPanel.activeInHierarchy}");
-            deleteConfirmationPanel.SetActive(true);
-            DebugLog($"パネルアクティブ後の状態: {deleteConfirmationPanel.activeInHierarchy}");
+            if (deleteTargetEnhanceText != null)
+            {
+                deleteTargetEnhanceText.text = $"+{selectedEquipment.currentEnhancedValue}";
+            }
+        }
 
-            DebugLog("削除確認パネルを表示しました");
-        }
-        catch (System.Exception ex)
-        {
-            DebugLog($"パネル表示中にエラーが発生しました: {ex.Message}");
-        }
+        deleteConfirmationPanel.SetActive(true);
     }
 
-    /// <summary>
-    /// 削除確認「はい」ボタンがクリックされた時の処理（テキスト切り替え版）
-    /// </summary>
     private void OnDeleteConfirmYes()
     {
-        DebugLog("=== 削除確認「はい」処理開始 ===");
+        if (selectedEquipment == null) return;
 
-        if (selectedEquipment == null)
+        var (canDelete, errorMessage) = InventoryManager.Instance.CanDeleteEquipment(selectedEquipment.userEquipmentId);
+
+        if (!canDelete)
         {
-            DebugLog("エラー: selectedEquipmentがnullです");
-            HideAllDeletePanels();
+            ShowWarningWithMessage(errorMessage);
             return;
         }
 
-        // InventoryManagerの存在確認
-        if (InventoryManager.Instance == null)
+        bool success = InventoryManager.Instance.DeleteEquipment(selectedEquipment.userEquipmentId);
+
+        if (success)
         {
-            DebugLog("エラー: InventoryManager.Instanceがnullです");
-            HideAllDeletePanels();
-            return;
-        }
-
-        if (!InventoryManager.Instance.IsInitialized)
-        {
-            DebugLog("エラー: InventoryManagerが初期化されていません");
-            HideAllDeletePanels();
-            return;
-        }
-
-        try
-        {
-            // 削除可能かチェック
-            var (canDelete, errorMessage) = InventoryManager.Instance.CanDeleteEquipment(selectedEquipment.userEquipmentId);
-            DebugLog($"削除チェック結果: canDelete={canDelete}, message={errorMessage}");
-
-            if (!canDelete)
-            {
-                // 削除不可の理由に応じて適切なメッセージを表示
-                if (selectedEquipment.isEquipped)
-                {
-                    ShowWarningWithMessage("装備中は削除できません");
-                    DebugLog($"装備中のため削除不可: {errorMessage}");
-                }
-                else if (selectedEquipment.isLocked)
-                {
-                    ShowWarningWithMessage("装備はロック中です");
-                    DebugLog($"ロック中のため削除不可: {errorMessage}");
-                }
-                else
-                {
-                    // その他の理由の場合はロック警告を表示（フォールバック）
-                    ShowWarningWithMessage("この装備は削除できません");
-                    DebugLog($"その他の理由で削除不可: {errorMessage}");
-                }
-                return;
-            }
-
-            // 削除実行
-            bool success = InventoryManager.Instance.DeleteEquipment(selectedEquipment.userEquipmentId);
-            DebugLog($"削除実行結果: {success}");
-
-            if (success)
-            {
-                // 削除成功時の処理
-                string deletedEquipmentId = selectedEquipment.userEquipmentId;
-                DebugLog($"装備を削除しました: {deletedEquipmentId}");
-
-                ClearEquipmentSelection();
-                HideAllDeletePanels();
-            }
-            else
-            {
-                DebugLog($"装備削除に失敗しました: {selectedEquipment.userEquipmentId}");
-                HideAllDeletePanels();
-            }
-        }
-        catch (System.Exception ex)
-        {
-            DebugLog($"削除処理中にエラーが発生しました: {ex.Message}");
+            ClearEquipmentSelection();
             HideAllDeletePanels();
         }
     }
 
-    /// <summary>
-    /// 指定されたメッセージで警告パネルを表示（新規追加）
-    /// </summary>
-    private void ShowWarningWithMessage(string message)
-    {
-        DebugLog("=== ShowWarningWithMessage開始 ===");
-        DebugLog($"lockedEquipmentWarningPanel: {(lockedEquipmentWarningPanel != null ? "存在" : "null")}");
-        DebugLog($"warningMessageText: {(warningMessageText != null ? "存在" : "null")}");
-        DebugLog($"表示メッセージ: {message}");
-
-        if (lockedEquipmentWarningPanel == null)
-        {
-            DebugLog("エラー: lockedEquipmentWarningPanelがnullです。Inspectorで設定してください。");
-            return;
-        }
-
-        try
-        {
-            // 削除確認パネルを先に非表示
-            if (deleteConfirmationPanel != null)
-            {
-                deleteConfirmationPanel.SetActive(false);
-            }
-
-            // 警告メッセージテキストを設定
-            if (warningMessageText != null)
-            {
-                warningMessageText.text = message;
-                DebugLog($"警告メッセージを設定: {message}");
-            }
-            else
-            {
-                DebugLog("警告: warningMessageTextがnullです。Inspectorで設定してください。");
-            }
-
-            // 警告パネルを表示
-            DebugLog($"警告パネルアクティブ前: {lockedEquipmentWarningPanel.activeInHierarchy}");
-            lockedEquipmentWarningPanel.SetActive(true);
-            DebugLog($"警告パネルアクティブ後: {lockedEquipmentWarningPanel.activeInHierarchy}");
-
-            DebugLog($"警告パネルを表示しました: {message}");
-        }
-        catch (System.Exception ex)
-        {
-            DebugLog($"警告パネル表示中にエラーが発生しました: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 削除確認「いいえ」ボタンがクリックされた時の処理
-    /// </summary>
     private void OnDeleteConfirmNo()
     {
         HideAllDeletePanels();
-        DebugLog("装備削除をキャンセルしました");
     }
 
-    /// <summary>
-    /// ロック中警告パネルを表示（旧メソッド・下位互換性のため残存）
-    /// </summary>
-    private void ShowLockedEquipmentWarning(string message = "装備はロック中です")
-    {
-        ShowWarningWithMessage(message);
-    }
-
-    /// <summary>
-    /// 警告パネルOKボタンがクリックされた時の処理
-    /// </summary>
     private void OnWarningOkClicked()
     {
-        DebugLog("警告パネルOKがクリックされました");
         HideAllDeletePanels();
     }
 
-    /// <summary>
-    /// 全ての削除関連パネルを非表示にする
-    /// </summary>
+    private void ShowWarningWithMessage(string message)
+    {
+        if (lockedEquipmentWarningPanel == null) return;
+
+        if (deleteConfirmationPanel != null)
+        {
+            deleteConfirmationPanel.SetActive(false);
+        }
+
+        if (warningMessageText != null)
+        {
+            warningMessageText.text = message;
+        }
+
+        lockedEquipmentWarningPanel.SetActive(true);
+    }
+
     private void HideAllDeletePanels()
     {
-        DebugLog("=== HideAllDeletePanels開始 ===");
-
-        try
+        if (deleteConfirmationPanel != null)
         {
-            if (deleteConfirmationPanel != null)
-            {
-                DebugLog($"削除確認パネル非表示前: {deleteConfirmationPanel.activeInHierarchy}");
-                deleteConfirmationPanel.SetActive(false);
-                DebugLog($"削除確認パネル非表示後: {deleteConfirmationPanel.activeInHierarchy}");
-            }
-
-            if (lockedEquipmentWarningPanel != null)
-            {
-                DebugLog($"警告パネル非表示前: {lockedEquipmentWarningPanel.activeInHierarchy}");
-                lockedEquipmentWarningPanel.SetActive(false);
-                DebugLog($"警告パネル非表示後: {lockedEquipmentWarningPanel.activeInHierarchy}");
-            }
-
-            DebugLog("全ての削除関連パネルを非表示にしました");
+            deleteConfirmationPanel.SetActive(false);
         }
-        catch (System.Exception ex)
+
+        if (lockedEquipmentWarningPanel != null)
         {
-            DebugLog($"パネル非表示中にエラーが発生しました: {ex.Message}");
+            lockedEquipmentWarningPanel.SetActive(false);
         }
     }
 
-    /// <summary>
-    /// 装備選択状態をリセット（Null安全版）
-    /// </summary>
     private void ClearEquipmentSelection()
     {
-        DebugLog("=== ClearEquipmentSelection開始 ===");
+        selectedEquipment = null;
+        selectedItem = null;
+        selectedSkill = null; // スキル選択もクリア
 
-        try
+        HideAllDetails();
+        UpdateEquipmentManagementButtons();
+        UpdateSelectionVisual();
+    }
+
+    #endregion
+
+    #region スキル詳細表示
+
+    /// <summary>
+    /// スキル詳細を表示
+    /// </summary>
+    private void ShowSkillDetail(UserSkillData skill)
+    {
+        if (skill == null) return;
+
+        // 他の詳細パネルを非表示
+        HideItemDetail();
+        HideEquipmentDetail();
+
+        if (skillDetailPanel == null) return;
+
+        var masterData = MasterDataManager.Instance?.GetSkillData(skill.skillMasterId);
+        if (masterData != null)
         {
-            selectedEquipment = null;
-            selectedItem = null;
-
-            // 詳細パネルを非表示
-            HideAllDetails();
-
-            // 装備管理ボタンの状態を更新
-            UpdateEquipmentManagementButtons();
-
-            // 選択表示を更新
-            UpdateSelectionVisual();
-
-            DebugLog("装備選択状態をリセットしました");
+            SetSkillDetailData(skill, masterData);
         }
-        catch (System.Exception ex)
+
+        skillDetailPanel.SetActive(true);
+        DebugLog($"スキル詳細を表示: {masterData?.skillName} ID:{skill.skillMasterId}");
+    }
+
+    /// <summary>
+    /// スキル詳細データを設定
+    /// </summary>
+    private void SetSkillDetailData(UserSkillData skill, SkillMasterData masterData)
+    {
+        // 基本情報
+        if (skillNameText != null) skillNameText.text = masterData.skillName;
+        if (skillIconImage != null && masterData.skillIcon != null)
+            skillIconImage.sprite = masterData.skillIcon;
+
+        // スキル種別・属性・レアリティ
+        if (skillTypeText != null) skillTypeText.text = GetSkillTypeDisplayName(masterData.skillType);
+        if (skillAttributeText != null) skillAttributeText.text = GetAttributeDisplayName(masterData.attributeType);
+        if (skillRarityText != null) skillRarityText.text = GetRarityDisplayName(masterData.rarity);
+
+        // 詳細ステータス
+        if (skillDamageText != null) skillDamageText.text = $"{masterData.skillDamageMultiplier:F1}倍";
+        if (skillTargetText != null) skillTargetText.text = GetTargetTypeDisplayName(masterData.skillTargetType);
+        if (skillCoolTimeText != null) skillCoolTimeText.text = $"{masterData.skillMaxCoolTime}ターン";
+        if (skillHpCostText != null) skillHpCostText.text = masterData.skillHpCost.ToString();
+        if (skillMpCostText != null) skillMpCostText.text = masterData.skillMpCost.ToString();
+        if (skillDescriptionText != null) skillDescriptionText.text = masterData.description;
+    }
+
+    /// <summary>
+    /// スキル詳細表示を非表示
+    /// </summary>
+    private void HideSkillDetail()
+    {
+        if (skillDetailPanel != null)
         {
-            DebugLog($"選択状態リセット中にエラーが発生しました: {ex.Message}");
+            skillDetailPanel.SetActive(false);
+            DebugLog("スキル詳細パネルを非表示にしました");
         }
     }
 
@@ -948,6 +821,7 @@ public class InventoryUI : MonoBehaviour
 
         // 装備詳細パネルを明示的に非表示
         HideEquipmentDetail();
+        HideSkillDetail(); // スキル詳細も非表示
 
         if (itemDetailPanel == null) return;
 
@@ -986,6 +860,7 @@ public class InventoryUI : MonoBehaviour
 
         // アイテム詳細パネルを明示的に非表示
         HideItemDetail();
+        HideSkillDetail(); // スキル詳細も非表示
 
         if (equipmentDetailPanel == null) return;
 
@@ -1084,26 +959,65 @@ public class InventoryUI : MonoBehaviour
     {
         HideItemDetail();
         HideEquipmentDetail();
+        HideSkillDetail(); // スキル詳細も非表示
         DebugLog("全ての詳細パネルを非表示にしました");
     }
 
-    /// <summary>
-    /// 装備の戦闘力を計算
-    /// </summary>
-    private int CalculateEquipmentPower(EquipmentTotalStats stats)
+    #endregion
+
+    #region 表示名変換ユーティリティ
+
+    private string GetSkillTypeDisplayName(SkillType skillType)
     {
-        int power = 0;
-        power += stats.hp / 10;
-        power += stats.offense * 2;
-        power += stats.defense;
-        power += stats.speed;
-        power += stats.criticalRate / 5;
-        power += stats.criticalDamageRate / 10;
-        power += stats.fireOffence;
-        power += stats.waterOffence;
-        power += stats.windOffence;
-        power += stats.earthOffence;
-        return power;
+        return skillType switch
+        {
+            SkillType.Attack => "攻撃系",
+            SkillType.Heal => "回復系",
+            SkillType.Buff => "バフ系",
+            SkillType.Debuff => "デバフ系",
+            SkillType.Support => "サポート系",
+            SkillType.Special => "特殊系",
+            _ => "不明"
+        };
+    }
+
+    private string GetAttributeDisplayName(AttributeType attributeType)
+    {
+        return attributeType switch
+        {
+            AttributeType.Fire => "火",
+            AttributeType.Water => "水",
+            AttributeType.Wind => "風",
+            AttributeType.Earth => "土",
+            AttributeType.None => "無",
+            _ => "不明"
+        };
+    }
+
+    private string GetRarityDisplayName(RarityType rarity)
+    {
+        return rarity switch
+        {
+            RarityType.Common => "コモン",
+            RarityType.Rare => "レア",
+            RarityType.Epic => "エピック",
+            RarityType.Legendary => "レジェンダリー",
+            _ => "不明"
+        };
+    }
+
+    private string GetTargetTypeDisplayName(TargetType targetType)
+    {
+        return targetType switch
+        {
+            TargetType.Self => "自分",
+            TargetType.EnemySingle => "敵単体",
+            TargetType.EnemyAll => "敵全体",
+            TargetType.AllySingle => "味方単体",
+            TargetType.AllyAll => "味方全体",
+            TargetType.Random => "ランダム",
+            _ => "不明"
+        };
     }
 
     #endregion
@@ -1113,7 +1027,6 @@ public class InventoryUI : MonoBehaviour
     private void OnInventoryChanged()
     {
         RefreshDisplay();
-        // 装備スロットの表示を強制更新
         ForceUpdateEquipmentSlots();
     }
 
@@ -1142,18 +1055,58 @@ public class InventoryUI : MonoBehaviour
         DebugLog("セーブデータが読み込まれました");
     }
 
+    /// <summary>
+    /// スキル追加イベント
+    /// </summary>
+    private void OnSkillAdded(UserSkillData skill)
+    {
+        if (currentTab == InventoryTab.Skill)
+        {
+            UpdateSkillDisplay();
+        }
+        DebugLog($"スキルが追加されました: {skill.userSkillId}");
+    }
+
+    /// <summary>
+    /// スキル削除イベント
+    /// </summary>
+    private void OnSkillRemoved(UserSkillData skill)
+    {
+        if (currentTab == InventoryTab.Skill)
+        {
+            UpdateSkillDisplay();
+        }
+
+        // 削除されたスキルが選択されていた場合は選択解除
+        if (selectedSkill != null && selectedSkill.userSkillId == skill.userSkillId)
+        {
+            selectedSkill = null;
+            HideSkillDetail();
+        }
+
+        DebugLog($"スキルが削除されました: {skill.userSkillId}");
+    }
+
+    /// <summary>
+    /// スキルインベントリ変更イベント
+    /// </summary>
+    private void OnSkillInventoryChanged()
+    {
+        if (currentTab == InventoryTab.Skill)
+        {
+            UpdateSkillDisplay();
+        }
+        DebugLog("スキルインベントリが変更されました");
+    }
+
     private void OnEquipmentSlotClicked(UserEquipmentData equipment)
     {
         selectedEquipment = equipment;
         selectedItem = null;
+        selectedSkill = null; // スキル選択解除
 
-        // 選択状態の見た目更新
         UpdateSelectionVisual();
-
-        // 装備詳細を表示
         ShowEquipmentDetail(equipment);
-
-        // 装備管理ボタンの状態更新
         UpdateEquipmentManagementButtons();
 
         DebugLog($"装備が選択されました: {equipment.userEquipmentId}");
@@ -1163,59 +1116,59 @@ public class InventoryUI : MonoBehaviour
     {
         selectedItem = item;
         selectedEquipment = null;
+        selectedSkill = null; // スキル選択解除
 
-        // 選択状態の見た目更新
         UpdateSelectionVisual();
-
-        // アイテム詳細を表示
         ShowItemDetail(item);
-
-        // 装備管理ボタンの状態更新（装備以外では非表示）
         UpdateEquipmentManagementButtons();
 
         DebugLog($"アイテムが選択されました: {item.userItemId}");
     }
 
     /// <summary>
-    /// 装備装着イベント - 新規追加
+    /// スキルスロットクリックイベント
+    /// </summary>
+    private void OnSkillSlotClicked(UserSkillData skill)
+    {
+        selectedSkill = skill;
+        selectedEquipment = null;
+        selectedItem = null;
+
+        UpdateSelectionVisual();
+        ShowSkillDetail(skill);
+        UpdateEquipmentManagementButtons(); // スキル以外では非表示
+
+        DebugLog($"スキルが選択されました: {skill?.userSkillId ?? "null"}");
+    }
+
+    /// <summary>
+    /// 装備装着イベント
     /// </summary>
     private void OnEquipmentEquipped(UserEquipmentData equipment)
     {
         DebugLog($"装備装着イベント: {equipment.userEquipmentId}");
-
-        // 装備スロットの表示を強制更新
         ForceUpdateEquipmentSlots();
-
-        // 戦闘力などの情報表示も更新
         UpdatePlayerInfo();
     }
 
     /// <summary>
-    /// 装備解除イベント - 新規追加
+    /// 装備解除イベント
     /// </summary>
     private void OnEquipmentUnequipped(UserEquipmentData equipment)
     {
         DebugLog($"装備解除イベント: {equipment.userEquipmentId}");
-
-        // 装備スロットの表示を強制更新
         ForceUpdateEquipmentSlots();
-
-        // 戦闘力などの情報表示も更新
         UpdatePlayerInfo();
     }
 
     private void OnSortChanged(int sortIndex)
     {
-        // ソート処理を実装
-        // 例: 0=名前順, 1=レアリティ順, 2=強化値順, 3=取得日順
         DebugLog($"ソート変更: {sortIndex}");
         UpdateCurrentTab();
     }
 
     private void OnFilterChanged(int filterIndex)
     {
-        // フィルタ処理を実装
-        // 例: 0=全て, 1=武器のみ, 2=防具のみ, 3=アクセサリーのみ
         DebugLog($"フィルタ変更: {filterIndex}");
         UpdateCurrentTab();
     }
@@ -1248,6 +1201,17 @@ public class InventoryUI : MonoBehaviour
                 slot.SetSelected(isSelected);
             }
         }
+
+        // スキルスロットの選択状態を更新
+        foreach (var slot in skillSlots)
+        {
+            if (slot.gameObject.activeInHierarchy)
+            {
+                bool isSelected = selectedSkill != null &&
+                    slot.GetSkillData()?.userSkillId == selectedSkill.userSkillId;
+                slot.SetSelected(isSelected);
+            }
+        }
     }
 
     private bool IsManagersReady()
@@ -1257,7 +1221,9 @@ public class InventoryUI : MonoBehaviour
                SaveDataManager.Instance != null &&
                SaveDataManager.Instance.IsDataLoaded &&
                MasterDataManager.Instance != null &&
-               MasterDataManager.Instance.IsDataLoaded;
+               MasterDataManager.Instance.IsDataLoaded &&
+               SkillManager.Instance != null &&
+               SkillManager.Instance.IsInitialized;
     }
 
     private void DebugLog(string message)
@@ -1297,6 +1263,12 @@ public class InventoryUI : MonoBehaviour
         ShowTab(InventoryTab.SupportItem);
     }
 
+    [ContextMenu("スキルタブを表示")]
+    private void ShowSkillTab()
+    {
+        ShowTab(InventoryTab.Skill);
+    }
+
     [ContextMenu("詳細表示をテスト")]
     private void TestDetailDisplay()
     {
@@ -1307,6 +1279,10 @@ public class InventoryUI : MonoBehaviour
         else if (selectedItem != null)
         {
             ShowItemDetail(selectedItem);
+        }
+        else if (selectedSkill != null)
+        {
+            ShowSkillDetail(selectedSkill);
         }
         else
         {
@@ -1338,17 +1314,11 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
-    [ContextMenu("装備削除ボタンテスト")]
-    private void TestDeleteButton()
+    [ContextMenu("スキル表示テスト")]
+    private void TestSkillDisplay()
     {
-        if (selectedEquipment != null)
-        {
-            OnEquipmentDeleteButtonClicked();
-        }
-        else
-        {
-            Debug.LogWarning("装備が選択されていません");
-        }
+        UpdateSkillDisplay();
+        Debug.Log("スキル表示をテスト更新しました");
     }
 
     [ContextMenu("テストデータ追加")]
@@ -1359,6 +1329,14 @@ public class InventoryUI : MonoBehaviour
             InventoryManager.Instance.AddEquipment(1);
             InventoryManager.Instance.AddItem(ItemType.EnhanceItem, 1, 5);
             InventoryManager.Instance.AddItem(ItemType.SupportItem, 1, 3);
+
+            // スキル追加テスト
+            if (SkillManager.Instance != null && SkillManager.Instance.IsInitialized)
+            {
+                SkillManager.Instance.AddSkill(1);
+                Debug.Log("テストスキルを追加しました");
+            }
+
             Debug.Log("テストデータを追加しました");
         }
     }
@@ -1374,5 +1352,6 @@ public enum InventoryTab
 {
     Equipment,      // 装備
     EnhanceItem,    // 強化アイテム
-    SupportItem     // 補助アイテム
+    SupportItem,    // 補助アイテム
+    Skill           // スキル
 }

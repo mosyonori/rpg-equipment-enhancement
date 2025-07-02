@@ -153,7 +153,8 @@ public class UserItemData
 public enum ItemType
 {
     EnhanceItem,    // 強化アイテム
-    SupportItem     // 補助アイテム
+    SupportItem,    // 補助アイテム
+    Skill           // スキル（新規追加）
 }
 
 /// <summary>

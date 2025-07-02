@@ -10,11 +10,15 @@ public class CSVImporter : EditorWindow
     private static readonly string EQUIPMENT_CSV_PATH = "Assets/CSV/m_equipment_data.csv";
     private static readonly string ENHANCE_ITEM_CSV_PATH = "Assets/CSV/m_enhance_item_data.csv";
     private static readonly string SUPPORT_ITEM_CSV_PATH = "Assets/CSV/m_support_item_data.csv";
+    private static readonly string SKILL_CSV_PATH = "Assets/CSV/m_skill_data.csv";
+    private static readonly string SKILL_EFFECT_CSV_PATH = "Assets/CSV/m_skill_effects_data.csv";
 
     private static readonly string CHARACTER_OUTPUT_PATH = "Assets/GameData/Character/";
     private static readonly string EQUIPMENT_OUTPUT_PATH = "Assets/GameData/Equipment/";
     private static readonly string ENHANCE_ITEM_OUTPUT_PATH = "Assets/GameData/EnhanceItem/";
     private static readonly string SUPPORT_ITEM_OUTPUT_PATH = "Assets/GameData/SupportItem/";
+    private static readonly string SKILL_OUTPUT_PATH = "Assets/GameData/Skill/";
+    private static readonly string SKILL_EFFECT_OUTPUT_PATH = "Assets/GameData/SkillEffect/";
 
     // === 2. メニューアイテム ===
     [MenuItem("Tools/CSV Import/Import All CSV Data")]
@@ -26,6 +30,8 @@ public class CSVImporter : EditorWindow
         ImportEquipmentData();
         ImportEnhanceItemData();
         ImportSupportItemData();
+        ImportSkillData();
+        ImportSkillEffectData();
 
         Debug.Log("=== 全CSVデータインポート完了 ===");
     }
@@ -56,6 +62,20 @@ public class CSVImporter : EditorWindow
     {
         ImportCSVData<SupportItemMasterData>(SUPPORT_ITEM_CSV_PATH, SUPPORT_ITEM_OUTPUT_PATH,
             "SupportItem", ParseSupportItemLine, UpdateSupportItemAsset);
+    }
+
+    [MenuItem("Tools/CSV Import/Import Skill Data")]
+    public static void ImportSkillData()
+    {
+        ImportCSVData<SkillMasterData>(SKILL_CSV_PATH, SKILL_OUTPUT_PATH,
+            "Skill", ParseSkillLine, UpdateSkillAsset);
+    }
+
+    [MenuItem("Tools/CSV Import/Import Skill Effect Data")]
+    public static void ImportSkillEffectData()
+    {
+        ImportCSVData<SkillEffectMasterData>(SKILL_EFFECT_CSV_PATH, SKILL_EFFECT_OUTPUT_PATH,
+            "SkillEffect", ParseSkillEffectLine, UpdateSkillEffectAsset);
     }
 
     // === 3. 汎用インポート処理 ===
@@ -154,6 +174,8 @@ public class CSVImporter : EditorWindow
             "Equipment" => $"Equipment_{((EquipmentMasterData)data).equipmentId:000}_{((EquipmentMasterData)data).equipmentName}.asset",
             "EnhanceItem" => $"EnhanceItem_{((EnhanceItemMasterData)data).enhanceItemId:000}_{((EnhanceItemMasterData)data).enhanceItemName}.asset",
             "SupportItem" => $"SupportItem_{((SupportItemMasterData)data).supportItemId:000}_{((SupportItemMasterData)data).supportItemName}.asset",
+            "Skill" => $"Skill_{((SkillMasterData)data).skillId:000}_{((SkillMasterData)data).skillName}.asset",
+            "SkillEffect" => $"SkillEffect_{((SkillEffectMasterData)data).statusEffectId:000}_{((SkillEffectMasterData)data).statusEffectName}.asset",
             _ => "Unknown.asset"
         };
     }
@@ -209,7 +231,7 @@ public class CSVImporter : EditorWindow
         }
     }
 
-    // === 7. 装備データ解析 ===
+    // === 7. 装備データ解析（既存） ===
     private static EquipmentMasterData ParseEquipmentLine(string line)
     {
         try
@@ -280,7 +302,7 @@ public class CSVImporter : EditorWindow
         }
     }
 
-    // === 8. 強化アイテムデータ解析 ===
+    // === 8. 強化アイテムデータ解析（既存） ===
     private static EnhanceItemMasterData ParseEnhanceItemLine(string line)
     {
         try
@@ -368,7 +390,7 @@ public class CSVImporter : EditorWindow
         }
     }
 
-    // === 9. 補助材料データ解析 ===
+    // === 9. 補助料データ解析（既存） ===
     private static SupportItemMasterData ParseSupportItemLine(string line)
     {
         try
@@ -436,7 +458,118 @@ public class CSVImporter : EditorWindow
         }
     }
 
-    // === 10. アセット更新処理 ===
+    // === 10. スキルデータ解析（新規追加） ===
+    private static SkillMasterData ParseSkillLine(string line)
+    {
+        try
+        {
+            string[] fields = SplitCSVLine(line);
+
+            if (fields.Length < 19)
+            {
+                Debug.LogError($"Skill CSV line has insufficient fields: {fields.Length}");
+                return null;
+            }
+
+            SkillMasterData skill = ScriptableObject.CreateInstance<SkillMasterData>();
+
+            // 基本情報
+            skill.skillId = ParseInt(fields[0]);
+            skill.skillName = fields[1];
+            skill.attributeType = ParseAttributeType(fields[2]);
+            skill.rarity = ParseRarity(fields[3]);
+
+            // スキル効果
+            skill.skillDamageMultiplier = ParseFloat(fields[4]);
+            skill.skillTargetType = ParseTargetType(fields[5]);
+
+            // 使用制限
+            skill.skillMaxCoolTime = ParseInt(fields[6]);
+            skill.skillHpCost = ParseInt(fields[7]);
+            skill.skillMpCost = ParseInt(fields[8]);
+
+            // 状態効果
+            skill.skillEffect = fields[9];
+            skill.skillEffectChance = ParseInt(fields[10]);
+            skill.skillEffectChanceBoss = ParseInt(fields[11]);
+            skill.skillEffectDuration = ParseInt(fields[12]);
+
+            // 表示設定
+            skill.skillIconPath = fields[13];
+            skill.skillAnimationPath = fields[14];
+            skill.skillSoundPath = fields[15];
+            skill.description = fields[16];
+
+            // フラグ
+            skill.completionFlag = ParseBool(fields[17]);
+            skill.collectionFlag = ParseBool(fields[18]);
+
+            return skill;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error parsing skill line: {e.Message}\nLine: {line}");
+            return null;
+        }
+    }
+
+    // === 11. スキル効果データ解析（新規追加） ===
+    private static SkillEffectMasterData ParseSkillEffectLine(string line)
+    {
+        try
+        {
+            string[] fields = SplitCSVLine(line);
+
+            if (fields.Length < 20)
+            {
+                Debug.LogError($"SkillEffect CSV line has insufficient fields: {fields.Length}");
+                return null;
+            }
+
+            SkillEffectMasterData skillEffect = ScriptableObject.CreateInstance<SkillEffectMasterData>();
+
+            // 基本情報
+            skillEffect.statusEffectId = ParseInt(fields[0]);
+            skillEffect.statusEffectName = fields[1];
+            skillEffect.statusEffectType = ParseStatusEffectType(fields[2]);
+            skillEffect.description = fields[3];
+
+            // 効果設定
+            skillEffect.effectType = ParseEffectType(fields[4]);
+            skillEffect.stackable = ParseBool(fields[5]);
+
+            // ステータス修正値
+            skillEffect.offenseModifier = ParseInt(fields[6]);
+            skillEffect.defenseModifier = ParseInt(fields[7]);
+
+            // ステータス倍率
+            skillEffect.offenseMultiplier = ParseFloat(fields[8]);
+            skillEffect.defenseMultiplier = ParseFloat(fields[9]);
+            skillEffect.fireOffenseMultiplier = ParseFloat(fields[10]);
+            skillEffect.waterOffenseMultiplier = ParseFloat(fields[11]);
+            skillEffect.windOffenseMultiplier = ParseFloat(fields[12]);
+            skillEffect.earthOffenseMultiplier = ParseFloat(fields[13]);
+
+            // 特殊効果
+            skillEffect.preventAction = ParseBool(fields[14]);
+            skillEffect.turnStartDamagePercent = ParseInt(fields[15]);
+            skillEffect.turnStartHealPercent = ParseInt(fields[16]);
+
+            // 表示設定
+            skillEffect.skillEffectIconId = fields[17];
+            skillEffect.colorCode = fields[18];
+            skillEffect.skillEffectPriority = ParseInt(fields[19]);
+
+            return skillEffect;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error parsing skill effect line: {e.Message}\nLine: {line}");
+            return null;
+        }
+    }
+
+    // === 12. アセット更新処理 ===
     private static void UpdateCharacterAsset(CharacterMasterData existing, CharacterMasterData newData)
     {
         // 既存のキャラクターアセット更新処理（既存コードと同じ）
@@ -625,7 +758,129 @@ public class CSVImporter : EditorWindow
         existing.collectionFlag = newData.collectionFlag;
     }
 
-    // === 11. パース用ユーティリティ ===
+    // === 13. スキルアセット更新処理（新規追加） ===
+    private static void UpdateSkillAsset(SkillMasterData existing, SkillMasterData newData)
+    {
+        // 基本情報
+        existing.skillName = newData.skillName;
+        existing.attributeType = newData.attributeType;
+        existing.rarity = newData.rarity;
+
+        // スキル効果
+        existing.skillDamageMultiplier = newData.skillDamageMultiplier;
+        existing.skillTargetType = newData.skillTargetType;
+
+        // 使用制限
+        existing.skillMaxCoolTime = newData.skillMaxCoolTime;
+        existing.skillHpCost = newData.skillHpCost;
+        existing.skillMpCost = newData.skillMpCost;
+
+        // 状態効果
+        existing.skillEffect = newData.skillEffect;
+        existing.skillEffectChance = newData.skillEffectChance;
+        existing.skillEffectChanceBoss = newData.skillEffectChanceBoss;
+        existing.skillEffectDuration = newData.skillEffectDuration;
+
+        // 表示設定
+        existing.skillIconPath = newData.skillIconPath;
+        existing.skillAnimationPath = newData.skillAnimationPath;
+        existing.skillSoundPath = newData.skillSoundPath;
+        existing.description = newData.description;
+
+        // フラグ
+        existing.completionFlag = newData.completionFlag;
+        existing.collectionFlag = newData.collectionFlag;
+    }
+
+    private static void UpdateSkillEffectAsset(SkillEffectMasterData existing, SkillEffectMasterData newData)
+    {
+        // 基本情報
+        existing.statusEffectName = newData.statusEffectName;
+        existing.statusEffectType = newData.statusEffectType;
+        existing.description = newData.description;
+
+        // 効果設定
+        existing.effectType = newData.effectType;
+        existing.stackable = newData.stackable;
+
+        // ステータス修正値
+        existing.offenseModifier = newData.offenseModifier;
+        existing.defenseModifier = newData.defenseModifier;
+
+        // ステータス倍率
+        existing.offenseMultiplier = newData.offenseMultiplier;
+        existing.defenseMultiplier = newData.defenseMultiplier;
+        existing.fireOffenseMultiplier = newData.fireOffenseMultiplier;
+        existing.waterOffenseMultiplier = newData.waterOffenseMultiplier;
+        existing.windOffenseMultiplier = newData.windOffenseMultiplier;
+        existing.earthOffenseMultiplier = newData.earthOffenseMultiplier;
+
+        // 特殊効果
+        existing.preventAction = newData.preventAction;
+        existing.turnStartDamagePercent = newData.turnStartDamagePercent;
+        existing.turnStartHealPercent = newData.turnStartHealPercent;
+
+        // 表示設定
+        existing.skillEffectIconId = newData.skillEffectIconId;
+        existing.colorCode = newData.colorCode;
+        existing.skillEffectPriority = newData.skillEffectPriority;
+    }
+
+    // === 14. 新規パース用ユーティリティ（新規追加） ===
+    private static TargetType ParseTargetType(string targetStr)
+    {
+        return targetStr.ToLower() switch
+        {
+            "self" => TargetType.Self,
+            "enemy_single" => TargetType.EnemySingle,
+            "enemy_all" => TargetType.EnemyAll,
+            "ally_single" => TargetType.AllySingle,
+            "ally_all" => TargetType.AllyAll,
+            "random" => TargetType.Random,
+            "" => TargetType.Self,
+            _ => TargetType.Self
+        };
+    }
+
+    private static StatusEffectType ParseStatusEffectType(string effectStr)
+    {
+        return effectStr.ToLower() switch
+        {
+            "attack_down" => StatusEffectType.AttackDown,
+            "defense_down" => StatusEffectType.DefenseDown,
+            "attack_up" => StatusEffectType.AttackUp,
+            "defense_up" => StatusEffectType.DefenseUp,
+            "stun" => StatusEffectType.Stun,
+            "poison" => StatusEffectType.Poison,
+            "regen" => StatusEffectType.Regen,
+            "" => StatusEffectType.AttackUp,
+            _ => StatusEffectType.AttackUp
+        };
+    }
+
+    private static EffectType ParseEffectType(string effectStr)
+    {
+        return effectStr.ToLower() switch
+        {
+            "damage" => EffectType.Damage,
+            "heal" => EffectType.Heal,
+            "status_modifier" => EffectType.StatusModifier,
+            "action_block" => EffectType.ActionBlock,
+            "special" => EffectType.Special,
+            "" => EffectType.Damage,
+            _ => EffectType.Damage
+        };
+    }
+
+    private static float ParseFloat(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return 0f;
+        if (float.TryParse(value, out float result)) return result;
+        Debug.LogWarning($"Failed to parse float: {value}, defaulting to 0");
+        return 0f;
+    }
+
+    // === 15. 既存のパース用ユーティリティ ===
     private static EquipmentType ParseEquipmentType(string typeStr)
     {
         return typeStr.ToLower() switch
@@ -713,7 +968,7 @@ public class CSVImporter : EditorWindow
         return fields.ToArray();
     }
 
-    // === 12. 検証メニュー ===
+    // === 16. 検証メニュー ===
     [MenuItem("Tools/CSV Import/Validate All Data")]
     public static void ValidateAllData()
     {
@@ -722,6 +977,8 @@ public class CSVImporter : EditorWindow
         ValidateEquipmentData();
         ValidateEnhanceItemData();
         ValidateSupportItemData();
+        ValidateSkillData();
+        ValidateSkillEffectData();
         Debug.Log("=== 全データ検証完了 ===");
     }
 
@@ -749,6 +1006,19 @@ public class CSVImporter : EditorWindow
         ValidateAssets<SupportItemMasterData>("SupportItem", "Assets/GameData/SupportItem");
     }
 
+    [MenuItem("Tools/CSV Import/Validate Skill Data")]
+    public static void ValidateSkillData()
+    {
+        ValidateAssets<SkillMasterData>("Skill", "Assets/GameData/Skill");
+    }
+
+    [MenuItem("Tools/CSV Import/Validate Skill Effect Data")]
+    public static void ValidateSkillEffectData()
+    {
+        ValidateAssets<SkillEffectMasterData>("SkillEffect", "Assets/GameData/SkillEffect");
+    }
+
+    // === 17. 検証処理（スキル追加） ===
     private static void ValidateAssets<T>(string dataType, string searchPath) where T : ScriptableObject
     {
         try
@@ -824,6 +1094,20 @@ public class CSVImporter : EditorWindow
                 if (supportItem.supportItemId <= 0) errors.Add("Invalid support item ID");
                 if (string.IsNullOrEmpty(supportItem.supportItemName)) errors.Add("Support item name is empty");
                 if (supportItem.maxStackValue <= 0) errors.Add("Invalid max stack value");
+                break;
+
+            case SkillMasterData skill:
+                if (skill.skillId <= 0) errors.Add("Invalid skill ID");
+                if (string.IsNullOrEmpty(skill.skillName)) errors.Add("Skill name is empty");
+                if (skill.skillDamageMultiplier < 0) errors.Add("Skill damage multiplier is negative");
+                if (skill.skillMaxCoolTime < 0) errors.Add("Skill cool time is negative");
+                break;
+
+            case SkillEffectMasterData skillEffect:
+                if (skillEffect.statusEffectId <= 0) errors.Add("Invalid skill effect ID");
+                if (string.IsNullOrEmpty(skillEffect.statusEffectName)) errors.Add("Skill effect name is empty");
+                if (skillEffect.offenseMultiplier < 0) errors.Add("Offense multiplier is negative");
+                if (skillEffect.defenseMultiplier < 0) errors.Add("Defense multiplier is negative");
                 break;
         }
 
