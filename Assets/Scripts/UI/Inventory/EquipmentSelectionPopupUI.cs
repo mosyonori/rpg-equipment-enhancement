@@ -2,9 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 /// <summary>
 /// 装備選択用ポップアップUI
+/// 修正版：イベント実行の安全化とオブジェクトライフサイクル管理
 /// </summary>
 public class EquipmentSelectionPopup : MonoBehaviour
 {
@@ -14,7 +16,7 @@ public class EquipmentSelectionPopup : MonoBehaviour
     [SerializeField] private Button closeButton;
     [SerializeField] private Button confirmButton;
     [SerializeField] private TextMeshProUGUI confirmButtonText;
-    [SerializeField] private Button removeEquipmentButton; // 旧来のボタン（念のため残す）
+    [SerializeField] private Button removeEquipmentButton;
     [SerializeField] private Transform equipmentGridParent;
     [SerializeField] private GameObject equipmentSlotPrefab;
     [SerializeField] private ScrollRect scrollRect;
@@ -54,14 +56,17 @@ public class EquipmentSelectionPopup : MonoBehaviour
     private EquipmentType currentEquipmentType;
     private UserEquipmentData selectedEquipment;
     private List<EquipmentSlotUI> equipmentSlots = new List<EquipmentSlotUI>();
-    private GameObject removeEquipmentSlot; // Grid内の装備解除ボタン
+    private GameObject removeEquipmentSlot;
+
+    // === 安全性管理用フラグ追加 ===
+    private bool isDestroying = false;
+    private bool isEventProcessing = false;
 
     #region Unity Lifecycle
 
     private void Awake()
     {
         SetupButtons();
-        // Awake時は単純に非表示にする（元の方法）
         if (popupPanel != null)
         {
             popupPanel.SetActive(false);
@@ -75,7 +80,10 @@ public class EquipmentSelectionPopup : MonoBehaviour
 
     private void OnDestroy()
     {
-        // イベントの購読を解除して参照をクリア
+        // === 破棄フラグを設定 ===
+        isDestroying = true;
+
+        // イベントの購読を解除してコールバック参照をクリア
         OnEquipmentSelected = null;
         OnEquipmentRemoved = null;
         OnPopupClosed = null;
@@ -91,18 +99,17 @@ public class EquipmentSelectionPopup : MonoBehaviour
     {
         if (closeButton != null)
         {
-            closeButton.onClick.AddListener(HidePopup);
+            closeButton.onClick.AddListener(HidePopupSafe);
         }
 
         if (confirmButton != null)
         {
-            confirmButton.onClick.AddListener(ConfirmSelection);
+            confirmButton.onClick.AddListener(ConfirmSelectionSafe);
         }
 
-        // 旧来の装備解除ボタンを無効化（Grid内のボタンを使用するため）
         if (removeEquipmentButton != null)
         {
-            removeEquipmentButton.gameObject.SetActive(false); // 非表示にする
+            removeEquipmentButton.gameObject.SetActive(false);
         }
     }
 
@@ -111,14 +118,16 @@ public class EquipmentSelectionPopup : MonoBehaviour
     #region 公開メソッド
 
     /// <summary>
-    /// 装備選択ポップアップを表示（元の方法に戻す）
+    /// 装備選択ポップアップを表示（安全版）
     /// </summary>
     public void ShowEquipmentSelection(EquipmentType equipmentType)
     {
+        if (isDestroying) return;
+
         currentEquipmentType = equipmentType;
         selectedEquipment = null;
 
-        // === 追加: 他のポップアップを確実に非表示 ===
+        // 他のポップアップを確実に非表示
         EnsureOtherPopupsHidden();
 
         // タイトル設定
@@ -137,25 +146,14 @@ public class EquipmentSelectionPopup : MonoBehaviour
     }
 
     /// <summary>
-    /// 他のポップアップを確実に非表示にする
+    /// ポップアップを非表示（安全版）
     /// </summary>
-    private void EnsureOtherPopupsHidden()
+    public void HidePopupSafe()
     {
-        // SkillSelectionPopupを非表示にする
-        var skillPopup = FindFirstObjectByType<SkillSelectionPopup>();
-        if (skillPopup != null)
-        {
-            skillPopup.HidePopup();
-        }
+        if (isDestroying) return;
 
-        DebugLog("他のポップアップを非表示にしました");
-    }
+        DebugLog("ポップアップを安全に非表示にします");
 
-    /// <summary>
-    /// ポップアップを非表示（元の方法に戻す）
-    /// </summary>
-    public void HidePopup()
-    {
         if (popupPanel != null)
         {
             popupPanel.SetActive(false);
@@ -164,10 +162,21 @@ public class EquipmentSelectionPopup : MonoBehaviour
         selectedEquipment = null;
         HideDetailsPanel();
 
-        // 元のシンプルな方法に戻す
-        OnPopupClosed?.Invoke();
+        // イベント発火は最後に（安全チェック付き）
+        if (!isDestroying && OnPopupClosed != null)
+        {
+            OnPopupClosed.Invoke();
+        }
 
         DebugLog("装備選択ポップアップを非表示");
+    }
+
+    /// <summary>
+    /// 従来のHidePopupメソッド（互換性維持）
+    /// </summary>
+    public void HidePopup()
+    {
+        HidePopupSafe();
     }
 
     /// <summary>
@@ -190,6 +199,16 @@ public class EquipmentSelectionPopup : MonoBehaviour
         }
     }
 
+    private void EnsureOtherPopupsHidden()
+    {
+        var skillPopup = FindFirstObjectByType<SkillSelectionPopup>();
+        if (skillPopup != null)
+        {
+            skillPopup.HidePopup();
+        }
+        DebugLog("他のポップアップを非表示にしました");
+    }
+
     private void UpdateTitle()
     {
         if (titleText == null) return;
@@ -209,27 +228,16 @@ public class EquipmentSelectionPopup : MonoBehaviour
     {
         if (!IsManagersReady()) return;
 
-        // 既存のアイテムをクリア
         ClearAllSlots();
-
-        // 装備解除ボタンを最初に作成
         CreateRemoveEquipmentSlot();
 
-        // 指定タイプの装備可能アイテムを取得
         var availableEquipments = InventoryManager.Instance.GetEquippableItems(currentEquipmentType);
-
         DebugLog($"表示可能装備数: {availableEquipments.Count}");
 
-        // 装備アイテムスロットを作成
         CreateEquipmentSlots(availableEquipments);
-
-        // ボタン状態更新
         UpdateButtonStates();
     }
 
-    /// <summary>
-    /// 全スロットをクリア（元の方法）
-    /// </summary>
     private void ClearAllSlots()
     {
         // 装備スロットを破棄
@@ -249,22 +257,15 @@ public class EquipmentSelectionPopup : MonoBehaviour
             removeEquipmentSlot = null;
         }
 
-        // グリッド内の全ての子オブジェクトを安全に削除
         ClearAllGridChildrenSafe();
-
         DebugLog("全スロットをクリアしました");
     }
 
-    /// <summary>
-    /// グリッド内の全ての子オブジェクトを安全に削除
-    /// </summary>
     private void ClearAllGridChildrenSafe()
     {
         if (equipmentGridParent == null) return;
 
-        // 子オブジェクトのリストを事前に取得（破棄中の参照エラーを避けるため）
         List<Transform> childrenToDestroy = new List<Transform>();
-
         for (int i = 0; i < equipmentGridParent.childCount; i++)
         {
             var child = equipmentGridParent.GetChild(i);
@@ -274,12 +275,10 @@ public class EquipmentSelectionPopup : MonoBehaviour
             }
         }
 
-        // 事前に取得したリストから安全に削除
         foreach (var child in childrenToDestroy)
         {
             if (child != null && child.gameObject != null)
             {
-                // オブジェクトを削除
                 DestroyImmediate(child.gameObject);
             }
         }
@@ -287,9 +286,6 @@ public class EquipmentSelectionPopup : MonoBehaviour
         DebugLog($"グリッド内の{childrenToDestroy.Count}個のオブジェクトを削除しました");
     }
 
-    /// <summary>
-    /// 装備解除ボタンスロットを作成（Grid内の最初の位置）
-    /// </summary>
     private void CreateRemoveEquipmentSlot()
     {
         if (removeEquipmentSlotPrefab == null)
@@ -298,22 +294,16 @@ public class EquipmentSelectionPopup : MonoBehaviour
             return;
         }
 
-        // 装備解除スロットを生成
         removeEquipmentSlot = Instantiate(removeEquipmentSlotPrefab, equipmentGridParent);
-
-        // 最初の位置に配置
         removeEquipmentSlot.transform.SetSiblingIndex(0);
 
-        // Layout Elementを追加してGrid Layoutに参加させる
         LayoutElement layoutElement = removeEquipmentSlot.GetComponent<LayoutElement>();
         if (layoutElement == null)
         {
             layoutElement = removeEquipmentSlot.AddComponent<LayoutElement>();
         }
-        // ignoreLayout = false にして Grid Layout に参加させる
         layoutElement.ignoreLayout = false;
 
-        // Grid Layout Groupのセルサイズに合わせる（推奨サイズとして設定）
         GridLayoutGroup gridLayout = equipmentGridParent.GetComponent<GridLayoutGroup>();
         if (gridLayout != null)
         {
@@ -321,20 +311,16 @@ public class EquipmentSelectionPopup : MonoBehaviour
             layoutElement.preferredHeight = gridLayout.cellSize.y;
         }
 
-        // ボタンイベントを設定
         Button removeButton = removeEquipmentSlot.GetComponent<Button>();
         if (removeButton != null)
         {
             removeButton.onClick.RemoveAllListeners();
-            removeButton.onClick.AddListener(RemoveEquipment);
+            removeButton.onClick.AddListener(RemoveEquipmentSafe);
         }
 
-        DebugLog("装備解除スロットを作成しました（Grid内最初の位置、Grid Layoutに参加）");
+        DebugLog("装備解除スロットを作成しました");
     }
 
-    /// <summary>
-    /// 装備アイテムスロットを作成
-    /// </summary>
     private void CreateEquipmentSlots(List<UserEquipmentData> availableEquipments)
     {
         foreach (var equipment in availableEquipments)
@@ -354,25 +340,132 @@ public class EquipmentSelectionPopup : MonoBehaviour
         DebugLog($"装備スロットを{availableEquipments.Count}個作成しました");
     }
 
+    #endregion
+
+    #region 安全なイベント処理
+
+    /// <summary>
+    /// 装備選択確定（安全版）
+    /// </summary>
+    private void ConfirmSelectionSafe()
+    {
+        if (isDestroying || isEventProcessing) return;
+
+        // 選択状態のチェック
+        if (selectedEquipment == null)
+        {
+            DebugLog("装備が選択されていません");
+            return;
+        }
+
+        // イベントが設定されているかチェック
+        if (OnEquipmentSelected == null)
+        {
+            DebugLogError("OnEquipmentSelectedイベントが設定されていません");
+            return;
+        }
+
+        DebugLog($"装備選択を確定: {selectedEquipment.userEquipmentId}");
+
+        // 安全なイベント実行のためコルーチンを使用
+        StartCoroutine(SafeEventExecution(() => OnEquipmentSelected?.Invoke(selectedEquipment)));
+    }
+
+    /// <summary>
+    /// 装備解除（安全版）
+    /// </summary>
+    private void RemoveEquipmentSafe()
+    {
+        if (isDestroying || isEventProcessing) return;
+
+        if (!HasEquippedItem())
+        {
+            DebugLog("外す装備がありません");
+            return;
+        }
+
+        if (OnEquipmentRemoved == null)
+        {
+            DebugLogError("OnEquipmentRemovedイベントが設定されていません");
+            return;
+        }
+
+        DebugLog($"装備を外します: {currentEquipmentType}");
+
+        // 安全なイベント実行のためコルーチンを使用
+        StartCoroutine(SafeEventExecution(() => OnEquipmentRemoved?.Invoke()));
+    }
+
+    /// <summary>
+    /// 安全なイベント実行
+    /// </summary>
+    private System.Collections.IEnumerator SafeEventExecution(System.Action eventAction)
+    {
+        if (isDestroying)
+        {
+            yield break;
+        }
+
+        isEventProcessing = true;
+        bool eventExecuted = false;
+        System.Exception caughtException = null;
+
+        // try-catch内ではyieldを使わない
+        try
+        {
+            DebugLog("イベント実行開始");
+
+            // イベントを実行
+            eventAction?.Invoke();
+            eventExecuted = true;
+
+            DebugLog("イベント実行完了");
+        }
+        catch (System.Exception e)
+        {
+            caughtException = e;
+            DebugLogError($"イベント実行中にエラーが発生: {e.Message}");
+        }
+
+        // try-catchの外でyieldを使用
+        if (eventExecuted)
+        {
+            // 1フレーム待機
+            yield return new WaitForEndOfFrame();
+
+            // オブジェクトがまだ有効かチェック
+            if (!isDestroying && this != null)
+            {
+                // ポップアップを安全に閉じる
+                HidePopupSafe();
+                DebugLog("ポップアップを閉じました");
+            }
+            else
+            {
+                DebugLogError("イベント実行中にオブジェクトが破棄されました");
+            }
+        }
+
+        // 最終的にフラグをリセット
+        isEventProcessing = false;
+    }
+
     private void OnEquipmentSlotClicked(UserEquipmentData equipment)
     {
+        if (isDestroying) return;
+
         selectedEquipment = equipment;
-
-        // 選択状態の見た目更新
         UpdateSelectionVisual();
-
-        // 詳細ステータス表示更新
         UpdateDetailsPanel();
-
-        // ボタン状態更新
         UpdateButtonStates();
 
         DebugLog($"装備が選択されました: {equipment.userEquipmentId}");
     }
 
-    /// <summary>
-    /// 詳細ステータスパネルを更新
-    /// </summary>
+    #endregion
+
+    #region 表示更新
+
     private void UpdateDetailsPanel()
     {
         if (selectedEquipment == null)
@@ -390,28 +483,19 @@ public class EquipmentSelectionPopup : MonoBehaviour
         }
 
         ShowDetailsPanel();
-
-        // 基本情報表示
         UpdateBasicInfo(masterData);
-
-        // 詳細ステータス表示
         UpdateDetailedStats(masterData);
 
         DebugLog($"詳細ステータス表示を更新: {masterData.equipmentName}");
     }
 
-    /// <summary>
-    /// 基本情報を更新
-    /// </summary>
     private void UpdateBasicInfo(EquipmentMasterData masterData)
     {
-        // 装備名
         if (selectedEquipmentNameText != null)
         {
             selectedEquipmentNameText.text = masterData.equipmentName;
         }
 
-        // 強化値
         if (selectedEquipmentEnhanceText != null)
         {
             if (selectedEquipment.currentEnhancedValue > 0)
@@ -425,7 +509,6 @@ public class EquipmentSelectionPopup : MonoBehaviour
             }
         }
 
-        // 戦闘力
         if (selectedEquipmentPowerText != null)
         {
             var totalStats = selectedEquipment.CalculateTotalStats(masterData);
@@ -434,12 +517,8 @@ public class EquipmentSelectionPopup : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 詳細ステータスを更新
-    /// </summary>
     private void UpdateDetailedStats(EquipmentMasterData masterData)
     {
-        // 基本ステータス + 強化値を計算
         int totalHp = masterData.hp + selectedEquipment.enhancedHp;
         int totalOffense = masterData.offense + selectedEquipment.enhancedOffense;
         int totalDefense = masterData.defense + selectedEquipment.enhancedDefense;
@@ -451,7 +530,6 @@ public class EquipmentSelectionPopup : MonoBehaviour
         int totalWindOffence = masterData.windOffence + selectedEquipment.enhancedWindOffence;
         int totalEarthOffence = masterData.earthOffence + selectedEquipment.enhancedEarthOffence;
 
-        // 各ステータステキストを更新
         if (detailHpText != null) detailHpText.text = totalHp.ToString();
         if (detailOffenseText != null) detailOffenseText.text = totalOffense.ToString();
         if (detailDefenseText != null) detailDefenseText.text = totalDefense.ToString();
@@ -464,9 +542,6 @@ public class EquipmentSelectionPopup : MonoBehaviour
         if (detailEarthOffenceText != null) detailEarthOffenceText.text = totalEarthOffence.ToString();
     }
 
-    /// <summary>
-    /// 詳細パネルを表示
-    /// </summary>
     private void ShowDetailsPanel()
     {
         if (detailsPanel != null)
@@ -475,9 +550,6 @@ public class EquipmentSelectionPopup : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 詳細パネルを非表示
-    /// </summary>
     private void HideDetailsPanel()
     {
         if (detailsPanel != null)
@@ -486,9 +558,6 @@ public class EquipmentSelectionPopup : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 装備の戦闘力を計算
-    /// </summary>
     private int CalculateEquipmentPower(EquipmentTotalStats stats)
     {
         int power = 0;
@@ -522,10 +591,9 @@ public class EquipmentSelectionPopup : MonoBehaviour
     {
         bool hasSelection = selectedEquipment != null;
 
-        // Confirmボタンのテキスト色を変更（ボタン自体は常に有効）
         if (confirmButton != null)
         {
-            confirmButton.interactable = true; // 常に有効
+            confirmButton.interactable = true;
 
             if (confirmButtonText != null)
             {
@@ -533,24 +601,18 @@ public class EquipmentSelectionPopup : MonoBehaviour
             }
         }
 
-        // Grid内の装備解除ボタンの状態を更新
         UpdateRemoveButtonState();
     }
 
-    /// <summary>
-    /// 装備解除ボタンの状態を更新
-    /// </summary>
     private void UpdateRemoveButtonState()
     {
         bool hasEquippedItem = HasEquippedItem();
 
-        // 旧来のボタン（パネル外）- もしInspectorで設定されている場合
         if (removeEquipmentButton != null)
         {
             removeEquipmentButton.interactable = hasEquippedItem;
         }
 
-        // Grid内のボタン
         if (removeEquipmentSlot != null)
         {
             Button gridRemoveButton = removeEquipmentSlot.GetComponent<Button>();
@@ -558,7 +620,6 @@ public class EquipmentSelectionPopup : MonoBehaviour
             {
                 gridRemoveButton.interactable = hasEquippedItem;
 
-                // ボタンの見た目を更新
                 Image buttonImage = gridRemoveButton.GetComponent<Image>();
                 if (buttonImage != null)
                 {
@@ -578,75 +639,14 @@ public class EquipmentSelectionPopup : MonoBehaviour
         });
     }
 
-    /// <summary>
-    /// 装備選択確定（元のシンプルな方法に戻す）
-    /// </summary>
-    private void ConfirmSelection()
-    {
-        // 選択状態のチェック
-        if (selectedEquipment == null)
-        {
-            DebugLog("装備が選択されていません");
-            return;
-        }
+    #endregion
 
-        // イベントが設定されているかチェック
-        if (OnEquipmentSelected == null)
-        {
-            DebugLogError("OnEquipmentSelectedイベントが設定されていません");
-            return;
-        }
-
-        DebugLog($"装備選択を確定: {selectedEquipment.userEquipmentId}");
-
-        try
-        {
-            // 元のシンプルな方法：イベントを先に呼び出してからポップアップを閉じる
-            OnEquipmentSelected.Invoke(selectedEquipment);
-            HidePopup();
-        }
-        catch (System.Exception e)
-        {
-            DebugLogError($"装備選択確定時にエラーが発生: {e.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 装備解除（元のシンプルな方法に戻す）
-    /// </summary>
-    private void RemoveEquipment()
-    {
-        // 装備外し可能かチェック
-        if (!HasEquippedItem())
-        {
-            DebugLog("外す装備がありません");
-            return;
-        }
-
-        // イベントが設定されているかチェック
-        if (OnEquipmentRemoved == null)
-        {
-            DebugLogError("OnEquipmentRemovedイベントが設定されていません");
-            return;
-        }
-
-        DebugLog($"装備を外します: {currentEquipmentType}");
-
-        try
-        {
-            // 元のシンプルな方法：イベントを先に呼び出してからポップアップを閉じる
-            OnEquipmentRemoved.Invoke();
-            HidePopup();
-        }
-        catch (System.Exception e)
-        {
-            DebugLogError($"装備外し時にエラーが発生: {e.Message}");
-        }
-    }
+    #region ユーティリティ
 
     private bool IsManagersReady()
     {
-        return InventoryManager.Instance != null &&
+        return !isDestroying &&
+               InventoryManager.Instance != null &&
                InventoryManager.Instance.IsInitialized &&
                MasterDataManager.Instance != null &&
                MasterDataManager.Instance.IsDataLoaded;
@@ -689,27 +689,6 @@ public class EquipmentSelectionPopup : MonoBehaviour
     private void TestShowAccessories()
     {
         ShowEquipmentSelection(EquipmentType.Accessory);
-    }
-
-    [ContextMenu("詳細ステータステスト")]
-    private void TestDetailedStats()
-    {
-        if (selectedEquipment != null)
-        {
-            UpdateDetailsPanel();
-            Debug.Log("詳細ステータス表示をテスト更新しました");
-        }
-        else
-        {
-            Debug.LogWarning("装備が選択されていません");
-        }
-    }
-
-    [ContextMenu("Grid内装備解除ボタンテスト")]
-    private void TestGridRemoveButton()
-    {
-        CreateRemoveEquipmentSlot();
-        Debug.Log("Grid内装備解除ボタンをテスト作成しました");
     }
 #endif
 
