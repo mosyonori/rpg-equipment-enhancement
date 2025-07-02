@@ -161,15 +161,20 @@ public class EquipmentEditUI : MonoBehaviour
             enhanceButton.onClick.AddListener(() => OnEnhanceButtonClicked?.Invoke());
         }
     }
-
     // ===== SetupPopupEvents()メソッドに追加 =====
     private void SetupPopupEvents()
     {
         if (equipmentSelectionPopup != null)
         {
+            DebugLog("EquipmentSelectionPopupイベントを購読開始");
             equipmentSelectionPopup.OnEquipmentSelected += OnEquipmentSelected;
             equipmentSelectionPopup.OnEquipmentRemoved += OnEquipmentRemoved;
             equipmentSelectionPopup.OnPopupClosed += OnPopupClosed;
+            DebugLog($"EquipmentSelectionPopupイベント購読完了: OnEquipmentSelected={equipmentSelectionPopup.OnEquipmentSelected != null}");
+        }
+        else
+        {
+            DebugLogError("equipmentSelectionPopupがnullです");
         }
 
         // スキル選択ポップアップイベント追加
@@ -180,6 +185,143 @@ public class EquipmentEditUI : MonoBehaviour
             skillSelectionPopup.OnPopupClosed += OnPopupClosed;
         }
     }
+
+    /// <summary>
+    /// 装備マスターIDから装備タイプを取得
+    /// </summary>
+    private EquipmentType GetEquipmentTypeFromMaster(int masterId)
+    {
+        var masterData = MasterDataManager.Instance?.GetEquipmentData(masterId);
+        return masterData?.equipmentType ?? EquipmentType.Weapon;
+    }
+
+    private void OpenEquipmentSelection(EquipmentType equipmentType)
+    {
+        DebugLog($"OpenEquipmentSelection開始: {equipmentType}");
+
+        if (equipmentSelectionPopup == null)
+        {
+            DebugLogError("装備選択ポップアップが設定されていません");
+            return;
+        }
+
+        // イベントが正しく購読されているかチェック
+        DebugLog($"OnEquipmentSelectedイベント購読状況: {equipmentSelectionPopup.OnEquipmentSelected != null}");
+        if (equipmentSelectionPopup.OnEquipmentSelected != null)
+        {
+            var invocationList = equipmentSelectionPopup.OnEquipmentSelected.GetInvocationList();
+            DebugLog($"OnEquipmentSelected購読者数: {invocationList.Length}");
+            foreach (var handler in invocationList)
+            {
+                DebugLog($"購読者: {handler.Target?.GetType().Name}.{handler.Method.Name}");
+            }
+        }
+
+        // 装備タイプを記録
+        lastOpenedEquipmentType = equipmentType;
+
+        DebugLog($"ポップアップ表示前の状態: popup.gameObject.activeInHierarchy={equipmentSelectionPopup.gameObject.activeInHierarchy}");
+
+        equipmentSelectionPopup.ShowEquipmentSelection(equipmentType);
+
+        DebugLog($"ポップアップ表示後の状態: popup.gameObject.activeInHierarchy={equipmentSelectionPopup.gameObject.activeInHierarchy}");
+        DebugLog($"装備選択を開始: {equipmentType}");
+    }
+
+    private void OnEquipmentSelected(UserEquipmentData equipment)
+    {
+        DebugLog($"OnEquipmentSelected呼び出し開始: {equipment?.userEquipmentId}");
+
+        if (equipment == null)
+        {
+            DebugLogError("OnEquipmentSelected: equipmentがnullです");
+            return;
+        }
+
+        DebugLog($"装備タイプ: {GetEquipmentTypeFromMaster(equipment.equipmentMasterId)}");
+        DebugLog($"装備マスターID: {equipment.equipmentMasterId}");
+        DebugLog($"InventoryManager.Instance: {InventoryManager.Instance != null}");
+        DebugLog($"InventoryManager.IsInitialized: {InventoryManager.Instance?.IsInitialized}");
+
+        // EquipItemの引数を確認して適切に呼び出す
+        try
+        {
+            // 方法1: 1つの引数で呼び出し（推測）
+            bool success1 = false;
+            try
+            {
+                success1 = InventoryManager.Instance.EquipItem(equipment.userEquipmentId);
+                DebugLog($"EquipItem(1引数)実行結果: {success1}");
+            }
+            catch (System.Exception e1)
+            {
+                DebugLog($"EquipItem(1引数)でエラー: {e1.Message}");
+
+                // 方法2: 2つの引数で呼び出し（characterId付き）
+                try
+                {
+                    string characterId = "default_character"; // または適切なキャラクターID
+                    bool success2 = InventoryManager.Instance.EquipItem(equipment.userEquipmentId, characterId);
+                    DebugLog($"EquipItem(2引数)実行結果: {success2}");
+                    success1 = success2;
+                }
+                catch (System.Exception e2)
+                {
+                    DebugLogError($"EquipItem(2引数)でもエラー: {e2.Message}");
+                    return;
+                }
+            }
+
+            if (success1)
+            {
+                DebugLog($"装備を装着しました: {equipment.userEquipmentId}");
+                // 装備画面の表示を即座に更新
+                RefreshDisplay();
+            }
+            else
+            {
+                DebugLogError($"装備の装着に失敗しました: {equipment.userEquipmentId}");
+
+                // 失敗原因の詳細調査
+                DebugLog("装備失敗の詳細調査開始");
+
+                // 現在の装備状況をチェック
+                var equippedItems = InventoryManager.Instance?.GetEquippedItems();
+                DebugLog($"現在の装備数: {equippedItems?.Count ?? 0}");
+
+                if (equippedItems != null)
+                {
+                    foreach (var item in equippedItems)
+                    {
+                        var master = MasterDataManager.Instance?.GetEquipmentData(item.equipmentMasterId);
+                        DebugLog($"装備中: {master?.equipmentName} (タイプ: {master?.equipmentType})");
+                    }
+                }
+
+                // 選択された装備の詳細
+                var selectedMaster = MasterDataManager.Instance?.GetEquipmentData(equipment.equipmentMasterId);
+                DebugLog($"選択装備: {selectedMaster?.equipmentName} (タイプ: {selectedMaster?.equipmentType})");
+                DebugLog($"選択装備の装備状態: isEquipped={equipment.isEquipped}");
+
+                // InventoryManagerの状態をチェック
+                var userEquipment = SaveDataManager.Instance?.CurrentSaveData?.GetEquipment(equipment.userEquipmentId);
+                DebugLog($"SaveDataの装備情報: {userEquipment != null}");
+                if (userEquipment != null)
+                {
+                    DebugLog($"SaveData装備状態: isEquipped={userEquipment.isEquipped}, character={userEquipment.equippedCharacterId}");
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            DebugLogError($"OnEquipmentSelected全体でエラー: {e.Message}");
+            DebugLogError($"スタックトレース: {e.StackTrace}");
+        }
+
+        DebugLog("OnEquipmentSelected処理完了");
+    }
+
+
 
     /// <summary>
     /// インベントリパネルの初期化
@@ -701,9 +843,9 @@ public class EquipmentEditUI : MonoBehaviour
     {
         return equipmentType switch
         {
-            EquipmentType.Weapon => "武器なし",
-            EquipmentType.Armor => "防具なし",
-            EquipmentType.Accessory => "アクセサリーなし",
+            EquipmentType.Weapon => "武器",
+            EquipmentType.Armor => "防具",
+            EquipmentType.Accessory => "アクセサリー",
             _ => "装備なし"
         };
     }
@@ -712,43 +854,12 @@ public class EquipmentEditUI : MonoBehaviour
 
     #region 内部メソッド - 装備選択
 
-    private void OpenEquipmentSelection(EquipmentType equipmentType)
-    {
-        if (equipmentSelectionPopup == null)
-        {
-            DebugLogError("装備選択ポップアップが設定されていません");
-            return;
-        }
-
-        // 装備タイプを記録
-        lastOpenedEquipmentType = equipmentType;
-
-        equipmentSelectionPopup.ShowEquipmentSelection(equipmentType);
-        DebugLog($"装備選択を開始: {equipmentType}");
-    }
+    
 
     #endregion
 
     #region イベントハンドラー
 
-    private void OnEquipmentSelected(UserEquipmentData equipment)
-    {
-        if (equipment == null) return;
-
-        // 装備を装着
-        bool success = InventoryManager.Instance.EquipItem(equipment.userEquipmentId);
-
-        if (success)
-        {
-            DebugLog($"装備を装着しました: {equipment.userEquipmentId}");
-            // 装備画面の表示を即座に更新
-            RefreshDisplay();
-        }
-        else
-        {
-            DebugLogError($"装備の装着に失敗しました: {equipment.userEquipmentId}");
-        }
-    }
 
     private void OnEquipmentRemoved()
     {

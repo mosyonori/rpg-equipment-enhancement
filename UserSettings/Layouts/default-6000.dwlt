@@ -119,7 +119,7 @@ MonoBehaviour:
   m_MinSize: {x: 400, y: 100}
   m_MaxSize: {x: 32384, y: 16192}
   vertical: 0
-  controlID: 130
+  controlID: 128
   draggingID: 0
 --- !u!114 &6
 MonoBehaviour:
@@ -145,7 +145,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 100}
   m_MaxSize: {x: 24288, y: 16192}
   vertical: 1
-  controlID: 69
+  controlID: 70
   draggingID: 0
 --- !u!114 &7
 MonoBehaviour:
@@ -168,11 +168,11 @@ MonoBehaviour:
     x: 0
     y: 0
     width: 1437
-    height: 693
+    height: 746
   m_MinSize: {x: 300, y: 50}
   m_MaxSize: {x: 24288, y: 8096}
   vertical: 0
-  controlID: 70
+  controlID: 71
   draggingID: 0
 --- !u!114 &8
 MonoBehaviour:
@@ -192,7 +192,7 @@ MonoBehaviour:
     x: 0
     y: 0
     width: 378
-    height: 693
+    height: 746
   m_MinSize: {x: 201, y: 226}
   m_MaxSize: {x: 4001, y: 4026}
   m_ActualView: {fileID: 14}
@@ -218,7 +218,7 @@ MonoBehaviour:
     x: 378
     y: 0
     width: 537
-    height: 693
+    height: 746
   m_MinSize: {x: 52, y: 76}
   m_MaxSize: {x: 4002, y: 4026}
   m_ActualView: {fileID: 18}
@@ -244,7 +244,7 @@ MonoBehaviour:
     x: 915
     y: 0
     width: 522
-    height: 693
+    height: 746
   m_MinSize: {x: 202, y: 226}
   m_MaxSize: {x: 4002, y: 4026}
   m_ActualView: {fileID: 15}
@@ -262,23 +262,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 1
   m_Script: {fileID: 12006, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: ProjectBrowser
+  m_Name: ConsoleWindow
   m_EditorClassIdentifier: 
   m_Children: []
   m_Position:
     serializedVersion: 2
     x: 0
-    y: 693
+    y: 746
     width: 1437
-    height: 240
-  m_MinSize: {x: 231, y: 276}
-  m_MaxSize: {x: 10001, y: 10026}
-  m_ActualView: {fileID: 13}
+    height: 187
+  m_MinSize: {x: 101, y: 126}
+  m_MaxSize: {x: 4001, y: 4026}
+  m_ActualView: {fileID: 16}
   m_Panes:
   - {fileID: 13}
   - {fileID: 16}
-  m_Selected: 0
-  m_LastSelected: 1
+  m_Selected: 1
+  m_LastSelected: 0
 --- !u!114 &12
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -327,9 +327,9 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 772
+    y: 677
     width: 1436
-    height: 214
+    height: 309
   m_SerializedDataModeController:
     m_DataMode: 0
     m_PreferredDataMode: 0
@@ -352,7 +352,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Prefabs
+    - Assets/Scripts/UI/Inventory
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -362,16 +362,16 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/Prefabs
+  - Assets/Scripts/UI/Inventory
   m_LastFoldersGridSize: -1
   m_LastProjectPath: C:\Users\aax62\blacksmith
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 111}
-    m_SelectedIDs: 34b70000
-    m_LastClickedID: 46900
-    m_ExpandedIDs: 00000000c4b6000030b7000034b7000036b700003cb7000044b7000076b7000080b70000bc57010000ca9a3bffffff7f
+    scrollPos: {x: 0, y: 206}
+    m_SelectedIDs: 360e0100
+    m_LastClickedID: 69174
+    m_ExpandedIDs: 000000009cb9000016ba00001eba000018bb0000300e010000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -400,7 +400,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 3}
     m_SelectedIDs: 72aa0000
     m_LastClickedID: 43634
-    m_ExpandedIDs: 00000000c4b60000
+    m_ExpandedIDs: 000000009cb90000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -428,7 +428,7 @@ MonoBehaviour:
   m_ListAreaState:
     m_SelectedInstanceIDs: 
     m_LastClickedInstanceID: 0
-    m_HadKeyboardFocusLastEvent: 1
+    m_HadKeyboardFocusLastEvent: 0
     m_ExpandedInstanceIDs: c6230000b4a90000cac4000076c40000b6c400005ec400005ac40000aec400009ec4000062c400001cad000054ad0000c0b60000f8ad00001aaa0000f4a70000aab10000b4b100001cae0000b4b40000b6b40000b8b40000b2b400009eb50000824a01009ecc0000decc0000dccc000050ab000042b4000022ae0000eab20000c0b7000002b0000010b2000068d3000058be00001ceb000040b600000000000036c70000eeba0000daf40000ce1e010098fa0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
@@ -482,7 +482,7 @@ MonoBehaviour:
     x: 0
     y: 79
     width: 377
-    height: 667
+    height: 720
   m_SerializedDataModeController:
     m_DataMode: 0
     m_PreferredDataMode: 0
@@ -497,9 +497,9 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: a6490100
-      m_LastClickedID: 84390
-      m_ExpandedIDs: 5680fbff5880fbffaa87fbffb087fbffb487fbffba87fbffc087fbffc687fbffcc87fbffd487fbffe688fbff989ffbff00a0fbff68a0fbffd0a0fbff34a1fbff36a1fbffa4a1fbffaca7fbffd8affbffe251fcff1e04ffffb248ffffb4b3ffff1cfbfffff4ffffff32a90000a4a90000aca900003caa0000d0aa0000ecaa00002aac000044ac0000c4ae000058af0000e6af00003eb1000076b10000f0b1000020b2000072b200008ab20000acb20000a6490100b8490100d44a0100dc4a0100084b01005a4d0100b84e0100144f01005e4f0100ce4f01008a50010018510100e451010070520100a8520100065301005253010082530100
+      m_SelectedIDs: 3caa0000
+      m_LastClickedID: 43580
+      m_ExpandedIDs: 1cfbffffa4a80000d0a80000a4a900002aaa000032aa00003caa000066aa00004aad000066ad000008ae00005cae000078af0000c4af00002cb000006eb100007ab20000e2b200003ab3000072b300006cb40000c8b40000fab40000
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -548,7 +548,7 @@ MonoBehaviour:
     x: 915
     y: 79
     width: 520
-    height: 667
+    height: 720
   m_SerializedDataModeController:
     m_DataMode: 0
     m_PreferredDataMode: 0
@@ -1115,9 +1115,9 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 772
+    y: 825
     width: 1436
-    height: 214
+    height: 161
   m_SerializedDataModeController:
     m_DataMode: 0
     m_PreferredDataMode: 0
@@ -1202,7 +1202,7 @@ MonoBehaviour:
     x: 378
     y: 79
     width: 535
-    height: 667
+    height: 720
   m_SerializedDataModeController:
     m_DataMode: 0
     m_PreferredDataMode: 0
@@ -1217,7 +1217,7 @@ MonoBehaviour:
   m_SerializedViewNames:
   - UnityEditor.DeviceSimulation.SimulatorWindow
   m_SerializedViewValues:
-  - C:\Users\aax62\blacksmith\Library\PlayModeViewStates\c5229717d521cde46b84cf39b8f4a5c7
+  - C:\Users\aax62\blacksmith\Library\PlayModeViewStates\036f83f509a4c69479d98f6c8a096d29
   m_PlayModeViewName: GameView
   m_ShowGizmos: 0
   m_TargetDisplay: 0
@@ -1259,22 +1259,22 @@ MonoBehaviour:
       x: 0
       y: 21
       width: 535
-      height: 646
-    m_Scale: {x: 0.33645833, y: 0.33645833}
-    m_Translation: {x: 267.5, y: 323}
+      height: 699
+    m_Scale: {x: 0.3640625, y: 0.3640625}
+    m_Translation: {x: 267.5, y: 349.5}
     m_MarginLeft: 0
     m_MarginRight: 0
     m_MarginTop: 0
     m_MarginBottom: 0
     m_LastShownAreaInsideMargins:
       serializedVersion: 2
-      x: -795.04645
-      y: -960
-      width: 1590.0929
-      height: 1920
+      x: -734.764
+      y: -960.00006
+      width: 1469.528
+      height: 1920.0001
     m_MinimalGUI: 1
-  m_defaultScale: 0.33645833
-  m_LastWindowPixelSize: {x: 535, y: 667}
+  m_defaultScale: 0.3640625
+  m_LastWindowPixelSize: {x: 535, y: 720}
   m_ClearInEditMode: 1
   m_NoCameraWarning: 1
   m_LowResolutionForAspectRatios: 01000001000000000000
