@@ -36,7 +36,7 @@ MonoBehaviour:
   waterOffence: 0
   windOffence: 0
   earthOffence: 0
-  supportItemIcon: {fileID: 21300000, guid: 11277a3f23988ec47908362d708edaa8, type: 3}
+  supportItemIcon: {fileID: 0}
   supportItemIconPath: 
   description: null
   completionFlag: 0

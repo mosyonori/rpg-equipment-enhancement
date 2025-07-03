@@ -26,10 +26,10 @@ public static class EnhanceCalculationUtility
         // 基本成功率を取得
         float baseSuccessRate = enhanceItem.enhanceSuccessRate;
 
-        // 強化値によるペナルティを計算
+        // 強化値による基本ペナルティを計算
         float penalty = CalculateEnhanceValuePenalty(equipment.currentEnhancedValue);
 
-        // 補助材料によるボーナスを計算
+        // 補助材料による成功率ボーナスを計算
         float supportBonus = supportItem != null ? CalculateSupportItemBonus(supportItem) : 0f;
 
         // 最終成功率を計算（0-100の範囲でクランプ）
@@ -50,13 +50,13 @@ public static class EnhanceCalculationUtility
             return 0f;
         }
 
-        // 強化値を5で割った商がペナルティの基数
+        // 強化値を5で割った商がペナルティの回数
         int penaltyLevel = currentEnhanceValue / 5;
         return penaltyLevel * 1f; // 1%ずつ減少
     }
 
     /// <summary>
-    /// 補助材料によるボーナスを計算
+    /// 補助材料による成功率ボーナスを計算
     /// </summary>
     /// <param name="supportItem">補助材料</param>
     /// <returns>ボーナス（%）</returns>
@@ -70,7 +70,7 @@ public static class EnhanceCalculationUtility
         // SupportItemMasterDataの addEnhanceSuccessRate プロパティから成功率ボーナスを取得
         float successRateBonus = supportItem.addEnhanceSuccessRate;
 
-        // 成功率減少効果も考慮（怪しい薬など）
+        // 成功率減少効果も考慮（珍しい物などで）
         float successRatePenalty = supportItem.reduceEnhanceSuccessRate;
 
         // 最終的なボーナス = 増加量 - 減少量
@@ -97,7 +97,7 @@ public static class EnhanceCalculationUtility
     }
 
     /// <summary>
-    /// 補助材料によるステータス増加量への倍率効果を計算（修正版：CSVのmultipl_status_upを使用）
+    /// 補助材料によるステータス増加量への倍率効果を計算（修正版：CSVのmultipl_status_upを使用＋追加ステータス）
     /// </summary>
     /// <param name="supportItem">補助材料</param>
     /// <param name="baseStatusIncrease">基本のステータス増加量</param>
@@ -111,19 +111,70 @@ public static class EnhanceCalculationUtility
 
         var modifiedStatusIncrease = new Dictionary<string, int>();
 
-        // CSVのmultipl_status_upフィールドから倍率を取得
+        // CSV の multipl_status_up フィールドから倍率を取得
         int multiplier = GetStatusMultiplier(supportItem);
 
+        // 1. 基本効果に倍率を適用
         foreach (var kvp in baseStatusIncrease)
         {
             modifiedStatusIncrease[kvp.Key] = kvp.Value * multiplier;
         }
 
+        // === 修正版：2. 補助材料のCSVに設定された追加ステータス値を加算 ===
+        AddSupportItemBonusStatuses(supportItem, modifiedStatusIncrease);
+
         return modifiedStatusIncrease;
     }
 
     /// <summary>
-    /// 補助材料による強化値への倍率効果を計算
+    /// 【新規追加】補助材料のCSVに設定された追加ステータス値を加算
+    /// </summary>
+    /// <param name="supportItem">補助材料</param>
+    /// <param name="statusIncrease">ステータス増加量の辞書（変更される）</param>
+    private static void AddSupportItemBonusStatuses(SupportItemMasterData supportItem, Dictionary<string, int> statusIncrease)
+    {
+        if (supportItem == null || statusIncrease == null)
+        {
+            return;
+        }
+
+        // 補助材料のCSVに設定された各ステータス値を追加で加算
+        AddBonusIfPositive(statusIncrease, "hp", supportItem.hp);
+        AddBonusIfPositive(statusIncrease, "offense", supportItem.offense);
+        AddBonusIfPositive(statusIncrease, "defense", supportItem.defense);
+        AddBonusIfPositive(statusIncrease, "speed", supportItem.speed);
+        AddBonusIfPositive(statusIncrease, "criticalRate", supportItem.criticalRate);
+        AddBonusIfPositive(statusIncrease, "criticalDamageRate", supportItem.criticalDamageRate);
+        AddBonusIfPositive(statusIncrease, "fireOffence", supportItem.fireOffence);
+        AddBonusIfPositive(statusIncrease, "waterOffence", supportItem.waterOffence);
+        AddBonusIfPositive(statusIncrease, "windOffence", supportItem.windOffence);
+        AddBonusIfPositive(statusIncrease, "earthOffence", supportItem.earthOffence);
+    }
+
+    /// <summary>
+    /// 【新規追加】正の値のみをボーナスとして加算するヘルパーメソッド
+    /// </summary>
+    /// <param name="statusIncrease">ステータス増加量の辞書</param>
+    /// <param name="key">ステータス名</param>
+    /// <param name="bonusValue">補助材料のボーナス値</param>
+    private static void AddBonusIfPositive(Dictionary<string, int> statusIncrease, string key, int bonusValue)
+    {
+        if (bonusValue > 0)
+        {
+            // 既存の値に加算（存在しない場合は新規追加）
+            if (statusIncrease.ContainsKey(key))
+            {
+                statusIncrease[key] += bonusValue;
+            }
+            else
+            {
+                statusIncrease[key] = bonusValue;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 補助材料による強化値への倍率効果を計算（修正版：add_enhanced_value追加効果を含む）
     /// </summary>
     /// <param name="supportItem">補助材料</param>
     /// <param name="baseEnhancedValue">基本の強化値増加量</param>
@@ -135,9 +186,21 @@ public static class EnhanceCalculationUtility
             return baseEnhancedValue;
         }
 
-        // CSVのmultipl_status_upフィールドから倍率を取得（強化値も含む）
-        int multiplier = GetStatusMultiplier(supportItem);
-        return baseEnhancedValue * multiplier;
+        // 1. CSV の multipl_enhanced_value による倍率効果を適用
+        int result = baseEnhancedValue;
+        if (supportItem.multiplEnhancedValue > 1)
+        {
+            result *= supportItem.multiplEnhancedValue;
+        }
+
+        // === 修正版：2. CSVの add_enhanced_value による追加効果を加算 ===
+        result += supportItem.addEnhancedValue;
+
+        // 3. reduce_enhanced_value による減少効果を適用（珍しいケース）
+        result -= supportItem.reduceEnhancedValue;
+
+        // 結果が負の値にならないように保護
+        return Mathf.Max(0, result);
     }
 
     /// <summary>
@@ -161,14 +224,14 @@ public static class EnhanceCalculationUtility
     /// 補助材料がステータス増加量を倍にする効果を持つかチェック（修正版：CSVベース）
     /// </summary>
     /// <param name="supportItem">補助材料</param>
-    /// <returns>倍率効果がある場合true</returns>
+    /// <returns>倍率効果があるかどうか</returns>
     public static bool IsDoubleStatusEffect(SupportItemMasterData supportItem)
     {
         return GetStatusMultiplier(supportItem) > 1;
     }
 
     /// <summary>
-    /// 装備種類別のステータス増加量を計算
+    /// 装備種別のステータス増加量を計算
     /// </summary>
     /// <param name="equipmentType">装備タイプ</param>
     /// <param name="enhanceItem">強化アイテム</param>
@@ -253,7 +316,7 @@ public static class EnhanceCalculationUtility
 
     /// <summary>
     /// 属性攻撃力の変更を計算（修正版：同じ属性の場合は加算、異なる属性の場合はリセット）
-    /// 仕様: 属性変更時に他属性を強制的に0にリセット、同じ属性の場合は既存値に加算
+    /// 仕様: 属性変更後に他属性を強制的に0にリセット、同じ属性の場合は既存値に加算
     /// </summary>
     /// <param name="equipment">対象装備</param>
     /// <param name="enhanceItem">強化アイテム</param>
@@ -514,12 +577,22 @@ public static class EnhanceCalculationUtility
         float bonus = CalculateSupportItemBonus(supportItem);
         float finalRate = CalculateSuccessRate(equipment, enhanceItem, supportItem);
 
+        string supportInfo = "";
+        if (supportItem != null)
+        {
+            supportInfo = $"\n補助材料: {supportItem.supportItemName}" +
+                         $"\n　成功率ボーナス: +{supportItem.addEnhanceSuccessRate}%" +
+                         $"\n　ステータス倍率: {GetStatusMultiplier(supportItem)}倍" +
+                         $"\n　強化値追加: +{supportItem.addEnhancedValue}";
+        }
+
         Debug.Log($"=== 強化計算詳細 ===\n" +
                   $"装備: {equipment.userEquipmentId}\n" +
                   $"強化アイテム: {enhanceItem.enhanceItemName}\n" +
                   $"基本成功率: {baseRate}%\n" +
                   $"ペナルティ: -{penalty}%\n" +
                   $"ボーナス: +{bonus}%\n" +
-                  $"最終成功率: {finalRate}%");
+                  $"最終成功率: {finalRate}%" +
+                  supportInfo);
     }
 }

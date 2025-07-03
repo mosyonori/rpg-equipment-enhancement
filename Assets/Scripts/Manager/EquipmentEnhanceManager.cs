@@ -36,14 +36,20 @@ public class EquipmentEnhanceManager : MonoBehaviour
     #region Events
 
     /// <summary>
-    /// 強化実行完了時のイベント
+    /// 強化実行完了後のイベント
     /// </summary>
     public event Action<EnhanceResultData> OnEnhanceCompleted;
 
     /// <summary>
-    /// 強化エラー発生時のイベント
+    /// 強化エラー発生後のイベント
     /// </summary>
     public event Action<string> OnEnhanceError;
+
+    /// <summary>
+    /// 【新規追加】アイテム所持数変更通知イベント
+    /// UI側でアイテムリストの更新に使用
+    /// </summary>
+    public event Action OnInventoryChanged;
 
     #endregion
 
@@ -171,8 +177,12 @@ public class EquipmentEnhanceManager : MonoBehaviour
 
     #region Main API Methods
 
+
+
+
+
     /// <summary>
-    /// 装備強化を実行（修正版：失敗時も耐久値変更を適用、アイテム消費処理を追加）
+    /// 装備強化を実行（修正版：強化後にインベントリ変更通知を追加）
     /// </summary>
     /// <param name="equipmentId">対象装備のユーザーID</param>
     /// <param name="enhanceItemId">強化アイテムのマスターID</param>
@@ -223,6 +233,16 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 }
             }
 
+            // === 修正：強化実行前に所持数を再チェック ===
+            if (!CheckItemAvailabilityStrict(enhanceItemId, supportItemId))
+            {
+                var errorMsg = "必要なアイテムが不足しています";
+                OnEnhanceError?.Invoke(errorMsg);
+                // インベントリ変更を通知してUIを更新
+                OnInventoryChanged?.Invoke();
+                return null;
+            }
+
             // 強化可能性チェック
             if (!CanExecuteEnhance(equipmentId, enhanceItemId))
             {
@@ -231,18 +251,10 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 return null;
             }
 
-            // アイテム所持数チェック
-            if (!CheckItemAvailability(enhanceItemId, supportItemId))
-            {
-                var errorMsg = "必要なアイテムが不足しています";
-                OnEnhanceError?.Invoke(errorMsg);
-                return null;
-            }
-
             // 強化計算と実行
             var result = PerformEnhance(equipment, enhanceItem, supportItem);
 
-            // 修正：成功・失敗に関わらずデータを保存
+            // 修正：成功失敗に関わらずデータを保存
             if (result != null)
             {
                 // 1. 装備データに強化結果を適用
@@ -254,6 +266,9 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 // 3. データ保存
                 SaveDataManager.Instance.MarkDataDirty();
                 SaveDataManager.Instance.SaveSaveData();
+
+                // === 修正：インベントリ変更を通知してUIを更新 ===
+                OnInventoryChanged?.Invoke();
             }
 
             // イベント通知
@@ -270,6 +285,50 @@ public class EquipmentEnhanceManager : MonoBehaviour
             return null;
         }
     }
+
+    /// <summary>
+    /// 【新規追加】アイテム所持数チェック（厳密版：リアルタイム所持数確認）
+    /// </summary>
+    /// <param name="enhanceItemId">強化アイテムID</param>
+    /// <param name="supportItemId">補助材料ID（0の場合は未使用）</param>
+    /// <returns>必要なアイテムを所持している場合true</returns>
+    private bool CheckItemAvailabilityStrict(int enhanceItemId, int supportItemId)
+    {
+        var saveData = SaveDataManager.Instance.CurrentSaveData;
+        if (saveData?.items == null)
+        {
+            LogError("セーブデータまたはアイテムリストがnullです");
+            return false;
+        }
+
+        // 強化アイテムの所持数チェック（リアルタイム）
+        var enhanceItemData = saveData.items.FirstOrDefault(item =>
+            item.itemType == ItemType.EnhanceItem && item.itemMasterId == enhanceItemId);
+
+        if (enhanceItemData == null || enhanceItemData.quantity < 1)
+        {
+            LogWarning($"強化アイテムが不足しています: ID={enhanceItemId}, 所持数={enhanceItemData?.quantity ?? 0}");
+            return false;
+        }
+
+        // 補助材料の所持数チェック（使用する場合のみ）
+        if (supportItemId > 0)
+        {
+            var supportItemData = saveData.items.FirstOrDefault(item =>
+                item.itemType == ItemType.SupportItem && item.itemMasterId == supportItemId);
+
+            if (supportItemData == null || supportItemData.quantity < 1)
+            {
+                LogWarning($"補助材料が不足しています: ID={supportItemId}, 所持数={supportItemData?.quantity ?? 0}");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+
 
     /// <summary>
     /// 強化プレビューを取得
@@ -325,7 +384,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 利用可能な強化アイテム一覧を取得（実際に所持しているアイテムのみ）
+    /// 【修正版】利用可能な強化アイテム一覧を取得（所持数が0のアイテムを除外）
     /// </summary>
     /// <returns>強化アイテムのマスターデータリスト</returns>
     public List<EnhanceItemMasterData> GetAvailableEnhanceItems()
@@ -341,16 +400,20 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 return availableItems;
             }
 
-            // 実際に所持している強化アイテムのマスターデータを取得
+            // === 修正：リアルタイムで所持数をチェックして、1個以上所持しているアイテムのみを返す ===
             foreach (var userItem in saveData.items)
             {
-                // 強化アイテムタイプで、数量が1以上のもののみ
+                // 強化アイテムタイプで、数量が1個以上のもののみ
                 if (userItem.itemType == ItemType.EnhanceItem && userItem.quantity > 0)
                 {
                     var masterData = MasterDataManager.Instance.GetEnhanceItemData(userItem.itemMasterId);
                     if (masterData != null)
                     {
-                        availableItems.Add(masterData);
+                        // 重複チェック（同じマスターIDのアイテムが複数回追加されるのを防ぐ）
+                        if (!availableItems.Any(item => item.enhanceItemId == masterData.enhanceItemId))
+                        {
+                            availableItems.Add(masterData);
+                        }
                     }
                 }
             }
@@ -366,7 +429,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 利用可能な補助材料一覧を取得（実際に所持しているアイテムのみ）
+    /// 【修正版】利用可能な補助材料一覧を取得（所持数が0のアイテムを除外）
     /// </summary>
     /// <returns>補助材料のマスターデータリスト</returns>
     public List<SupportItemMasterData> GetAvailableSupportItems()
@@ -382,16 +445,20 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 return availableItems;
             }
 
-            // 実際に所持している補助材料のマスターデータを取得
+            // === 修正：リアルタイムで所持数をチェックして、1個以上所持しているアイテムのみを返す ===
             foreach (var userItem in saveData.items)
             {
-                // 補助材料タイプで、数量が1以上のもののみ
+                // 補助材料タイプで、数量が1個以上のもののみ
                 if (userItem.itemType == ItemType.SupportItem && userItem.quantity > 0)
                 {
                     var masterData = MasterDataManager.Instance.GetSupportItemData(userItem.itemMasterId);
                     if (masterData != null)
                     {
-                        availableItems.Add(masterData);
+                        // 重複チェック（同じマスターIDのアイテムが複数回追加されるのを防ぐ）
+                        if (!availableItems.Any(item => item.supportItemId == masterData.supportItemId))
+                        {
+                            availableItems.Add(masterData);
+                        }
                     }
                 }
             }
@@ -405,6 +472,35 @@ public class EquipmentEnhanceManager : MonoBehaviour
             return new List<SupportItemMasterData>();
         }
     }
+
+    /// <summary>
+    /// 【新規追加】アイテム所持数を取得
+    /// </summary>
+    /// <param name="itemType">アイテムタイプ</param>
+    /// <param name="itemId">アイテムID</param>
+    /// <returns>現在の所持数</returns>
+    public int GetItemQuantity(ItemType itemType, int itemId)
+    {
+        var saveData = SaveDataManager.Instance.CurrentSaveData;
+        if (saveData?.items == null) return 0;
+
+        var userItem = saveData.items.FirstOrDefault(item =>
+            item.itemType == itemType && item.itemMasterId == itemId);
+
+        return userItem?.quantity ?? 0;
+    }
+
+    /// <summary>
+    /// 【新規追加】アイテムが使用可能かチェック（UI用）
+    /// </summary>
+    /// <param name="itemType">アイテムタイプ</param>
+    /// <param name="itemId">アイテムID</param>
+    /// <returns>使用可能な場合true</returns>
+    public bool IsItemUsable(ItemType itemType, int itemId)
+    {
+        return GetItemQuantity(itemType, itemId) > 0;
+    }
+
 
     /// <summary>
     /// 強化実行可能性チェック
@@ -629,7 +725,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 【新規追加】リザルト表示用のステータス変化を計算（表示専用：増加分のみ）
+    /// 【修正版】リザルト表示用のステータス変化を計算（表示専用：増加分のみ）
     /// </summary>
     /// <param name="result">結果データ</param>
     /// <param name="equipment">対象装備</param>
@@ -645,7 +741,7 @@ public class EquipmentEnhanceManager : MonoBehaviour
         // 基本のステータス増加量を取得
         var baseStatusIncrease = EnhanceCalculationUtility.CalculateStatusIncrease(masterData.equipmentType, enhanceItem);
 
-        // 補助材料の効果を適用
+        // === 修正：補助材料の効果を適用（倍率 + 追加ステータス） ===
         var modifiedStatusIncrease = EnhanceCalculationUtility.CalculateSupportItemStatusEffect(supportItem, baseStatusIncrease);
 
         // 通常のステータス増加（属性攻撃力を除く）- 表示用なので増加分のみ
@@ -657,20 +753,23 @@ public class EquipmentEnhanceManager : MonoBehaviour
             }
         }
 
-        // 属性攻撃力の表示用変化を計算
-        CalculateAttributeAttackDisplayChanges(result, equipment, enhanceItem, newAttribute, supportItem);
+        // === 修正：属性攻撃力の表示用変化を計算（補助材料の追加効果を含む） ===
+        CalculateAttributeAttackDisplayChanges(result, equipment, enhanceItem, newAttribute, supportItem, modifiedStatusIncrease);
     }
 
+
     /// <summary>
-    /// 【新規追加】属性攻撃力の表示用変化を計算（リザルト表示専用）
+    /// 【修正版】属性攻撃力の表示用変化を計算（リザルト表示専用、補助材料の追加効果を含む）
     /// </summary>
     /// <param name="result">結果データ</param>
     /// <param name="equipment">対象装備</param>
     /// <param name="enhanceItem">強化アイテム</param>
     /// <param name="newAttribute">変更後の属性</param>
     /// <param name="supportItem">補助材料</param>
+    /// <param name="modifiedStatusIncrease">補助材料効果適用済みのステータス増加量</param>
     private void CalculateAttributeAttackDisplayChanges(EnhanceResultData result, UserEquipmentData equipment,
-        EnhanceItemMasterData enhanceItem, AttributeType newAttribute, SupportItemMasterData supportItem)
+        EnhanceItemMasterData enhanceItem, AttributeType newAttribute, SupportItemMasterData supportItem,
+        Dictionary<string, int> modifiedStatusIncrease)
     {
         var masterData = GetEquipmentMasterData(equipment.equipmentMasterId);
         if (masterData == null) return;
@@ -679,8 +778,6 @@ public class EquipmentEnhanceManager : MonoBehaviour
         if (newAttribute != AttributeType.None && enhanceItem.attributeType != AttributeType.None)
         {
             bool isAttributeChanging = equipment.currentAttributeType != newAttribute;
-            var statusIncrease = EnhanceCalculationUtility.CalculateStatusIncrease(masterData.equipmentType, enhanceItem);
-            int multiplier = EnhanceCalculationUtility.GetStatusMultiplier(supportItem);
 
             if (isAttributeChanging)
             {
@@ -688,31 +785,27 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 switch (newAttribute)
                 {
                     case AttributeType.Fire:
-                        if (statusIncrease.ContainsKey("fireOffence"))
+                        if (modifiedStatusIncrease.ContainsKey("fireOffence"))
                         {
-                            int increase = statusIncrease["fireOffence"] * multiplier;
-                            result.AddStatusChange("fireOffence", increase, 0);
+                            result.AddStatusChange("fireOffence", modifiedStatusIncrease["fireOffence"], 0);
                         }
                         break;
                     case AttributeType.Water:
-                        if (statusIncrease.ContainsKey("waterOffence"))
+                        if (modifiedStatusIncrease.ContainsKey("waterOffence"))
                         {
-                            int increase = statusIncrease["waterOffence"] * multiplier;
-                            result.AddStatusChange("waterOffence", increase, 0);
+                            result.AddStatusChange("waterOffence", modifiedStatusIncrease["waterOffence"], 0);
                         }
                         break;
                     case AttributeType.Wind:
-                        if (statusIncrease.ContainsKey("windOffence"))
+                        if (modifiedStatusIncrease.ContainsKey("windOffence"))
                         {
-                            int increase = statusIncrease["windOffence"] * multiplier;
-                            result.AddStatusChange("windOffence", increase, 0);
+                            result.AddStatusChange("windOffence", modifiedStatusIncrease["windOffence"], 0);
                         }
                         break;
                     case AttributeType.Earth:
-                        if (statusIncrease.ContainsKey("earthOffence"))
+                        if (modifiedStatusIncrease.ContainsKey("earthOffence"))
                         {
-                            int increase = statusIncrease["earthOffence"] * multiplier;
-                            result.AddStatusChange("earthOffence", increase, 0);
+                            result.AddStatusChange("earthOffence", modifiedStatusIncrease["earthOffence"], 0);
                         }
                         break;
                 }
@@ -723,37 +816,75 @@ public class EquipmentEnhanceManager : MonoBehaviour
                 switch (newAttribute)
                 {
                     case AttributeType.Fire:
-                        if (statusIncrease.ContainsKey("fireOffence"))
+                        if (modifiedStatusIncrease.ContainsKey("fireOffence"))
                         {
-                            int increase = statusIncrease["fireOffence"] * multiplier;
-                            result.AddStatusChange("fireOffence", increase, 0);
+                            result.AddStatusChange("fireOffence", modifiedStatusIncrease["fireOffence"], 0);
                         }
                         break;
                     case AttributeType.Water:
-                        if (statusIncrease.ContainsKey("waterOffence"))
+                        if (modifiedStatusIncrease.ContainsKey("waterOffence"))
                         {
-                            int increase = statusIncrease["waterOffence"] * multiplier;
-                            result.AddStatusChange("waterOffence", increase, 0);
+                            result.AddStatusChange("waterOffence", modifiedStatusIncrease["waterOffence"], 0);
                         }
                         break;
                     case AttributeType.Wind:
-                        if (statusIncrease.ContainsKey("windOffence"))
+                        if (modifiedStatusIncrease.ContainsKey("windOffence"))
                         {
-                            int increase = statusIncrease["windOffence"] * multiplier;
-                            result.AddStatusChange("windOffence", increase, 0);
+                            result.AddStatusChange("windOffence", modifiedStatusIncrease["windOffence"], 0);
                         }
                         break;
                     case AttributeType.Earth:
-                        if (statusIncrease.ContainsKey("earthOffence"))
+                        if (modifiedStatusIncrease.ContainsKey("earthOffence"))
                         {
-                            int increase = statusIncrease["earthOffence"] * multiplier;
-                            result.AddStatusChange("earthOffence", increase, 0);
+                            result.AddStatusChange("earthOffence", modifiedStatusIncrease["earthOffence"], 0);
                         }
                         break;
                 }
             }
         }
+
+
     }
+
+
+    /// <summary>
+    /// 【新規追加】補助材料の追加属性攻撃力を適用
+    /// </summary>
+    /// <param name="result">結果データ</param>
+    /// <param name="supportItem">補助材料</param>
+    private void ApplySupportItemAttributeBonus(EnhanceResultData result, SupportItemMasterData supportItem)
+    {
+        if (supportItem == null) return;
+
+        // 補助材料のCSVに設定された各属性攻撃力を追加で加算
+        if (supportItem.fireOffence > 0)
+        {
+            // 既存の変化量に追加
+            int currentChange = result.statusChanges.ContainsKey("fireOffence") ? result.statusChanges["fireOffence"] : 0;
+            result.AddStatusChange("fireOffence", currentChange + supportItem.fireOffence, 0);
+        }
+
+        if (supportItem.waterOffence > 0)
+        {
+            int currentChange = result.statusChanges.ContainsKey("waterOffence") ? result.statusChanges["waterOffence"] : 0;
+            result.AddStatusChange("waterOffence", currentChange + supportItem.waterOffence, 0);
+        }
+
+        if (supportItem.windOffence > 0)
+        {
+            int currentChange = result.statusChanges.ContainsKey("windOffence") ? result.statusChanges["windOffence"] : 0;
+            result.AddStatusChange("windOffence", currentChange + supportItem.windOffence, 0);
+        }
+
+        if (supportItem.earthOffence > 0)
+        {
+            int currentChange = result.statusChanges.ContainsKey("earthOffence") ? result.statusChanges["earthOffence"] : 0;
+            result.AddStatusChange("earthOffence", currentChange + supportItem.earthOffence, 0);
+        }
+    }
+
+
+
 
     /// 強化結果を装備データに適用（修正版：装備の実際の更新は従来通り）
     /// </summary>

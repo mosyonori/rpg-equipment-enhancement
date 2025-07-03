@@ -12,7 +12,7 @@ using TMPro;
 /// </summary>
 public class EquipmentEnhanceUI : MonoBehaviour
 {
-    #region UI References - スロットボタン関連
+    #region UI References - スロットボタン関係
 
     [Header("スロットボタン")]
     [SerializeField] private Button equipmentSlotButton;
@@ -70,7 +70,7 @@ public class EquipmentEnhanceUI : MonoBehaviour
 
     #endregion
 
-    #region UI References - 実行関連
+    #region UI References - 実行関係
 
     [Header("実行エリア")]
     [SerializeField] private TextMeshProUGUI finalSuccessRateText;
@@ -362,7 +362,8 @@ public class EquipmentEnhanceUI : MonoBehaviour
     private void SetSelectedEnhanceItem(int enhanceItemId)
     {
         selectedEnhanceItemId = enhanceItemId;
-        currentEnhanceItem = MasterDataManager.Instance.GetEnhanceItemData(enhanceItemId);
+        currentEnhanceItem = enhanceItemId > 0 ?
+            MasterDataManager.Instance.GetEnhanceItemData(enhanceItemId) : null;
         LogDebug($"強化アイテム選択: {enhanceItemId}");
     }
 
@@ -431,7 +432,48 @@ public class EquipmentEnhanceUI : MonoBehaviour
         if (result != null)
         {
             ShowEnhanceResult(result);
+
+            // 修正: 強化完了後に選択中アイテムの所持数をチェックして自動リセット
+            ValidateAndResetOutOfStockItems();
+
             RefreshUI(); // データが更新されたのでUI更新
+        }
+    }
+
+    /// <summary>
+    /// 選択中アイテムの所持数チェック＆自動リセット
+    /// </summary>
+    private void ValidateAndResetOutOfStockItems()
+    {
+        bool itemsReset = false;
+
+        // 強化アイテムの所持数チェック
+        if (selectedEnhanceItemId > 0)
+        {
+            int quantity = EquipmentEnhanceManager.Instance.GetItemQuantity(ItemType.EnhanceItem, selectedEnhanceItemId);
+            if (quantity <= 0)
+            {
+                LogDebug($"強化アイテム所持数0のため選択解除: ID={selectedEnhanceItemId}");
+                SetSelectedEnhanceItem(0);
+                itemsReset = true;
+            }
+        }
+
+        // 補助材料の所持数チェック
+        if (selectedSupportItemId > 0)
+        {
+            int quantity = EquipmentEnhanceManager.Instance.GetItemQuantity(ItemType.SupportItem, selectedSupportItemId);
+            if (quantity <= 0)
+            {
+                LogDebug($"補助材料所持数0のため選択解除: ID={selectedSupportItemId}");
+                SetSelectedSupportItem(0);
+                itemsReset = true;
+            }
+        }
+
+        if (itemsReset)
+        {
+            LogDebug("所持数0のアイテムを自動選択解除しました");
         }
     }
 
@@ -703,10 +745,11 @@ public class EquipmentEnhanceUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 装備詳細パネルを更新（修正版：0の値は表示しない）
+    /// 装備詳細パネルを更新（修正版：装備選択時のみ表示）
     /// </summary>
     private void UpdateEquipmentDetailPanel()
     {
+        // 修正：装備が選択されている場合のみ詳細パネルを表示
         if (currentEquipment != null)
         {
             var masterData = MasterDataManager.Instance.GetEquipmentData(currentEquipment.equipmentMasterId);
@@ -750,13 +793,21 @@ public class EquipmentEnhanceUI : MonoBehaviour
                 statusText = statusText.TrimEnd('\n');
 
                 SetUIText(equipmentStatusText, statusText);
-            }
 
-            if (equipmentDetailPanel != null)
-                equipmentDetailPanel.SetActive(true);
+                // 装備が選択されている場合は詳細パネルを表示
+                if (equipmentDetailPanel != null)
+                    equipmentDetailPanel.SetActive(true);
+            }
+            else
+            {
+                // マスターデータが見つからない場合は非表示
+                if (equipmentDetailPanel != null)
+                    equipmentDetailPanel.SetActive(false);
+            }
         }
         else
         {
+            // 装備が選択されていない場合は詳細パネルを非表示
             if (equipmentDetailPanel != null)
                 equipmentDetailPanel.SetActive(false);
         }
