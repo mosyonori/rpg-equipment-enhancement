@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39cbffe5618f9b14897ed3bf98efbd45, type: 3}
+  m_Name: "Quest_005_\u30A4\u30D9\u30F3\u30C8\uFF1A\u98A8\u306E\u8A66\u7DF4"
+  m_EditorClassIdentifier: 
+  questId: 5
+  questName: "\u30A4\u30D9\u30F3\u30C8\uFF1A\u98A8\u306E\u8A66\u7DF4"
+  sortOrder: 5
+  description: "\u30A6\u30A3\u30F3\u30C9\u30A6\u30EB\u30D5\u306B\u6311\u6226\uFF01"
+  questType: 3
+  needLevel: 10
+  requiredClearQuest: -1
+  requiredStamina: 3
+  recommendedPower: 300
+  dailyClearLimit: 3
+  isRepeatable: 1
+  turnLimit: 50
+  spawnMonsterId1: 4
+  spawnMonsterId2: -1
+  spawnMonsterId3: -1
+  rewardExp: 100
+  rewardGold: 1000
+  itemDropQuantity: 10
+  dropItemTable: m_drop_table_6
+  firstClearItemType: enhancement
+  firstClearItemId: 8
+  firstClearItemQuantity: 10
+  questOpenDay: 2025-07-01
+  questOpenTime: 0:00:00
+  questEndDay: 2025-07-31
+  questEndTime: 23:59:59
+  questIconPath: 
+  backgroundPath: 
+  bgmPath: 

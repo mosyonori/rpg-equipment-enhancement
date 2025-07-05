@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39cbffe5618f9b14897ed3bf98efbd45, type: 3}
+  m_Name: "Quest_000_\u30C6\u30B9\u30C8\u6226\u95D8"
+  m_EditorClassIdentifier: 
+  questId: 0
+  questName: "\u30C6\u30B9\u30C8\u6226\u95D8"
+  sortOrder: 0
+  description: "\u30C6\u30B9\u30C8\u7528\u6575\u304C3\u4F53\u51FA\u73FE"
+  questType: 0
+  needLevel: 1
+  requiredClearQuest: -1
+  requiredStamina: 1
+  recommendedPower: 10
+  dailyClearLimit: -1
+  isRepeatable: 1
+  turnLimit: 50
+  spawnMonsterId1: 0
+  spawnMonsterId2: 0
+  spawnMonsterId3: 0
+  rewardExp: 100
+  rewardGold: 100
+  itemDropQuantity: 10
+  dropItemTable: m_drop_table_1
+  firstClearItemType: equipment
+  firstClearItemId: 1
+  firstClearItemQuantity: 1
+  questOpenDay: -1
+  questOpenTime: -1
+  questEndDay: -1
+  questEndTime: -1
+  questIconPath: 
+  backgroundPath: 
+  bgmPath: 

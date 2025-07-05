@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "Equipment_021_\u6843\u8272\u306E\u9AEA\u98FE\u308A"
   m_EditorClassIdentifier: 
   equipmentId: 21
-  equipmentName: "\u6843\u8272\u306E\u9AEA\u98FE\u308A"
+  equipmentName: "\u8CE2\u8005\u306E\u8056\u8863"
   equipmentType: 1
   rarity: 2
   baseEnhancedValue: 0
@@ -37,7 +37,7 @@ MonoBehaviour:
   equipmentUnlockSkillEnhancedValue: 0
   equipmentUnlockCharacterId: 
   equipmentUnlockCharacterEnhancedValue: 
-  equipmentIcon: {fileID: 21300000, guid: e1dd58c6527a75a43ba0372679ff18ba, type: 3}
+  equipmentIcon: {fileID: -1587039350, guid: 34b7044dcbd441b44aa03c71f4b3c032, type: 3}
   equipmentIconPath: 
   description: "\u98A8\u306E\u7CBE\u970A\u306E\u9AEA\u98FE\u308A\u3002\\n\u901F\u5EA6\u304C\u4E0A\u304C\u308B\u3002"
   completionFlag: 1

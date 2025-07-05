@@ -13,6 +13,7 @@ public class UserSaveData
     public string playerName;           // プレイヤー名
     public int playerLevel;             // プレイヤーレベル
     public long totalExp;               // 総経験値
+    public int currentExp;              // 現在の経験値（レベル内での進行度）
     public DateTime lastLoginDate;      // 最終ログイン日時
     public DateTime createDate;         // アカウント作成日時
 
@@ -24,8 +25,11 @@ public class UserSaveData
     [Header("通貨・リソース")]
     public long gold;                   // ゴールド
     public int gems;                    // ジェム
-    public int stamina;                 // スタミナ
+    public int stamina;                 // スタミナ（既存）
+    public int currentStamina;          // 現在のスタミナ（クエスト用）
+    public int maxStamina;              // 最大スタミナ
     public DateTime staminaLastRecoveryTime; // スタミナ最終回復時刻
+    public DateTime lastStaminaRecovery;     // 最後のスタミナ回復時刻
 
     [Header("装備データ")]
     public List<UserEquipmentData> equipments;          // 所持装備リスト
@@ -42,6 +46,9 @@ public class UserSaveData
     [Header("戦闘用スキル")]
     public string battleSkill1Id = "";                  // 戦闘用スキル1のID
     public string battleSkill2Id = "";                  // 戦闘用スキル2のID
+
+    [Header("クエスト関連データ")]
+    public List<UserQuestData> quests = new List<UserQuestData>();  // クエスト進行データ
 
     [Header("設定・フラグ")]
     public GameSettings gameSettings;                   // ゲーム設定
@@ -61,6 +68,7 @@ public class UserSaveData
         playerName = "新規プレイヤー";
         playerLevel = 1;
         totalExp = 0;
+        currentExp = 0;
         lastLoginDate = DateTime.Now;
         createDate = DateTime.Now;
 
@@ -70,8 +78,11 @@ public class UserSaveData
 
         gold = 1000;        // 初期ゴールド
         gems = 10;          // 初期ジェム
-        stamina = 100;      // 初期スタミナ
+        stamina = 100;      // 初期スタミナ（既存）
+        currentStamina = 100; // 現在のスタミナ（クエスト用）
+        maxStamina = 100;     // 最大スタミナ
         staminaLastRecoveryTime = DateTime.Now;
+        lastStaminaRecovery = DateTime.Now;
 
         equipments = new List<UserEquipmentData>();
         equippedWeaponIds = new List<string>();
@@ -85,6 +96,9 @@ public class UserSaveData
         battleSkill1Id = "";
         battleSkill2Id = "";
 
+        // クエスト関連初期化
+        quests = new List<UserQuestData>();
+
         gameSettings = new GameSettings();
         clearedStages = new List<string>();
         unlockedSkills = new List<int>();
@@ -92,6 +106,8 @@ public class UserSaveData
 
         statistics = new GameStatistics();
     }
+
+    #region 既存メソッド（装備関連）
 
     /// <summary>
     /// 装備を追加
@@ -126,6 +142,10 @@ public class UserSaveData
     {
         return equipments.Find(e => e.userEquipmentId == userEquipmentId);
     }
+
+    #endregion
+
+    #region 既存メソッド（アイテム関連）
 
     /// <summary>
     /// アイテムを追加
@@ -176,6 +196,10 @@ public class UserSaveData
         var item = items.Find(i => i.itemType == itemType && i.itemMasterId == itemMasterId);
         return item?.quantity ?? 0;
     }
+
+    #endregion
+
+    #region 既存メソッド（スキル関連）
 
     /// <summary>
     /// スキルを追加
@@ -259,6 +283,10 @@ public class UserSaveData
         SetBattleSkill(slotNumber, "");
     }
 
+    #endregion
+
+    #region 既存メソッド（装備システム）
+
     /// <summary>
     /// 装備をキャラクターに装着
     /// </summary>
@@ -338,6 +366,96 @@ public class UserSaveData
         return true;
     }
 
+    #endregion
+
+    #region 新規追加メソッド（クエスト・スタミナ関連）
+
+    /// <summary>
+    /// 経験値を追加（レベルアップ処理含む）
+    /// </summary>
+    public void AddExperience(int exp)
+    {
+        currentExp += exp;
+        totalExp += exp;
+
+        // レベルアップチェック
+        while (currentExp >= GetRequiredExpForNextLevel())
+        {
+            currentExp -= GetRequiredExpForNextLevel();
+            playerLevel++;
+
+            // レベルアップ時の追加処理があればここに
+            Debug.Log($"レベルアップ! Lv.{playerLevel}");
+        }
+    }
+
+    /// <summary>
+    /// 次のレベルまでに必要な経験値を取得
+    /// </summary>
+    public int GetRequiredExpForNextLevel()
+    {
+        // 簡易的な経験値計算式
+        return playerLevel * 100 + 50;
+    }
+
+    /// <summary>
+    /// 最大経験値を取得
+    /// </summary>
+    public int GetMaxExpForCurrentLevel()
+    {
+        return GetRequiredExpForNextLevel();
+    }
+
+    /// <summary>
+    /// スタミナを回復
+    /// </summary>
+    public void RecoverStamina()
+    {
+        if (currentStamina >= maxStamina) return;
+
+        var now = DateTime.Now;
+        var timeDiff = now - lastStaminaRecovery;
+
+        // 5分で1スタミナ回復
+        int recoveryAmount = (int)(timeDiff.TotalMinutes / 5);
+        if (recoveryAmount > 0)
+        {
+            currentStamina = Mathf.Min(currentStamina + recoveryAmount, maxStamina);
+            lastStaminaRecovery = now;
+        }
+    }
+
+    /// <summary>
+    /// スタミナを消費
+    /// </summary>
+    /// <param name="amount">消費量</param>
+    /// <returns>消費できた場合true</returns>
+    public bool ConsumeStamina(int amount)
+    {
+        if (currentStamina < amount) return false;
+
+        currentStamina -= amount;
+        return true;
+    }
+
+    /// <summary>
+    /// 次のスタミナ回復までの時間を取得
+    /// </summary>
+    /// <returns>回復までの時間</returns>
+    public TimeSpan GetTimeToNextStaminaRecovery()
+    {
+        if (currentStamina >= maxStamina) return TimeSpan.Zero;
+
+        var nextRecovery = lastStaminaRecovery.AddMinutes(5);
+        var now = DateTime.Now;
+
+        return nextRecovery > now ? nextRecovery - now : TimeSpan.Zero;
+    }
+
+    #endregion
+
+    #region 既存メソッド（その他）
+
     /// <summary>
     /// 最終ログイン日時を更新
     /// </summary>
@@ -347,7 +465,7 @@ public class UserSaveData
     }
 
     /// <summary>
-    /// スタミナを回復
+    /// スタミナを回復（既存メソッド）
     /// </summary>
     public void RecoverStamina(int maxStamina, int recoveryRate)
     {
@@ -368,6 +486,70 @@ public class UserSaveData
     public ItemInventorySummary GetItemSummary()
     {
         return ItemInventorySummary.CreateFromUserItems(items);
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// クエスト状態列挙型
+/// </summary>
+public enum QuestStatus
+{
+    Locked,     // ロック状態（前提条件未満了）
+    Available,  // 挑戦可能
+    Ongoing,    // 進行中
+    Completed,  // 完了
+    Expired     // 期間終了
+}
+
+/// <summary>
+/// ユーザークエストデータクラス
+/// </summary>
+[System.Serializable]
+public class UserQuestData
+{
+    public int questId;
+    public QuestStatus status;
+    public int clearCount;
+    public bool isNew;
+    public DateTime firstClearDate;
+    public DateTime lastClearDate;
+
+    // デイリークエスト用
+    public int todayClearCount;
+    public DateTime lastClearDay;
+
+    /// <summary>
+    /// 今日のクリア回数を更新
+    /// </summary>
+    public void UpdateTodayClearCount()
+    {
+        var today = DateTime.Now.Date;
+        if (lastClearDay.Date != today)
+        {
+            todayClearCount = 0;
+            lastClearDay = today;
+        }
+    }
+
+    /// <summary>
+    /// クリア回数を増加
+    /// </summary>
+    public void IncrementClearCount()
+    {
+        clearCount++;
+        UpdateTodayClearCount();
+        todayClearCount++;
+        lastClearDate = DateTime.Now;
+
+        if (firstClearDate == DateTime.MinValue)
+        {
+            firstClearDate = DateTime.Now;
+        }
+
+        status = QuestStatus.Completed;
+        isNew = false;
     }
 }
 
@@ -403,7 +585,7 @@ public class GameStatistics
     public int totalEquipmentsAcquired;     // 総取得装備数
 
     /// <summary>
-    /// 勝率を計算
+    /// 勝利率を計算
     /// </summary>
     public float GetWinRate()
     {

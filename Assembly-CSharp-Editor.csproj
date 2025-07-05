@@ -65,6 +65,7 @@
     <Compile Include="Assets\Scripts\Editor\SaveDataEditorTools.cs" />
     <Compile Include="Assets\Scripts\Editor\MasterDataIconUpdater.cs" />
     <Compile Include="Assets\Scripts\Editor\CSVImporter.cs" />
+    <Compile Include="Assets\Scripts\Editor\QuestDataImporter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

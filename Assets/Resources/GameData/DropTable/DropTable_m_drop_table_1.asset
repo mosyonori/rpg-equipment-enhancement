@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12b36738da21f2c4db26c62ff1cb67e9, type: 3}
+  m_Name: DropTable_m_drop_table_1
+  m_EditorClassIdentifier: 
+  tableId: m_drop_table_1
+  dropItems:
+  - itemTableId: 1
+    itemType: enhance
+    itemId: 1
+    itemName: "\u4F4E\u7D1A\u5F37\u5316\u77F3"
+    quantity: 2
+    dropRate: 40
+  - itemTableId: 2
+    itemType: support
+    itemId: 1
+    itemName: "\u53E4\u3073\u305F\u30B3\u30A4\u30F3"
+    quantity: 1
+    dropRate: 30
+  - itemTableId: 3
+    itemType: enhance
+    itemId: 2
+    itemName: "\u4E2D\u7D1A\u5F37\u5316\u77F3"
+    quantity: 1
+    dropRate: 25
+  - itemTableId: 4
+    itemType: enhance
+    itemId: 3
+    itemName: "\u9AD8\u7D1A\u5F37\u5316\u77F3"
+    quantity: 1
+    dropRate: 3
+  - itemTableId: 5
+    itemType: equipment
+    itemId: 1
+    itemName: "\u521D\u5FC3\u8005\u306E\u5263"
+    quantity: 1
+    dropRate: 2
+  maxDropCount: 3
+  guaranteedDropRate: 100
