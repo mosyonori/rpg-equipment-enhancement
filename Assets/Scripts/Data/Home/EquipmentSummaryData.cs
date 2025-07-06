@@ -6,6 +6,7 @@ using UnityEngine;
 /// <summary>
 /// 装備サマリーデータクラス
 /// ホーム画面で表示する装備情報をまとめたデータクラス
+/// 修正版：装備編集画面と同じ戦闘力計算ロジックを使用
 /// </summary>
 [System.Serializable]
 public class EquipmentSummaryData
@@ -63,6 +64,7 @@ public class EquipmentSummaryData
 
     /// <summary>
     /// UserSaveDataからEquipmentSummaryDataを作成
+    /// 修正版：MasterDataManagerを使用した正確な計算
     /// </summary>
     /// <param name="saveData">ユーザーセーブデータ</param>
     /// <returns>装備サマリーデータ</returns>
@@ -72,34 +74,52 @@ public class EquipmentSummaryData
 
         var summary = new EquipmentSummaryData();
 
+        // MasterDataManagerの準備状況確認
+        if (MasterDataManager.Instance == null || !MasterDataManager.Instance.IsDataLoaded)
+        {
+            Debug.LogWarning("[EquipmentSummaryData] MasterDataManagerが利用できません。簡易計算を使用します。");
+            return CreateFromSaveDataFallback(saveData);
+        }
+
+        var masterDataDict = MasterDataManager.Instance.GetEquipmentDataDict();
+        if (masterDataDict == null)
+        {
+            Debug.LogWarning("[EquipmentSummaryData] 装備マスターデータが取得できません。簡易計算を使用します。");
+            return CreateFromSaveDataFallback(saveData);
+        }
+
         // 装備中のアイテムを取得
         var equippedItems = saveData.equipments.Where(e => e.isEquipped).ToList();
 
         foreach (var equipment in equippedItems)
         {
-            // TODO: MasterDataManagerから装備タイプを取得
-            // 仮実装として文字列比較で判定
-            if (IsWeapon(equipment))
+            // MasterDataから装備タイプを正確に判定
+            if (masterDataDict.ContainsKey(equipment.equipmentMasterId))
             {
-                summary.equippedWeapon = equipment;
-                summary.hasEquippedWeapon = true;
-                summary.weaponCombatPower = CalculateEquipmentPower(equipment);
-            }
-            else if (IsArmor(equipment))
-            {
-                summary.equippedArmor = equipment;
-                summary.hasEquippedArmor = true;
-                summary.armorCombatPower = CalculateEquipmentPower(equipment);
-            }
-            else if (IsAccessory(equipment))
-            {
-                summary.equippedAccessory = equipment;
-                summary.hasEquippedAccessory = true;
-                summary.accessoryCombatPower = CalculateEquipmentPower(equipment);
+                var masterData = masterDataDict[equipment.equipmentMasterId];
+
+                switch (masterData.equipmentType)
+                {
+                    case EquipmentType.Weapon:
+                        summary.equippedWeapon = equipment;
+                        summary.hasEquippedWeapon = true;
+                        summary.weaponCombatPower = CalculateEquipmentPowerAccurate(equipment, masterData);
+                        break;
+                    case EquipmentType.Armor:
+                        summary.equippedArmor = equipment;
+                        summary.hasEquippedArmor = true;
+                        summary.armorCombatPower = CalculateEquipmentPowerAccurate(equipment, masterData);
+                        break;
+                    case EquipmentType.Accessory:
+                        summary.equippedAccessory = equipment;
+                        summary.hasEquippedAccessory = true;
+                        summary.accessoryCombatPower = CalculateEquipmentPowerAccurate(equipment, masterData);
+                        break;
+                }
             }
         }
 
-        // 総戦闘力計算
+        // 総戦闘力計算（装備編集画面と同じロジック）
         summary.totalCombatPower = summary.weaponCombatPower +
                                    summary.armorCombatPower +
                                    summary.accessoryCombatPower;
@@ -114,53 +134,159 @@ public class EquipmentSummaryData
     }
 
     /// <summary>
-    /// 装備タイプ判定：武器
+    /// MasterDataManagerが利用できない場合のフォールバック処理
+    /// 既存システムとの互換性を保つため
+    /// </summary>
+    /// <param name="saveData">ユーザーセーブデータ</param>
+    /// <returns>装備サマリーデータ（簡易計算版）</returns>
+    private static EquipmentSummaryData CreateFromSaveDataFallback(UserSaveData saveData)
+    {
+        var summary = new EquipmentSummaryData();
+        var equippedItems = saveData.equipments.Where(e => e.isEquipped).ToList();
+
+        foreach (var equipment in equippedItems)
+        {
+            // 既存の簡易判定を使用（後方互換性のため）
+            if (IsWeaponFallback(equipment))
+            {
+                summary.equippedWeapon = equipment;
+                summary.hasEquippedWeapon = true;
+                summary.weaponCombatPower = CalculateEquipmentPowerFallback(equipment);
+            }
+            else if (IsArmorFallback(equipment))
+            {
+                summary.equippedArmor = equipment;
+                summary.hasEquippedArmor = true;
+                summary.armorCombatPower = CalculateEquipmentPowerFallback(equipment);
+            }
+            else if (IsAccessoryFallback(equipment))
+            {
+                summary.equippedAccessory = equipment;
+                summary.hasEquippedAccessory = true;
+                summary.accessoryCombatPower = CalculateEquipmentPowerFallback(equipment);
+            }
+        }
+
+        summary.totalCombatPower = summary.weaponCombatPower +
+                                   summary.armorCombatPower +
+                                   summary.accessoryCombatPower;
+
+        summary.CalculateRecommendations(saveData.equipments);
+        summary.CalculateStatistics(saveData.equipments);
+
+        return summary;
+    }
+
+    /// <summary>
+    /// 装備の戦闘力を正確に計算（装備編集画面と同じロジック）
+    /// </summary>
+    /// <param name="equipment">装備データ</param>
+    /// <param name="masterData">装備マスターデータ</param>
+    /// <returns>戦闘力</returns>
+    private static int CalculateEquipmentPowerAccurate(UserEquipmentData equipment, EquipmentMasterData masterData)
+    {
+        if (equipment == null || masterData == null) return 0;
+
+        // UserDataUtility.CalculateTotalPower()と同じ計算式を使用
+        var totalStats = equipment.CalculateTotalStats(masterData);
+
+        int equipmentPower = 0;
+
+        // 装備編集画面と同じ戦闘力計算ロジック
+        equipmentPower += totalStats.hp / 10;
+        equipmentPower += totalStats.offense * 2;
+        equipmentPower += totalStats.defense;
+        equipmentPower += totalStats.speed;
+        equipmentPower += totalStats.criticalRate / 5;
+        equipmentPower += totalStats.criticalDamageRate / 10;
+
+        // 属性攻撃力も追加
+        equipmentPower += totalStats.fireOffence;
+        equipmentPower += totalStats.waterOffence;
+        equipmentPower += totalStats.windOffence;
+        equipmentPower += totalStats.earthOffence;
+
+        return equipmentPower;
+    }
+
+    /// <summary>
+    /// 装備タイプ判定：武器（MasterDataManager使用）
     /// </summary>
     /// <param name="equipment">装備データ</param>
     /// <returns>武器の場合true</returns>
     private static bool IsWeapon(UserEquipmentData equipment)
     {
-        // TODO: MasterDataManagerを使用して正確な判定を実装
-        // 仮実装として装備IDの範囲で判定
-        return equipment.equipmentMasterId >= 1 && equipment.equipmentMasterId <= 1000;
+        if (MasterDataManager.Instance?.IsDataLoaded != true) return IsWeaponFallback(equipment);
+
+        var masterData = MasterDataManager.Instance.GetEquipmentData(equipment.equipmentMasterId);
+        return masterData?.equipmentType == EquipmentType.Weapon;
     }
 
     /// <summary>
-    /// 装備タイプ判定：防具
+    /// 装備タイプ判定：防具（MasterDataManager使用）
     /// </summary>
     /// <param name="equipment">装備データ</param>
     /// <returns>防具の場合true</returns>
     private static bool IsArmor(UserEquipmentData equipment)
     {
-        // TODO: MasterDataManagerを使用して正確な判定を実装
-        return equipment.equipmentMasterId >= 1001 && equipment.equipmentMasterId <= 2000;
+        if (MasterDataManager.Instance?.IsDataLoaded != true) return IsArmorFallback(equipment);
+
+        var masterData = MasterDataManager.Instance.GetEquipmentData(equipment.equipmentMasterId);
+        return masterData?.equipmentType == EquipmentType.Armor;
     }
 
     /// <summary>
-    /// 装備タイプ判定：アクセサリー
+    /// 装備タイプ判定：アクセサリー（MasterDataManager使用）
     /// </summary>
     /// <param name="equipment">装備データ</param>
     /// <returns>アクセサリーの場合true</returns>
     private static bool IsAccessory(UserEquipmentData equipment)
     {
-        // TODO: MasterDataManagerを使用して正確な判定を実装
+        if (MasterDataManager.Instance?.IsDataLoaded != true) return IsAccessoryFallback(equipment);
+
+        var masterData = MasterDataManager.Instance.GetEquipmentData(equipment.equipmentMasterId);
+        return masterData?.equipmentType == EquipmentType.Accessory;
+    }
+
+    /// <summary>
+    /// フォールバック：装備タイプ判定（武器）
+    /// MasterDataManagerが利用できない場合の既存ロジック
+    /// </summary>
+    private static bool IsWeaponFallback(UserEquipmentData equipment)
+    {
+        return equipment.equipmentMasterId >= 1 && equipment.equipmentMasterId <= 1000;
+    }
+
+    /// <summary>
+    /// フォールバック：装備タイプ判定（防具）
+    /// </summary>
+    private static bool IsArmorFallback(UserEquipmentData equipment)
+    {
+        return equipment.equipmentMasterId >= 1001 && equipment.equipmentMasterId <= 2000;
+    }
+
+    /// <summary>
+    /// フォールバック：装備タイプ判定（アクセサリー）
+    /// </summary>
+    private static bool IsAccessoryFallback(UserEquipmentData equipment)
+    {
         return equipment.equipmentMasterId >= 2001 && equipment.equipmentMasterId <= 3000;
     }
 
     /// <summary>
-    /// 装備の戦闘力を計算
+    /// フォールバック：装備の戦闘力を計算（既存ロジック）
+    /// MasterDataManagerが利用できない場合の簡易計算
     /// </summary>
     /// <param name="equipment">装備データ</param>
     /// <returns>戦闘力</returns>
-    private static int CalculateEquipmentPower(UserEquipmentData equipment)
+    private static int CalculateEquipmentPowerFallback(UserEquipmentData equipment)
     {
         if (equipment == null) return 0;
 
-        // TODO: より正確な戦闘力計算ロジックを実装
-        // 仮実装として強化値と耐久度を考慮
-        int basePower = equipment.equipmentMasterId * 10; // 基礎値
-        int enhanceBonus = equipment.currentEnhancedValue * 50; // 強化ボーナス
-        float durabilityRatio = (float)equipment.currentEnhanceStamina / 100f; // 仮の最大耐久度100として計算
+        // 既存の簡易計算ロジック（後方互換性のため保持）
+        int basePower = equipment.equipmentMasterId * 10;
+        int enhanceBonus = equipment.currentEnhancedValue * 50;
+        float durabilityRatio = (float)equipment.currentEnhanceStamina / 100f;
 
         return Mathf.RoundToInt((basePower + enhanceBonus) * durabilityRatio);
     }
@@ -206,7 +332,6 @@ public class EquipmentSummaryData
     public static float GetDurabilityRatio(UserEquipmentData equipment)
     {
         if (equipment == null || equipment.currentEnhanceStamina <= 0) return 0f;
-        // 仮の最大耐久度100として計算
         return Mathf.Clamp01((float)equipment.currentEnhanceStamina / 100f);
     }
 

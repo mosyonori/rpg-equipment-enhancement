@@ -4,9 +4,9 @@ using UnityEngine;
 /// <summary>
 /// ホーム画面管理マネージャー
 /// 責任範囲：
-/// - ホーム画面で必要なデータの集計・管理
+/// - ホーム画面で必要なデータの集約・管理
 /// - 各Manager間の連携調整
-/// - ホーム画面特有の処理ロジック
+/// - ホーム画面固有の処理ロジック
 /// - データアクセス統一ルール: UI層 → HomeManager → SaveDataManager → データ層
 /// </summary>
 public class HomeManager : MonoBehaviour
@@ -41,10 +41,8 @@ public class HomeManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            if (autoInitialize)
-            {
-                Initialize();
-            }
+            // **修正**: UIコンポーネントより先に基本初期化を実行
+            InitializeImmediate();
         }
         else
         {
@@ -54,157 +52,154 @@ public class HomeManager : MonoBehaviour
 
     private void Start()
     {
-        // 依存関係確認を遅延実行で開始
-        StartCoroutine(InitializeWithDependencyCheck());
+        // 依存関係確認後にデータ初期化
+        StartCoroutine(WaitForDependenciesAndInitialize());
+    }
+
+    // **削除**: Start()メソッドを削除（重複初期化の原因）
+
+    /// <summary>
+    /// **新規追加**: 即座に基本初期化（UIコンポーネントの参照エラー回避）
+    /// </summary>
+    private void InitializeImmediate()
+    {
+        Log("HomeManager基本初期化開始（即座実行）");
+
+        // 基本状態設定
+        lastDataRefreshTime = DateTime.Now;
+
+        // 初期データを空で設定（UIエラー回避）
+        currentPlayerSummary = new PlayerSummaryData();
+        currentEquipmentSummary = new EquipmentSummaryData();
+
+        // 基本初期化完了フラグ（データ初期化とは別）
+        IsInitialized = true;
+
+        Log("HomeManager基本初期化完了 - UIコンポーネント参照可能");
     }
 
     /// <summary>
-    /// 依存関係確認付きの初期化（コルーチン）
+    /// 依存関係の初期化完了を待機してからデータ初期化
     /// </summary>
-    private System.Collections.IEnumerator InitializeWithDependencyCheck()
+    private System.Collections.IEnumerator WaitForDependenciesAndInitialize()
     {
-        Log("依存関係の確認を開始します...");
+        Log("HomeManagerデータ初期化開始 - 依存関係チェック中...");
 
-        // SaveDataManagerの初期化を待機
-        yield return StartCoroutine(WaitForSaveDataManager());
-
-        // その他の依存関係を確認
-        yield return StartCoroutine(WaitForOtherDependencies());
-
-        // 全ての依存関係が確認できたら初期化実行
-        if (ValidateDependencies())
-        {
-            Log("全ての依存関係が確認できました。初期化を続行します。");
-
-            // 定期更新開始
-            InvokeRepeating(nameof(RefreshHomeData), 1f, dataRefreshInterval);
-        }
-        else
-        {
-            LogError("依存関係の確認に失敗しました。初期化を中断します。");
-        }
-    }
-
-    /// <summary>
-    /// SaveDataManagerの初期化完了を待機
-    /// </summary>
-    private System.Collections.IEnumerator WaitForSaveDataManager()
-    {
-        Log("SaveDataManagerの初期化を待機中...");
-
-        float timeout = 10f; // 10秒でタイムアウト
+        float timeout = 15f;
         float elapsed = 0f;
 
         while (elapsed < timeout)
         {
-            if (SaveDataManager.Instance != null && SaveDataManager.Instance.IsDataLoaded)
+            if (CheckDependencies())
             {
-                Log("SaveDataManagerの初期化が完了しました");
+                Log("依存関係確認完了 - データ初期化実行");
+                InitializeData();
                 yield break;
             }
 
-            // SaveDataManagerが存在しない場合は作成を試行
-            if (SaveDataManager.Instance == null)
-            {
-                Log("SaveDataManagerが見つかりません。初期化を試行します...");
-
-                // SaveDataManagerのGameObjectを探すか作成
-                var saveDataManagerObj = UnityEngine.Object.FindFirstObjectByType<SaveDataManager>();
-                if (saveDataManagerObj == null)
-                {
-                    Log("SaveDataManagerを新規作成します");
-                    var newSaveDataManager = new GameObject("SaveDataManager");
-                    newSaveDataManager.AddComponent<SaveDataManager>();
-                }
-            }
-            // SaveDataManagerは存在するがデータ未読み込みの場合
-            else if (!SaveDataManager.Instance.IsDataLoaded)
-            {
-                Log("SaveDataManagerのデータ読み込みを開始します");
-
-                // データ読み込みを手動で開始
-                if (SaveDataManager.Instance.LoadSaveData())
-                {
-                    Log("SaveDataManagerのデータ読み込みが開始されました");
-                }
-                else
-                {
-                    Log("SaveDataManagerのデータ読み込み開始に失敗しました");
-                }
-            }
-
-            elapsed += 0.1f;
+            elapsed += Time.deltaTime;
             yield return new WaitForSeconds(0.1f);
         }
 
-        LogError($"SaveDataManagerの初期化待機がタイムアウトしました（{timeout}秒）");
+        LogError($"依存関係の初期化がタイムアウトしました（{timeout}秒）");
+        LogError("MasterDataManagerとSaveDataManagerがシーンに配置され、正常に初期化されているか確認してください");
     }
 
     /// <summary>
-    /// その他の依存関係の初期化完了を待機
+    /// 依存するマネージャーの初期化チェック
     /// </summary>
-    private System.Collections.IEnumerator WaitForOtherDependencies()
+    /// <returns>全ての依存関係が満たされている場合true</returns>
+    private bool CheckDependencies()
     {
-        Log("その他の依存関係を確認中...");
-
-        float timeout = 5f; // 5秒でタイムアウト
-        float elapsed = 0f;
-
-        while (elapsed < timeout)
+        // MasterDataManagerチェック
+        if (MasterDataManager.Instance == null)
         {
-            // QuestDataManagerなど他の依存関係をチェック
-            bool allReady = true;
-
-            // QuestDataManagerが必要な場合の確認（オプショナル）
-            if (QuestDataManager.Instance != null)
-            {
-                if (!QuestDataManager.Instance.IsDataLoaded)
-                {
-                    Log("QuestDataManagerのデータ読み込みを待機中...");
-                    allReady = false;
-                }
-            }
-
-            if (allReady)
-            {
-                Log("その他の依存関係の確認が完了しました");
-                yield break;
-            }
-
-            elapsed += 0.1f;
-            yield return new WaitForSeconds(0.1f);
+            Log("MasterDataManager.Instanceがnullです");
+            return false;
         }
 
-        Log("その他の依存関係の確認を完了しました（一部未確認の可能性があります）");
+        if (!MasterDataManager.Instance.IsDataLoaded)
+        {
+            Log($"MasterDataManagerのデータ読み込みが未完了です (IsDataLoaded: {MasterDataManager.Instance.IsDataLoaded})");
+            return false;
+        }
+
+        // SaveDataManagerチェック
+        if (SaveDataManager.Instance == null)
+        {
+            Log("SaveDataManager.Instanceがnullです");
+            return false;
+        }
+
+        if (!SaveDataManager.Instance.IsDataLoaded)
+        {
+            Log($"SaveDataManagerのデータ読み込みが未完了です (IsDataLoaded: {SaveDataManager.Instance.IsDataLoaded})");
+            return false;
+        }
+
+        Log("全ての依存関係が満たされています");
+        return true;
     }
 
-    #endregion
+    /// <summary>
+    /// **修正**: データ初期化（依存関係確認後）
+    /// </summary>
+    private void InitializeData()
+    {
+        Log("HomeManagerデータ初期化実行");
 
-    #region 初期化
+        // 依存するマネージャーの最終チェック
+        if (!CheckDependencies())
+        {
+            LogError("データ初期化時に依存関係チェックに失敗しました");
+            return;
+        }
+
+        // イベント購読を行う
+        RegisterManagerEvents();
+
+        // 実際のデータでサマリーを更新
+        RefreshHomeData();
+
+        // 定期更新開始
+        InvokeRepeating(nameof(RefreshHomeData), 1f, dataRefreshInterval);
+
+        Log("HomeManagerデータ初期化完了");
+    }
 
     /// <summary>
-    /// HomeManagerを初期化
+    /// **既存維持**: 外部からの初期化呼び出し用
     /// </summary>
     public bool Initialize()
     {
         try
         {
-            Log("HomeManager初期化開始");
+            Log("HomeManager.Initialize()が呼び出されました");
 
-            // 初期データ設定
-            currentPlayerSummary = new PlayerSummaryData();
-            currentEquipmentSummary = new EquipmentSummaryData();
-            lastDataRefreshTime = DateTime.Now;
+            // 既に基本初期化済みの場合はデータ初期化のみ
+            if (IsInitialized && CheckDependencies())
+            {
+                InitializeData();
+                return true;
+            }
+            else if (!IsInitialized)
+            {
+                Log("基本初期化が未完了のため、即座実行");
+                InitializeImmediate();
 
-            // 他のManagerからのイベント登録
-            RegisterManagerEvents();
+                if (CheckDependencies())
+                {
+                    InitializeData();
+                    return true;
+                }
+                else
+                {
+                    Log("依存関係未準備のため、コルーチンで待機中");
+                    return false;
+                }
+            }
 
-            // 初期データ読み込み
-            RefreshHomeData();
-
-            IsInitialized = true;
-            Log("HomeManager初期化完了");
-            return true;
+            return false;
         }
         catch (Exception e)
         {
@@ -272,7 +267,7 @@ public class HomeManager : MonoBehaviour
             SaveDataManager.OnDataSaved += OnSaveDataSaved;
         }
 
-        // QuestListManagerからのイベント
+        // QuestListManagerからのイベント（存在する場合のみ）
         if (QuestListManager.Instance != null)
         {
             QuestListManager.OnQuestStarted += OnQuestStarted;
@@ -301,65 +296,6 @@ public class HomeManager : MonoBehaviour
     private void OnDestroy()
     {
         UnregisterManagerEvents();
-    }
-
-    /// <summary>
-    /// SaveDataManagerの強制初期化
-    /// </summary>
-    public static void EnsureSaveDataManager()
-    {
-        if (SaveDataManager.Instance == null)
-        {
-            Debug.Log("[HomeManager] SaveDataManagerを強制作成します");
-
-            var saveDataManagerObj = new GameObject("SaveDataManager");
-            var saveDataManager = saveDataManagerObj.AddComponent<SaveDataManager>();
-
-            // 明示的に初期化実行
-            if (saveDataManager != null)
-            {
-                // SaveDataManagerの初期化メソッドが公開されている場合は呼び出し
-                Debug.Log("[HomeManager] SaveDataManagerの初期化を開始");
-            }
-        }
-        else if (!SaveDataManager.Instance.IsDataLoaded)
-        {
-            Debug.Log("[HomeManager] SaveDataManagerのデータ読み込みを開始");
-            SaveDataManager.Instance.LoadSaveData();
-        }
-    }
-
-    /// <summary>
-    /// 緊急時の依存関係修復
-    /// </summary>
-    [ContextMenu("依存関係を修復")]
-    public void RepairDependencies()
-    {
-        Log("依存関係の修復を開始します");
-
-        // SaveDataManagerの確保
-        EnsureSaveDataManager();
-
-        // 少し待ってから再初期化
-        StartCoroutine(DelayedInitialize());
-    }
-
-    /// <summary>
-    /// 遅延初期化
-    /// </summary>
-    private System.Collections.IEnumerator DelayedInitialize()
-    {
-        yield return new WaitForSeconds(1f);
-
-        if (ValidateDependencies())
-        {
-            Log("依存関係修復後の初期化成功");
-            RefreshHomeData();
-        }
-        else
-        {
-            LogError("依存関係修復後も問題が残っています");
-        }
     }
 
     #endregion
@@ -414,7 +350,12 @@ public class HomeManager : MonoBehaviour
     /// </summary>
     public void RefreshHomeData()
     {
-        if (!IsInitialized) return;
+        // **修正点**: 初期化前でも最低限のデータは設定
+        if (!IsInitialized && currentPlayerSummary == null)
+        {
+            currentPlayerSummary = new PlayerSummaryData();
+            currentEquipmentSummary = new EquipmentSummaryData();
+        }
 
         try
         {
@@ -433,6 +374,9 @@ public class HomeManager : MonoBehaviour
                 LogError("セーブデータが取得できません");
                 return;
             }
+
+            // **修正点**: 実際のセーブデータからサマリーを作成
+            Log($"セーブデータ取得成功 - プレイヤー名: {saveData.playerName}, レベル: {saveData.playerLevel}");
 
             // プレイヤーサマリー更新
             var newPlayerSummary = UpdatePlayerSummary(saveData);
@@ -459,7 +403,7 @@ public class HomeManager : MonoBehaviour
             OnEquipmentDataUpdated?.Invoke(currentEquipmentSummary);
             OnHomeDataRefreshed?.Invoke();
 
-            Log("ホームデータ更新完了");
+            Log($"ホームデータ更新完了 - プレイヤー名: {currentPlayerSummary.playerName}, ゴールド: {currentPlayerSummary.gold}");
         }
         catch (Exception e)
         {
@@ -474,6 +418,7 @@ public class HomeManager : MonoBehaviour
     /// <returns>更新されたプレイヤーサマリー</returns>
     private PlayerSummaryData UpdatePlayerSummary(UserSaveData saveData)
     {
+        // **修正点**: PlayerSummaryData.CreateFromSaveData()を使用
         var summary = PlayerSummaryData.CreateFromSaveData(saveData);
 
         // スタミナ回復処理
@@ -485,6 +430,8 @@ public class HomeManager : MonoBehaviour
         summary.hasNewItems = CheckForNewItems(saveData);
         summary.hasCompletedQuests = CheckForCompletedQuests(saveData);
         summary.hasNewNotifications = CheckForNewNotifications();
+
+        Log($"プレイヤーサマリー作成: {summary.playerName}, Lv.{summary.playerLevel}, ゴールド: {summary.gold}");
 
         return summary;
     }
@@ -766,7 +713,7 @@ public class HomeManager : MonoBehaviour
     #region エディター用ツール
 
 #if UNITY_EDITOR
-    [ContextMenu("ホームデータを手動更新")]
+    [ContextMenu("ホームデータを強制更新")]
     private void ManualRefreshHomeData()
     {
         RefreshHomeData();

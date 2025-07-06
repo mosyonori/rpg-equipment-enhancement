@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// ホーム画面全体統括UI
+/// ホーム画面全体統合UI
 /// 責任範囲：
 /// - ホーム画面全体のUI制御とパネル管理
 /// - MainButtonPanelUIとPlayerInfoUIの統合制御
@@ -115,10 +115,12 @@ public class HomeUI : MonoBehaviour
         {
             Log("HomeUI初期化開始");
 
-            // 依存関係確認
+            // **修正点**: 依存関係確認を改善
             if (!ValidateDependencies())
             {
                 LogError("必要な依存関係が満たされていません");
+                // **修正点**: 依存関係の初期化を待つ
+                StartCoroutine(WaitForHomeManagerAndRefresh());
                 return;
             }
 
@@ -140,6 +142,58 @@ public class HomeUI : MonoBehaviour
         catch (Exception e)
         {
             LogError($"HomeUI初期化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// **新規追加**: HomeManagerの初期化完了を待機
+    /// </summary>
+    private System.Collections.IEnumerator WaitForHomeManagerAndRefresh()
+    {
+        Log("HomeManagerの初期化完了を待機中...");
+
+        float timeout = 15f;
+        float elapsed = 0f;
+
+        while (elapsed < timeout)
+        {
+            if (ValidateDependencies())
+            {
+                Log("HomeManager初期化完了 - HomeUI初期化続行");
+
+                // 子UIコンポーネントの初期化
+                InitializeChildComponents();
+
+                // 初期データ取得・表示
+                RefreshAllData();
+
+                // ログイン処理実行
+                ProcessLoginSequence();
+
+                IsInitialized = true;
+                lastAutoSaveTime = DateTime.Now;
+
+                Log("HomeUI初期化完了（遅延）");
+                OnHomeUIInitialized?.Invoke();
+                yield break;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        LogError($"HomeManagerの初期化待機がタイムアウトしました（{timeout}秒）");
+
+        // タイムアウト時でも最低限の初期化は実行
+        try
+        {
+            InitializeChildComponents();
+            IsInitialized = true;
+            OnHomeUIInitialized?.Invoke();
+        }
+        catch (Exception e)
+        {
+            LogError($"フォールバック初期化エラー: {e.Message}");
         }
     }
 
@@ -379,10 +433,21 @@ public class HomeUI : MonoBehaviour
     /// </summary>
     public void RefreshAllData()
     {
-        if (!IsInitialized) return;
+        if (!IsInitialized)
+        {
+            Log("HomeUI未初期化のため、データ更新をスキップします");
+            return;
+        }
 
         try
         {
+            // **修正点**: HomeManagerの状態を再確認
+            if (HomeManager.Instance == null || !HomeManager.Instance.IsInitialized)
+            {
+                LogError("HomeManagerが利用できません");
+                return;
+            }
+
             // HomeManagerからデータ更新を要求
             HomeManager.Instance.RefreshHomeData();
 
@@ -517,6 +582,13 @@ public class HomeUI : MonoBehaviour
         {
             Log("ログイン処理開始");
 
+            // **修正点**: HomeManagerの有効性を確認
+            if (HomeManager.Instance == null || !HomeManager.Instance.IsInitialized)
+            {
+                LogError("HomeManagerが利用できないため、ログイン処理をスキップします");
+                return;
+            }
+
             // HomeManagerでログイン処理実行
             HomeManager.Instance.ProcessLogin();
 
@@ -585,7 +657,7 @@ public class HomeUI : MonoBehaviour
     /// <param name="playerData">更新されたプレイヤーデータ</param>
     private void OnPlayerDataUpdated(PlayerSummaryData playerData)
     {
-        Log("プレイヤーデータ更新通知受信");
+        Log($"プレイヤーデータ更新通知受信 - {playerData?.playerName}");
         // PlayerInfoUIが自動的に更新される
     }
 
@@ -707,7 +779,16 @@ public class HomeUI : MonoBehaviour
     private void OnStaminaRecoveryRequested()
     {
         Log("スタミナ回復要求");
-        HomeManager.Instance.ForceStaminaRecovery();
+
+        // **修正点**: HomeManagerの有効性確認
+        if (HomeManager.Instance != null && HomeManager.Instance.IsInitialized)
+        {
+            HomeManager.Instance.ForceStaminaRecovery();
+        }
+        else
+        {
+            LogError("HomeManagerが利用できません");
+        }
     }
 
     #endregion
@@ -748,7 +829,7 @@ public class HomeUI : MonoBehaviour
     #region エディター用ツール
 
 #if UNITY_EDITOR
-    [ContextMenu("全データを手動更新")]
+    [ContextMenu("全データを強制更新")]
     private void ManualRefreshAllData()
     {
         RefreshAllData();
@@ -770,6 +851,24 @@ public class HomeUI : MonoBehaviour
     private void TestDailyBonus()
     {
         ShowDailyBonusPopup();
+    }
+
+    [ContextMenu("依存関係状態を確認")]
+    private void CheckDependencyStatus()
+    {
+        Log($"HomeManager.Instance: {HomeManager.Instance != null}");
+        Log($"HomeManager.IsInitialized: {HomeManager.Instance?.IsInitialized ?? false}");
+        Log($"PlayerInfoUI: {playerInfoUI != null}");
+        Log($"MainButtonPanelUI: {mainButtonPanelUI != null}");
+
+        if (ValidateDependencies())
+        {
+            Log("依存関係: 正常");
+        }
+        else
+        {
+            LogError("依存関係: 問題あり");
+        }
     }
 #endif
 

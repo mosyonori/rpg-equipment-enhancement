@@ -535,7 +535,7 @@ public class QuestDetailUI : MonoBehaviour
         }
         else
         {
-            SafeSetText(maxClearCountText, $"/ {questMaster.dailyClearLimit}");
+            SafeSetText(maxClearCountText, $"{questMaster.dailyClearLimit} 回");
         }
 
         // 進捗スライダー
