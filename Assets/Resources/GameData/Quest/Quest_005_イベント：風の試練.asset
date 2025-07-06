@@ -31,7 +31,7 @@ MonoBehaviour:
   rewardGold: 1000
   itemDropQuantity: 10
   dropItemTable: m_drop_table_6
-  firstClearItemType: enhancement
+  firstClearItemType: enhance
   firstClearItemId: 8
   firstClearItemQuantity: 10
   questOpenDay: 2025-07-01

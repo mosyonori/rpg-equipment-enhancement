@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -57,6 +58,7 @@ public class PlayerInfoUI : MonoBehaviour
     [Header("設定")]
     [SerializeField] private bool enableDebugLog = true;
     [SerializeField] private float updateInterval = 1f; // UI更新間隔（秒）
+    [SerializeField] private float maxInitializationWaitTime = 10f; // 最大初期化待機時間
 
     // イベント
     public event Action OnCharacterChangeRequested;
@@ -69,6 +71,7 @@ public class PlayerInfoUI : MonoBehaviour
     private PlayerSummaryData currentPlayerData;
     private bool isInitialized = false;
     private DateTime lastUpdateTime;
+    private Coroutine initializationCoroutine;
 
     #region Unity Lifecycle
 
@@ -79,13 +82,18 @@ public class PlayerInfoUI : MonoBehaviour
 
     private void Start()
     {
-        Initialize();
+        // **修正点**: コルーチンで依存関係を待機してから初期化
+        initializationCoroutine = StartCoroutine(WaitForDependenciesAndInitialize());
     }
 
     private void OnEnable()
     {
-        RegisterEvents();
-        RefreshPlayerInfo();
+        // **修正点**: 初期化完了後にイベント登録とデータ更新
+        if (isInitialized)
+        {
+            RegisterEvents();
+            RefreshPlayerInfo();
+        }
     }
 
     private void OnDisable()
@@ -101,9 +109,43 @@ public class PlayerInfoUI : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        if (initializationCoroutine != null)
+        {
+            StopCoroutine(initializationCoroutine);
+        }
+        UnregisterEvents();
+    }
+
     #endregion
 
     #region 初期化
+
+    /// <summary>
+    /// **新規追加**: 依存関係の初期化完了を待機してから初期化
+    /// </summary>
+    private IEnumerator WaitForDependenciesAndInitialize()
+    {
+        Log("PlayerInfoUI初期化開始 - 依存関係チェック中...");
+
+        float elapsed = 0f;
+        while (elapsed < maxInitializationWaitTime)
+        {
+            if (ValidateDependencies())
+            {
+                Log("依存関係確認完了 - PlayerInfoUI初期化実行");
+                Initialize();
+                yield break;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        LogError($"依存関係の初期化がタイムアウトしました（{maxInitializationWaitTime}秒）");
+        LogError("HomeManagerが正常に初期化されているか確認してください");
+    }
 
     /// <summary>
     /// コンポーネントの初期化
@@ -136,7 +178,10 @@ public class PlayerInfoUI : MonoBehaviour
                 return;
             }
 
-            // 初期データ取得
+            // **修正点**: イベント登録を初期化時に実行
+            RegisterEvents();
+
+            // **修正点**: 初期データ取得（実際のセーブデータから）
             RefreshPlayerInfo();
 
             isInitialized = true;
@@ -221,22 +266,38 @@ public class PlayerInfoUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 依存関係の検証
+    /// **修正点**: 依存関係の検証（HomeManagerのデータ初期化まで確認）
     /// </summary>
     private bool ValidateDependencies()
     {
         if (HomeManager.Instance == null)
         {
-            LogError("HomeManagerが見つかりません");
+            Log("HomeManager.Instance がnullです");
             return false;
         }
 
         if (!HomeManager.Instance.IsInitialized)
         {
-            LogError("HomeManagerが初期化されていません");
+            Log("HomeManager が初期化されていません");
             return false;
         }
 
+        // **追加**: HomeManagerのデータ初期化確認
+        var playerData = HomeManager.Instance.GetPlayerSummary();
+        if (playerData == null)
+        {
+            Log("HomeManager からプレイヤーデータを取得できません");
+            return false;
+        }
+
+        // **追加**: 実際にデータが設定されているかチェック（空のPlayerSummaryDataでないか）
+        if (string.IsNullOrEmpty(playerData.playerName))
+        {
+            Log("HomeManager のプレイヤーデータがまだ空です（初期化中）");
+            return false;
+        }
+
+        Log("全ての依存関係が満たされています");
         return true;
     }
 
@@ -249,9 +310,12 @@ public class PlayerInfoUI : MonoBehaviour
     /// </summary>
     private void RegisterEvents()
     {
+        UnregisterEvents(); // 重複登録防止
+
         if (HomeManager.Instance != null)
         {
             HomeManager.OnPlayerDataUpdated += OnPlayerDataUpdated;
+            Log("HomeManagerイベント登録完了");
         }
     }
 
@@ -272,6 +336,7 @@ public class PlayerInfoUI : MonoBehaviour
     /// <param name="playerData">更新されたプレイヤーデータ</param>
     private void OnPlayerDataUpdated(PlayerSummaryData playerData)
     {
+        Log($"プレイヤーデータ更新イベント受信: {playerData?.playerName}");
         currentPlayerData = playerData;
         DisplayPlayerInfo(playerData);
     }
@@ -281,15 +346,36 @@ public class PlayerInfoUI : MonoBehaviour
     #region 公開メソッド
 
     /// <summary>
-    /// プレイヤー情報を更新
+    /// **修正点**: プレイヤー情報を更新（データ検証強化）
     /// </summary>
     public void RefreshPlayerInfo()
     {
-        if (!isInitialized) return;
+        if (!isInitialized)
+        {
+            Log("初期化未完了のためRefreshPlayerInfoをスキップ");
+            return;
+        }
 
         try
         {
+            Log("プレイヤー情報更新開始");
+
             var playerData = HomeManager.Instance.GetPlayerSummary();
+            if (playerData == null)
+            {
+                LogError("HomeManagerからプレイヤーデータを取得できませんでした");
+                return;
+            }
+
+            // **追加**: データが有効かチェック
+            if (string.IsNullOrEmpty(playerData.playerName))
+            {
+                LogError("取得したプレイヤーデータが無効です（名前が空）");
+                return;
+            }
+
+            Log($"プレイヤーデータ取得成功: {playerData.playerName}, Lv.{playerData.playerLevel}, Gold: {playerData.gold}");
+
             currentPlayerData = playerData;
             DisplayPlayerInfo(playerData);
         }
@@ -328,7 +414,13 @@ public class PlayerInfoUI : MonoBehaviour
     /// <param name="playerData">プレイヤーデータ</param>
     private void DisplayPlayerInfo(PlayerSummaryData playerData)
     {
-        if (playerData == null) return;
+        if (playerData == null)
+        {
+            LogError("DisplayPlayerInfo: playerDataがnullです");
+            return;
+        }
+
+        Log($"プレイヤー情報表示開始: {playerData.playerName}");
 
         // 基本情報表示
         DisplayBasicInfo(playerData);
@@ -348,7 +440,7 @@ public class PlayerInfoUI : MonoBehaviour
         // スタミナ回復時間表示
         DisplayStaminaRecovery(playerData);
 
-        Log("プレイヤー情報表示更新");
+        Log("プレイヤー情報表示更新完了");
     }
 
     /// <summary>
@@ -731,6 +823,13 @@ public class PlayerInfoUI : MonoBehaviour
         {
             Log("現在のプレイヤーデータはnullです");
         }
+    }
+
+    [ContextMenu("依存関係を強制チェック")]
+    private void ForceDependencyCheck()
+    {
+        bool isValid = ValidateDependencies();
+        Log($"依存関係チェック結果: {isValid}");
     }
 #endif
 
