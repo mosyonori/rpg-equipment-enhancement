@@ -52,8 +52,8 @@ MonoBehaviour:
   accessoryWaterOffence: 0
   accessoryWindOffence: 0
   accessoryEarthOffence: 0
-  enhanceItemIcon: {fileID: 21300000, guid: 65cd3e0c2032e4c44a4f97c7e7ed381b, type: 3}
-  enhanceItemIconPath: 
+  enhanceItemIcon: {fileID: 21300000, guid: c907a7b350db35940acd5c8f39a1e38b, type: 3}
+  enhanceItemIconPath: Icons/EnhanceItem/enhance_9
   description: "\u88C5\u5099\u306E\u5F37\u5316\u5024\u3092\\n\u521D\u671F\u5316\u3059\u308B\u3002\\n\u3044\u3064\u4F7F\u3046\u3093\u3060\uFF1F"
   completionFlag: 1
   collectionFlag: 1

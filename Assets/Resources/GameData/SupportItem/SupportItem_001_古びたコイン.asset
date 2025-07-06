@@ -36,8 +36,8 @@ MonoBehaviour:
   waterOffence: 0
   windOffence: 0
   earthOffence: 0
-  supportItemIcon: {fileID: 21300000, guid: 36cce90411a3c0a44b25c8b68866bf9f, type: 3}
-  supportItemIconPath: 
+  supportItemIcon: {fileID: 21300000, guid: 9b911194152ebd8458933284b07a0436, type: 3}
+  supportItemIconPath: Icons/SupportItem/support_1
   description: "\u53E4\u3044\u30B3\u30A4\u30F3\u3002\\n\u6210\u529F\u7387\u304C\u5897\u52A0\u3059\u308B\u3002"
   completionFlag: 1
   collectionFlag: 1

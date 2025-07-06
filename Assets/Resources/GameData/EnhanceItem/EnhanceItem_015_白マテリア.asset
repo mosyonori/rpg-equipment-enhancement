@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d181f2c7b882c54598e86cf1387bc06, type: 3}
   m_Name: "EnhanceItem_015_\u767D\u30DE\u30C6\u30EA\u30A2"
   m_EditorClassIdentifier: 
-  enhanceItemId: 15
+  enhanceItemId: 14
   enhanceItemName: "\u767D\u30DE\u30C6\u30EA\u30A2"
   attributeType: 0
   rarity: 2
@@ -52,8 +52,8 @@ MonoBehaviour:
   accessoryWaterOffence: 0
   accessoryWindOffence: 0
   accessoryEarthOffence: 0
-  enhanceItemIcon: {fileID: 21300000, guid: df59e52c6e355ab449496f46eef3d100, type: 3}
-  enhanceItemIconPath: 
+  enhanceItemIcon: {fileID: 21300000, guid: da20aea9c26d20845aac7c89b2e4b156, type: 3}
+  enhanceItemIconPath: Icons/EnhanceItem/enhance_14
   description: "\u7D14\u767D\u306B\u714C\u3081\u304F\u5B9D\u77F3\u3002\\n\u6B66\u5668\u306E\u5F37\u5316\u8010\u4E45\u304C\u5897\u3048\u308B\\n\u4E0D\u601D\u8B70\u306A\u52B9\u679C\u3092\u6301\u3064\u3002"
   completionFlag: 1
   collectionFlag: 1

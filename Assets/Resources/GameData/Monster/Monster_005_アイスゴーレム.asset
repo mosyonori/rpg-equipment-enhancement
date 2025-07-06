@@ -30,7 +30,7 @@ MonoBehaviour:
   usedSkill1: 0
   usedSkill2: -1
   usedSkill3: -1
-  monsterIconPath: 
+  monsterIconPath: Icons/Monster/monster_5
   monsterAnimationPath: 
   description: "\u6C34\u5C5E\u6027\u30B4\u30FC\u30EC\u30E0"
   completionFlag: 1

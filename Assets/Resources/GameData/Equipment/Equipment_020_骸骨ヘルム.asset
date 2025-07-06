@@ -37,8 +37,8 @@ MonoBehaviour:
   equipmentUnlockSkillEnhancedValue: 0
   equipmentUnlockCharacterId: 
   equipmentUnlockCharacterEnhancedValue: 
-  equipmentIcon: {fileID: 1151724113, guid: ee9b2edbbbcd11744902cab364a4584a, type: 3}
-  equipmentIconPath: 
+  equipmentIcon: {fileID: 21300000, guid: 20ace70bec3309346b02ff09811ba14b, type: 3}
+  equipmentIconPath: Icons/Armor/Armor_7
   description: "\u9AB8\u9AA8\u306E\u3088\u3046\u306A\u515C\u3002\\n\u51CD\u3048\u308B\u3088\u3046\u306B\u51B7\u305F\u3044\u3002"
   completionFlag: 1
   collectionFlag: 1

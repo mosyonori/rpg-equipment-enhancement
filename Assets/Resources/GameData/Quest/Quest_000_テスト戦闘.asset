@@ -24,9 +24,9 @@ MonoBehaviour:
   dailyClearLimit: -1
   isRepeatable: 1
   turnLimit: 50
-  spawnMonsterId1: 0
-  spawnMonsterId2: 0
-  spawnMonsterId3: 0
+  spawnMonsterId1: 999
+  spawnMonsterId2: 999
+  spawnMonsterId3: 999
   rewardExp: 100
   rewardGold: 100
   itemDropQuantity: 10

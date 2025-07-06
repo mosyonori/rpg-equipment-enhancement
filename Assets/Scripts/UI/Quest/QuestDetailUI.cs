@@ -1,11 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// クエスト詳細パネル制御クラス
+/// クエスト詳細パネル制御クラス（完全修正版）
 /// 責任範囲：
 /// - 選択されたクエストの詳細情報表示
 /// - 出現モンスターリストの動的生成・表示
@@ -55,6 +56,7 @@ public class QuestDetailUI : MonoBehaviour
     [Header("制御ボタン")]
     [SerializeField] private Button startBattleButton;
     [SerializeField] private TextMeshProUGUI startBattleButtonText;
+    [SerializeField] private Button closeButton;  // 閉じるボタン（×ボタン）
 
     [Header("状態表示")]
     [SerializeField] private GameObject availabilityPanel;
@@ -68,12 +70,16 @@ public class QuestDetailUI : MonoBehaviour
 
     // イベント
     public event Action<int> OnStartBattleClicked;
+    public event Action OnCloseClicked;  // 閉じるボタンクリックイベント
 
     // 内部状態
     private QuestDetailData currentQuestDetail;
     private List<MonsterSlotUI> monsterSlots;
     private List<DropItemSlotUI> dropItemSlots;
     private List<FirstClearRewardSlotUI> firstClearRewardSlots;
+
+    // フレーム遅延用フラグ
+    private bool isDisplaying = false;
 
     #region Unity Lifecycle
 
@@ -91,9 +97,21 @@ public class QuestDetailUI : MonoBehaviour
     /// </summary>
     private void InitializeComponents()
     {
-        monsterSlots = new List<MonsterSlotUI>();
-        dropItemSlots = new List<DropItemSlotUI>();
-        firstClearRewardSlots = new List<FirstClearRewardSlotUI>();
+        // リストの安全な初期化
+        if (monsterSlots == null)
+            monsterSlots = new List<MonsterSlotUI>();
+        else
+            monsterSlots.Clear();
+
+        if (dropItemSlots == null)
+            dropItemSlots = new List<DropItemSlotUI>();
+        else
+            dropItemSlots.Clear();
+
+        if (firstClearRewardSlots == null)
+            firstClearRewardSlots = new List<FirstClearRewardSlotUI>();
+        else
+            firstClearRewardSlots.Clear();
 
         // ボタンイベント設定
         if (startBattleButton != null)
@@ -102,16 +120,17 @@ public class QuestDetailUI : MonoBehaviour
             startBattleButton.onClick.AddListener(OnStartBattleButtonClicked);
         }
 
-        // 初期状態設定
-        if (firstClearRewardSection != null)
+        if (closeButton != null)
         {
-            firstClearRewardSection.SetActive(false);
+            closeButton.onClick.RemoveAllListeners();
+            closeButton.onClick.AddListener(OnCloseButtonClicked);
         }
 
-        if (availabilityPanel != null)
-        {
-            availabilityPanel.SetActive(false);
-        }
+        // 初期状態設定
+        SafeSetActive(firstClearRewardSection, false);
+        SafeSetActive(availabilityPanel, false);
+
+        Log("QuestDetailUI初期化完了");
     }
 
     #endregion
@@ -119,10 +138,32 @@ public class QuestDetailUI : MonoBehaviour
     #region 公開メソッド
 
     /// <summary>
-    /// クエスト詳細を表示
+    /// クエスト詳細を表示（修正版: GameObject状態対応）
     /// </summary>
     /// <param name="questDetail">クエスト詳細データ</param>
     public void DisplayQuestDetail(QuestDetailData questDetail)
+    {
+        if (isDisplaying)
+        {
+            Log("表示処理中のため、前の処理完了を待機します");
+            return;
+        }
+
+        // 修正: GameObjectが非アクティブな場合はアクティブにしてからコルーチン開始
+        if (!gameObject.activeInHierarchy)
+        {
+            Log("QuestDetailPanelが非アクティブのため、アクティブにします");
+            gameObject.SetActive(true);
+        }
+
+        StartCoroutine(DisplayQuestDetailCoroutine(questDetail));
+    }
+
+    /// <summary>
+    /// クエスト詳細を即座に表示（非コルーチン版）
+    /// </summary>
+    /// <param name="questDetail">クエスト詳細データ</param>
+    public void DisplayQuestDetailImmediate(QuestDetailData questDetail)
     {
         try
         {
@@ -132,9 +173,25 @@ public class QuestDetailUI : MonoBehaviour
                 return;
             }
 
-            currentQuestDetail = questDetail;
+            if (questDetail.questMaster == null)
+            {
+                LogError("QuestDetailData.questMasterがnullです");
+                return;
+            }
 
-            Log($"クエスト詳細表示開始: {questDetail.questMaster?.questName}");
+            // GameObjectをアクティブにする
+            if (!gameObject.activeInHierarchy)
+            {
+                Log("QuestDetailPanelが非アクティブのため、アクティブにします");
+                gameObject.SetActive(true);
+            }
+
+            Log($"クエスト詳細表示開始（即座版）: {questDetail.questMaster.questName}");
+
+            // 既存のスロットをクリア
+            ClearAllSlots();
+
+            currentQuestDetail = questDetail;
 
             // 基本情報表示
             DisplayBasicInfo();
@@ -145,11 +202,13 @@ public class QuestDetailUI : MonoBehaviour
 
             // 報酬表示
             DisplayBasicRewards();
-            DisplayFirstClearReward();
 
             // モンスター・ドロップアイテム表示
             DisplaySpawnMonsters();
             DisplayDropItems();
+
+            // 初回クリア報酬表示
+            DisplayFirstClearReward();
 
             // ボタン状態更新
             UpdateStartBattleButton();
@@ -157,12 +216,167 @@ public class QuestDetailUI : MonoBehaviour
             // 利用可能性表示
             DisplayAvailability();
 
-            Log("クエスト詳細表示完了");
+            Log("クエスト詳細表示完了（即座版）");
         }
         catch (Exception e)
         {
             LogError($"クエスト詳細表示エラー: {e.Message}");
+            LogError($"スタックトレース: {e.StackTrace}");
         }
+    }
+
+    /// <summary>
+    /// クエスト詳細表示のコルーチン（修正版: try-catch制約対応）
+    /// </summary>
+    private IEnumerator DisplayQuestDetailCoroutine(QuestDetailData questDetail)
+    {
+        isDisplaying = true;
+
+        // 修正: try-catchをコルーチン外で実行するため、事前チェックを行う
+        if (questDetail == null)
+        {
+            LogError("QuestDetailDataがnullです");
+            isDisplaying = false;
+            yield break;
+        }
+
+        if (questDetail.questMaster == null)
+        {
+            LogError("QuestDetailData.questMasterがnullです");
+            isDisplaying = false;
+            yield break;
+        }
+
+        Log($"クエスト詳細表示開始: {questDetail.questMaster.questName}");
+
+        // 修正: 確実なクリア処理（フレーム待機）
+        ClearAllSlots();
+        yield return null; // 1フレーム待機してDestroy処理を確実に実行
+
+        currentQuestDetail = questDetail;
+
+        // 基本情報表示
+        yield return StartCoroutine(SafeDisplayBasicInfo());
+
+        // 条件・進行状況表示
+        yield return StartCoroutine(SafeDisplayConditionsAndProgress());
+
+        // 報酬表示
+        yield return StartCoroutine(SafeDisplayRewards());
+
+        // モンスター・ドロップアイテム表示
+        yield return StartCoroutine(SafeDisplaySpawnMonsters());
+
+        yield return StartCoroutine(SafeDisplayDropItems());
+
+        // 修正: 初回クリア報酬は最後に表示（詳細なログ付き）
+        yield return StartCoroutine(SafeDisplayFirstClearReward());
+
+        // ボタン状態更新
+        UpdateStartBattleButton();
+
+        // 利用可能性表示
+        DisplayAvailability();
+
+        Log("クエスト詳細表示完了");
+        isDisplaying = false;
+    }
+
+    /// <summary>
+    /// 安全な基本情報表示
+    /// </summary>
+    private IEnumerator SafeDisplayBasicInfo()
+    {
+        try
+        {
+            DisplayBasicInfo();
+        }
+        catch (Exception e)
+        {
+            LogError($"基本情報表示エラー: {e.Message}");
+        }
+        yield return null;
+    }
+
+    /// <summary>
+    /// 安全な条件・進行状況表示
+    /// </summary>
+    private IEnumerator SafeDisplayConditionsAndProgress()
+    {
+        try
+        {
+            DisplayQuestConditions();
+            DisplayQuestProgress();
+        }
+        catch (Exception e)
+        {
+            LogError($"条件・進行状況表示エラー: {e.Message}");
+        }
+        yield return null;
+    }
+
+    /// <summary>
+    /// 安全な報酬表示
+    /// </summary>
+    private IEnumerator SafeDisplayRewards()
+    {
+        try
+        {
+            DisplayBasicRewards();
+        }
+        catch (Exception e)
+        {
+            LogError($"基本報酬表示エラー: {e.Message}");
+        }
+        yield return null;
+    }
+
+    /// <summary>
+    /// 安全なモンスター表示
+    /// </summary>
+    private IEnumerator SafeDisplaySpawnMonsters()
+    {
+        try
+        {
+            DisplaySpawnMonsters();
+        }
+        catch (Exception e)
+        {
+            LogError($"出現モンスター表示エラー: {e.Message}");
+        }
+        yield return null;
+    }
+
+    /// <summary>
+    /// 安全なドロップアイテム表示
+    /// </summary>
+    private IEnumerator SafeDisplayDropItems()
+    {
+        try
+        {
+            DisplayDropItems();
+        }
+        catch (Exception e)
+        {
+            LogError($"ドロップアイテム表示エラー: {e.Message}");
+        }
+        yield return null;
+    }
+
+    /// <summary>
+    /// 安全な初回クリア報酬表示
+    /// </summary>
+    private IEnumerator SafeDisplayFirstClearReward()
+    {
+        try
+        {
+            DisplayFirstClearReward();
+        }
+        catch (Exception e)
+        {
+            LogError($"初回クリア報酬表示エラー: {e.Message}");
+        }
+        yield return null;
     }
 
     /// <summary>
@@ -173,6 +387,20 @@ public class QuestDetailUI : MonoBehaviour
         currentQuestDetail = null;
         ClearAllSlots();
         Log("クエスト詳細クリア");
+    }
+
+    /// <summary>
+    /// 詳細パネルを非表示にする（修正: 必ずクリアを実行）
+    /// </summary>
+    public void HideDetailPanel()
+    {
+        // 修正: パネルを非表示にする際は必ずスロット内容をクリア
+        ClearDetail();
+
+        // パネル自体を非表示にする場合
+        gameObject.SetActive(false);
+
+        Log("クエスト詳細パネルを非表示にしました");
     }
 
     #endregion
@@ -189,28 +417,18 @@ public class QuestDetailUI : MonoBehaviour
         var questMaster = currentQuestDetail.questMaster;
 
         // タイトル
-        if (questTitleText != null)
-        {
-            questTitleText.text = questMaster.questName;
-        }
+        SafeSetText(questTitleText, questMaster.questName);
 
         // 説明
-        if (questDescriptionText != null)
-        {
-            questDescriptionText.text = questMaster.description;
-        }
+        SafeSetText(questDescriptionText, questMaster.description);
 
         // クエストタイプ
-        if (questTypeText != null)
-        {
-            questTypeText.text = GetQuestTypeDisplayName(questMaster.questType);
-        }
+        SafeSetText(questTypeText, GetQuestTypeDisplayName(questMaster.questType));
 
         // タイプアイコン
-        if (questTypeIcon != null)
-        {
-            LoadQuestTypeIcon(questMaster.questType);
-        }
+        LoadQuestTypeIcon(questMaster.questType);
+
+        Log("基本情報表示完了");
     }
 
     /// <summary>
@@ -236,6 +454,8 @@ public class QuestDetailUI : MonoBehaviour
     /// <param name="questType">クエストタイプ</param>
     private void LoadQuestTypeIcon(QuestType questType)
     {
+        if (questTypeIcon == null) return;
+
         try
         {
             string iconPath = $"Icons/Quest/type_{questType.ToString().ToLower()}";
@@ -254,7 +474,7 @@ public class QuestDetailUI : MonoBehaviour
         catch (Exception e)
         {
             LogError($"クエストタイプアイコン読み込みエラー: {e.Message}");
-            questTypeIcon.gameObject.SetActive(false);
+            SafeSetActive(questTypeIcon, false);
         }
     }
 
@@ -272,36 +492,26 @@ public class QuestDetailUI : MonoBehaviour
         var questMaster = currentQuestDetail.questMaster;
 
         // 必要レベル
-        if (needLevelText != null)
-        {
-            needLevelText.text = $"必要レベル: Lv.{questMaster.needLevel}";
-        }
+        SafeSetText(needLevelText, $"必要レベル: Lv.{questMaster.needLevel}");
 
         // 必要スタミナ
-        if (requiredStaminaText != null)
-        {
-            requiredStaminaText.text = $"消費スタミナ: {questMaster.requiredStamina}";
-        }
+        SafeSetText(requiredStaminaText, $"消費スタミナ: {questMaster.requiredStamina}");
 
         // 推奨戦闘力
-        if (recommendedPowerText != null)
-        {
-            recommendedPowerText.text = $"推奨戦闘力: {questMaster.recommendedPower:N0}";
-        }
+        SafeSetText(recommendedPowerText, $"推奨戦闘力: {questMaster.recommendedPower:N0}");
 
         // ターン制限
-        if (turnLimitText != null)
+        if (questMaster.HasTurnLimit())
         {
-            if (questMaster.HasTurnLimit())
-            {
-                turnLimitText.text = $"ターン制限: {questMaster.turnLimit}ターン";
-                turnLimitText.gameObject.SetActive(true);
-            }
-            else
-            {
-                turnLimitText.gameObject.SetActive(false);
-            }
+            SafeSetText(turnLimitText, $"ターン制限: {questMaster.turnLimit}ターン");
+            SafeSetActive(turnLimitText, true);
         }
+        else
+        {
+            SafeSetActive(turnLimitText, false);
+        }
+
+        Log("クエスト条件表示完了");
     }
 
     /// <summary>
@@ -309,31 +519,26 @@ public class QuestDetailUI : MonoBehaviour
     /// </summary>
     private void DisplayQuestProgress()
     {
-        if (currentQuestDetail?.userQuestData == null || currentQuestDetail?.questMaster == null) return;
+        if (currentQuestDetail?.questMaster == null) return;
 
-        var userQuest = currentQuestDetail.userQuestData;
         var questMaster = currentQuestDetail.questMaster;
+        var userQuest = currentQuestDetail.userQuestData; // nullの可能性あり
 
-        // クリア回数
-        if (clearCountText != null)
-        {
-            clearCountText.text = $"クリア回数: {userQuest.clearCount}";
-        }
+        // クリア回数（userQuestDataがnullの場合は0）
+        int clearCount = userQuest?.clearCount ?? 0;
+        SafeSetText(clearCountText, $"クリア回数: {clearCount}");
 
         // 最大クリア回数
-        if (maxClearCountText != null)
+        if (questMaster.IsUnlimitedClear())
         {
-            if (questMaster.IsUnlimitedClear())
-            {
-                maxClearCountText.text = "制限なし";
-            }
-            else
-            {
-                maxClearCountText.text = $"/ {questMaster.dailyClearLimit}";
-            }
+            SafeSetText(maxClearCountText, "制限なし");
+        }
+        else
+        {
+            SafeSetText(maxClearCountText, $"/ {questMaster.dailyClearLimit}");
         }
 
-        // 進行度スライダー
+        // 進捗スライダー
         if (clearProgressSlider != null)
         {
             if (questMaster.IsUnlimitedClear())
@@ -344,9 +549,11 @@ public class QuestDetailUI : MonoBehaviour
             {
                 clearProgressSlider.gameObject.SetActive(true);
                 clearProgressSlider.maxValue = questMaster.dailyClearLimit;
-                clearProgressSlider.value = userQuest.clearCount;
+                clearProgressSlider.value = clearCount;
             }
         }
+
+        Log($"進行状況表示完了: クリア回数 {clearCount}");
     }
 
     #endregion
@@ -363,38 +570,60 @@ public class QuestDetailUI : MonoBehaviour
         var questMaster = currentQuestDetail.questMaster;
 
         // 経験値報酬
-        if (expRewardText != null)
-        {
-            expRewardText.text = $"EXP: {questMaster.rewardExp:N0}";
-        }
+        SafeSetText(expRewardText, $"EXP: {questMaster.rewardExp:N0}");
 
         // ゴールド報酬
-        if (goldRewardText != null)
-        {
-            goldRewardText.text = $"ゴールド: {questMaster.rewardGold:N0}";
-        }
+        SafeSetText(goldRewardText, $"ゴールド: {questMaster.rewardGold:N0}");
+
+        Log("基本報酬表示完了");
     }
 
     /// <summary>
-    /// 初回クリア報酬を表示
+    /// 初回クリア報酬を表示（修正版: 詳細なログ付き）
     /// </summary>
     private void DisplayFirstClearReward()
     {
-        if (currentQuestDetail?.questMaster == null) return;
-
-        var questMaster = currentQuestDetail.questMaster;
-        bool hasFirstClearReward = questMaster.HasFirstClearReward();
-        bool isFirstClear = currentQuestDetail.userQuestData?.clearCount == 0;
-
-        if (firstClearRewardSection != null)
+        if (currentQuestDetail?.questMaster == null)
         {
-            firstClearRewardSection.SetActive(hasFirstClearReward && isFirstClear);
+            Log("questMaster が null のため初回クリア報酬表示をスキップ");
+            return;
         }
 
-        if (hasFirstClearReward && isFirstClear)
+        var questMaster = currentQuestDetail.questMaster;
+        var userQuest = currentQuestDetail.userQuestData;
+
+        // 修正: より詳細な判定ログ
+        bool hasFirstClearReward = questMaster.HasFirstClearReward();
+        int clearCount = userQuest?.clearCount ?? 0;
+        bool isFirstClear = clearCount == 0;
+
+        Log($"初回クリア報酬判定:");
+        Log($"  hasFirstClearReward: {hasFirstClearReward}");
+        Log($"  clearCount: {clearCount}");
+        Log($"  isFirstClear: {isFirstClear}");
+        Log($"  firstClearItemType: '{questMaster.firstClearItemType}'");
+        Log($"  firstClearItemId: {questMaster.firstClearItemId}");
+        Log($"  firstClearItemQuantity: {questMaster.firstClearItemQuantity}");
+
+        // 修正: 初回クリア報酬があり、かつ初回クリア時のみ表示
+        bool shouldShow = hasFirstClearReward && isFirstClear;
+        Log($"  shouldShow: {shouldShow}");
+
+        SafeSetActive(firstClearRewardSection, shouldShow);
+
+        if (shouldShow)
         {
+            Log($"初回クリア報酬表示開始: {questMaster.firstClearItemType} ID:{questMaster.firstClearItemId} x{questMaster.firstClearItemQuantity}");
+
+            // 修正: 既存のスロットをクリアしてから新しいスロットを作成
             ClearFirstClearRewardSlots();
             CreateFirstClearRewardSlot(questMaster);
+
+            Log("初回クリア報酬表示完了");
+        }
+        else
+        {
+            Log($"初回クリア報酬非表示: hasReward={hasFirstClearReward}, isFirstClear={isFirstClear}");
         }
     }
 
@@ -404,9 +633,22 @@ public class QuestDetailUI : MonoBehaviour
     /// <param name="questMaster">クエストマスターデータ</param>
     private void CreateFirstClearRewardSlot(QuestMasterData questMaster)
     {
+        // 修正: より詳細なエラーログとデバッグ情報
+        if (firstClearRewardSlotPrefab == null)
+        {
+            LogError("firstClearRewardSlotPrefabが設定されていません。Inspectorで設定してください。");
+            return;
+        }
+
+        if (firstClearRewardParent == null)
+        {
+            LogError("firstClearRewardParentが設定されていません。Inspectorで設定してください。");
+            return;
+        }
+
         try
         {
-            if (firstClearRewardSlotPrefab == null || firstClearRewardParent == null) return;
+            Log($"初回クリア報酬スロット作成開始: {questMaster.firstClearItemType} ID:{questMaster.firstClearItemId}");
 
             var slotObject = Instantiate(firstClearRewardSlotPrefab, firstClearRewardParent);
             var rewardSlot = slotObject.GetComponent<FirstClearRewardSlotUI>();
@@ -415,7 +657,12 @@ public class QuestDetailUI : MonoBehaviour
             {
                 rewardSlot.Initialize(questMaster);
                 firstClearRewardSlots.Add(rewardSlot);
-                Log("初回クリア報酬スロット作成");
+                Log("初回クリア報酬スロット作成成功");
+            }
+            else
+            {
+                LogError("FirstClearRewardSlotUIコンポーネントがプレハブに付いていません");
+                Destroy(slotObject);
             }
         }
         catch (Exception e)
@@ -433,24 +680,41 @@ public class QuestDetailUI : MonoBehaviour
     /// </summary>
     private void DisplaySpawnMonsters()
     {
-        ClearMonsterSlots();
-
-        if (currentQuestDetail?.spawnMonsters == null) return;
-
-        var monsters = currentQuestDetail.spawnMonsters;
-        int displayCount = Mathf.Min(monsters.Count, maxDisplayMonsters);
-
-        if (monsterSectionTitle != null)
+        try
         {
-            monsterSectionTitle.text = $"出現モンスター ({displayCount}体)";
-        }
+            // 修正: 既存のスロットを必ずクリア
+            ClearMonsterSlots();
 
-        for (int i = 0; i < displayCount; i++)
+            if (currentQuestDetail?.spawnMonsters == null)
+            {
+                Log("出現モンスターデータがnullです");
+                return;
+            }
+
+            var monsters = currentQuestDetail.spawnMonsters;
+            int displayCount = Mathf.Min(monsters.Count, maxDisplayMonsters);
+
+            SafeSetText(monsterSectionTitle, $"出現モンスター ({displayCount}体)");
+
+            for (int i = 0; i < displayCount; i++)
+            {
+                if (monsters[i] != null)
+                {
+                    CreateMonsterSlot(monsters[i]);
+                }
+                else
+                {
+                    Log($"モンスターデータ[{i}]がnullのためスキップします");
+                }
+            }
+
+            Log($"出現モンスター表示: {displayCount}体");
+        }
+        catch (Exception e)
         {
-            CreateMonsterSlot(monsters[i]);
+            LogError($"出現モンスター表示エラー: {e.Message}");
+            LogError($"スタックトレース: {e.StackTrace}");
         }
-
-        Log($"出現モンスター表示: {displayCount}体");
     }
 
     /// <summary>
@@ -459,17 +723,44 @@ public class QuestDetailUI : MonoBehaviour
     /// <param name="monsterData">モンスターデータ</param>
     private void CreateMonsterSlot(MonsterMasterData monsterData)
     {
+        if (monsterSlotPrefab == null)
+        {
+            LogError("monsterSlotPrefabが設定されていません。Inspectorで設定してください。");
+            return;
+        }
+
+        if (monsterListParent == null)
+        {
+            LogError("monsterListParentが設定されていません。Inspectorで設定してください。");
+            return;
+        }
+
         try
         {
-            if (monsterSlotPrefab == null || monsterListParent == null) return;
-
             var slotObject = Instantiate(monsterSlotPrefab, monsterListParent);
+            if (slotObject == null)
+            {
+                LogError("モンスタースロットオブジェクトの作成に失敗しました");
+                return;
+            }
+
             var monsterSlot = slotObject.GetComponent<MonsterSlotUI>();
 
             if (monsterSlot != null)
             {
                 monsterSlot.Initialize(monsterData);
+
+                // 安全にリストに追加
+                if (monsterSlots == null)
+                    monsterSlots = new List<MonsterSlotUI>();
+
                 monsterSlots.Add(monsterSlot);
+                Log($"モンスタースロット作成成功: {monsterData.monsterName}");
+            }
+            else
+            {
+                LogError("MonsterSlotUIコンポーネントが見つかりません");
+                Destroy(slotObject);
             }
         }
         catch (Exception e)
@@ -487,17 +778,19 @@ public class QuestDetailUI : MonoBehaviour
     /// </summary>
     private void DisplayDropItems()
     {
+        // 修正: 既存のスロットを必ずクリア
         ClearDropItemSlots();
 
-        if (currentQuestDetail?.dropTable?.dropItems == null) return;
+        if (currentQuestDetail?.dropTable?.dropItems == null)
+        {
+            Log("ドロップテーブルがnullです");
+            return;
+        }
 
         var dropItems = currentQuestDetail.dropTable.dropItems;
         int displayCount = Mathf.Min(dropItems.Count, maxDisplayDropItems);
 
-        if (dropItemSectionTitle != null)
-        {
-            dropItemSectionTitle.text = $"ドロップアイテム ({displayCount}種類)";
-        }
+        SafeSetText(dropItemSectionTitle, $"ドロップアイテム ({displayCount}種類)");
 
         for (int i = 0; i < displayCount; i++)
         {
@@ -513,10 +806,20 @@ public class QuestDetailUI : MonoBehaviour
     /// <param name="dropItem">ドロップアイテムデータ</param>
     private void CreateDropItemSlot(DropItemData dropItem)
     {
+        if (dropItemSlotPrefab == null)
+        {
+            LogError("dropItemSlotPrefabが設定されていません。Inspectorで設定してください。");
+            return;
+        }
+
+        if (dropItemListParent == null)
+        {
+            LogError("dropItemListParentが設定されていません。Inspectorで設定してください。");
+            return;
+        }
+
         try
         {
-            if (dropItemSlotPrefab == null || dropItemListParent == null) return;
-
             var slotObject = Instantiate(dropItemSlotPrefab, dropItemListParent);
             var dropItemSlot = slotObject.GetComponent<DropItemSlotUI>();
 
@@ -524,6 +827,11 @@ public class QuestDetailUI : MonoBehaviour
             {
                 dropItemSlot.Initialize(dropItem);
                 dropItemSlots.Add(dropItemSlot);
+            }
+            else
+            {
+                LogError("DropItemSlotUIコンポーネントが見つかりません");
+                Destroy(slotObject);
             }
         }
         catch (Exception e)
@@ -546,10 +854,7 @@ public class QuestDetailUI : MonoBehaviour
         bool canStart = currentQuestDetail.isAvailable;
         startBattleButton.interactable = canStart;
 
-        if (startBattleButtonText != null)
-        {
-            startBattleButtonText.text = canStart ? "出撃" : "出撃不可";
-        }
+        SafeSetText(startBattleButtonText, canStart ? "出撃" : "出撃不可");
     }
 
     /// <summary>
@@ -562,9 +867,9 @@ public class QuestDetailUI : MonoBehaviour
         bool showPanel = !currentQuestDetail.isAvailable;
         availabilityPanel.SetActive(showPanel);
 
-        if (showPanel && availabilityReasonText != null)
+        if (showPanel)
         {
-            availabilityReasonText.text = currentQuestDetail.availabilityReason;
+            SafeSetText(availabilityReasonText, currentQuestDetail.availabilityReason);
         }
     }
 
@@ -601,6 +906,27 @@ public class QuestDetailUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 閉じるボタンクリック処理
+    /// </summary>
+    private void OnCloseButtonClicked()
+    {
+        try
+        {
+            Log("閉じるボタンクリック - 詳細画面を非表示にします");
+
+            // 修正: 詳細をクリアしてからイベントを発火
+            ClearDetail();
+
+            // 閉じるイベントを発火
+            OnCloseClicked?.Invoke();
+        }
+        catch (Exception e)
+        {
+            LogError($"閉じるボタンクリック処理エラー: {e.Message}");
+        }
+    }
+
     #endregion
 
     #region スロット管理
@@ -613,6 +939,7 @@ public class QuestDetailUI : MonoBehaviour
         ClearMonsterSlots();
         ClearDropItemSlots();
         ClearFirstClearRewardSlots();
+        Log("全スロットクリア完了");
     }
 
     /// <summary>
@@ -620,14 +947,35 @@ public class QuestDetailUI : MonoBehaviour
     /// </summary>
     private void ClearMonsterSlots()
     {
-        foreach (var slot in monsterSlots)
+        try
         {
-            if (slot != null)
+            if (monsterSlots == null)
             {
-                Destroy(slot.gameObject);
+                Log("monsterSlotsがnullのため初期化します");
+                monsterSlots = new List<MonsterSlotUI>();
+                return;
             }
+
+            for (int i = monsterSlots.Count - 1; i >= 0; i--)
+            {
+                var slot = monsterSlots[i];
+                if (slot != null)
+                {
+                    if (slot.gameObject != null)
+                    {
+                        Destroy(slot.gameObject);
+                    }
+                }
+            }
+            monsterSlots.Clear();
+            Log("モンスタースロットクリア完了");
         }
-        monsterSlots.Clear();
+        catch (Exception e)
+        {
+            LogError($"モンスタースロットクリアエラー: {e.Message}");
+            // エラー時は強制的に新しいリストを作成
+            monsterSlots = new List<MonsterSlotUI>();
+        }
     }
 
     /// <summary>
@@ -635,14 +983,35 @@ public class QuestDetailUI : MonoBehaviour
     /// </summary>
     private void ClearDropItemSlots()
     {
-        foreach (var slot in dropItemSlots)
+        try
         {
-            if (slot != null)
+            if (dropItemSlots == null)
             {
-                Destroy(slot.gameObject);
+                Log("dropItemSlotsがnullのため初期化します");
+                dropItemSlots = new List<DropItemSlotUI>();
+                return;
             }
+
+            for (int i = dropItemSlots.Count - 1; i >= 0; i--)
+            {
+                var slot = dropItemSlots[i];
+                if (slot != null)
+                {
+                    if (slot.gameObject != null)
+                    {
+                        Destroy(slot.gameObject);
+                    }
+                }
+            }
+            dropItemSlots.Clear();
+            Log("ドロップアイテムスロットクリア完了");
         }
-        dropItemSlots.Clear();
+        catch (Exception e)
+        {
+            LogError($"ドロップアイテムスロットクリアエラー: {e.Message}");
+            // エラー時は強制的に新しいリストを作成
+            dropItemSlots = new List<DropItemSlotUI>();
+        }
     }
 
     /// <summary>
@@ -650,14 +1019,72 @@ public class QuestDetailUI : MonoBehaviour
     /// </summary>
     private void ClearFirstClearRewardSlots()
     {
-        foreach (var slot in firstClearRewardSlots)
+        try
         {
-            if (slot != null)
+            if (firstClearRewardSlots == null)
             {
-                Destroy(slot.gameObject);
+                Log("firstClearRewardSlotsがnullのため初期化します");
+                firstClearRewardSlots = new List<FirstClearRewardSlotUI>();
+                return;
             }
+
+            for (int i = firstClearRewardSlots.Count - 1; i >= 0; i--)
+            {
+                var slot = firstClearRewardSlots[i];
+                if (slot != null)
+                {
+                    if (slot.gameObject != null)
+                    {
+                        Destroy(slot.gameObject);
+                    }
+                }
+            }
+            firstClearRewardSlots.Clear();
+            Log("初回クリア報酬スロットクリア完了");
         }
-        firstClearRewardSlots.Clear();
+        catch (Exception e)
+        {
+            LogError($"初回クリア報酬スロットクリアエラー: {e.Message}");
+            // エラー時は強制的に新しいリストを作成
+            firstClearRewardSlots = new List<FirstClearRewardSlotUI>();
+        }
+    }
+
+    #endregion
+
+    #region 安全なUI操作メソッド
+
+    /// <summary>
+    /// 安全にテキストを設定
+    /// </summary>
+    private void SafeSetText(TextMeshProUGUI textComponent, string text)
+    {
+        if (textComponent != null)
+        {
+            textComponent.text = text ?? "";
+        }
+    }
+
+    /// <summary>
+    /// 安全にGameObjectをアクティブ設定
+    /// </summary>
+    private void SafeSetActive(GameObject obj, bool active)
+    {
+        if (obj != null)
+        {
+            obj.SetActive(active);
+        }
+    }
+
+    /// <summary>
+    /// 安全にコンポーネントをアクティブ設定
+    /// </summary>
+    private void SafeSetActive(Component component, bool active)
+    {
+        if (component != null && component.gameObject != null)
+        {
+            component.gameObject.SetActive(active);
+        }
     }
 
     #endregion
@@ -694,9 +1121,50 @@ public class QuestDetailUI : MonoBehaviour
     [ContextMenu("スロット数をログ出力")]
     private void LogSlotCounts()
     {
-        Log($"モンスタースロット: {monsterSlots.Count}, " +
-            $"ドロップアイテムスロット: {dropItemSlots.Count}, " +
-            $"初回報酬スロット: {firstClearRewardSlots.Count}");
+        Log($"モンスタースロット: {monsterSlots?.Count ?? 0}, " +
+            $"ドロップアイテムスロット: {dropItemSlots?.Count ?? 0}, " +
+            $"初回報酬スロット: {firstClearRewardSlots?.Count ?? 0}");
+    }
+
+    [ContextMenu("アサイン状況をチェック")]
+    private void CheckAssignments()
+    {
+        Log("=== アサイン状況チェック ===");
+        Log($"monsterSlotPrefab: {(monsterSlotPrefab != null ? "OK" : "未設定")}");
+        Log($"dropItemSlotPrefab: {(dropItemSlotPrefab != null ? "OK" : "未設定")}");
+        Log($"firstClearRewardSlotPrefab: {(firstClearRewardSlotPrefab != null ? "OK" : "未設定")}");
+        Log($"firstClearRewardParent: {(firstClearRewardParent != null ? "OK" : "未設定")}");
+        Log($"firstClearRewardSection: {(firstClearRewardSection != null ? "OK" : "未設定")}");
+        Log($"closeButton: {(closeButton != null ? "OK" : "未設定")}");
+    }
+
+    [ContextMenu("初回クリア報酬デバッグ")]
+    private void DebugFirstClearReward()
+    {
+        if (currentQuestDetail?.questMaster != null)
+        {
+            var questMaster = currentQuestDetail.questMaster;
+            Log($"=== 初回クリア報酬デバッグ ===");
+            Log($"questId: {questMaster.questId}");
+            Log($"questName: {questMaster.questName}");
+            Log($"HasFirstClearReward(): {questMaster.HasFirstClearReward()}");
+            Log($"firstClearItemType: '{questMaster.firstClearItemType}'");
+            Log($"firstClearItemId: {questMaster.firstClearItemId}");
+            Log($"firstClearItemQuantity: {questMaster.firstClearItemQuantity}");
+
+            if (currentQuestDetail.userQuestData != null)
+            {
+                Log($"userQuestData.clearCount: {currentQuestDetail.userQuestData.clearCount}");
+            }
+            else
+            {
+                Log("userQuestData: null");
+            }
+        }
+        else
+        {
+            Log("currentQuestDetail または questMaster が null です");
+        }
     }
 #endif
 

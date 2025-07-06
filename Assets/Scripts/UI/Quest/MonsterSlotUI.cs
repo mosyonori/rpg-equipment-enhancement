@@ -1,60 +1,60 @@
-using System;
+ï»¿using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒgƒvƒŒƒnƒu§ŒäƒNƒ‰ƒX
-/// Ó”C”ÍˆÍF
-/// - oŒ»ƒ‚ƒ“ƒXƒ^[‚ÌŠî–{î•ñ•\¦
-/// - ƒ‚ƒ“ƒXƒ^[–¼EƒAƒCƒRƒ“•\¦
-/// - ƒŒƒAƒŠƒeƒBE‘®«‚Ì‹Šo“I•\Œ»
+/// ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆãƒ—ãƒ¬ãƒãƒ–åˆ¶å¾¡ã‚¯ãƒ©ã‚¹
+/// è²¬ä»»ç¯„å›²ï¼š
+/// - å‡ºç¾ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã®åŸºæœ¬æƒ…å ±è¡¨ç¤º
+/// - ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼åãƒ»ã‚¢ã‚¤ã‚³ãƒ³è¡¨ç¤º
+/// - ãƒ¬ã‚¢ãƒªãƒ†ã‚£ãƒ»å±æ€§ã®è¦–è¦šçš„è¡¨ç¾
 /// </summary>
 public class MonsterSlotUI : MonoBehaviour
 {
-    [Header("Šî–{î•ñ•\¦")]
+    [Header("åŸºæœ¬æƒ…å ±è¡¨ç¤º")]
     [SerializeField] private Image monsterIcon;
     [SerializeField] private TextMeshProUGUI monsterNameText;
     [SerializeField] private TextMeshProUGUI monsterTypeText;
 
-    [Header("ƒXƒe[ƒ^ƒX•\¦")]
+    [Header("ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤º")]
     [SerializeField] private TextMeshProUGUI hpText;
     [SerializeField] private TextMeshProUGUI offenseText;
     [SerializeField] private TextMeshProUGUI defenseText;
     [SerializeField] private TextMeshProUGUI speedText;
 
-    [Header("ƒŒƒAƒŠƒeƒB•\Œ»")]
+    [Header("ãƒ¬ã‚¢ãƒªãƒ†ã‚£è¡¨ç¾")]
     [SerializeField] private Image rarityBorder;
     [SerializeField] private Image rarityBackground;
     [SerializeField] private GameObject[] rarityStars;
 
-    [Header("‘®«•\Œ»")]
+    [Header("å±æ€§è¡¨ç¾")]
     [SerializeField] private Image attributeIcon;
     [SerializeField] private Image attributeBackground;
 
-    [Header("“Áê•\¦")]
+    [Header("ç‰¹æ®Šè¡¨ç¤º")]
     [SerializeField] private GameObject bossIcon;
     [SerializeField] private GameObject criticalIcon;
     [SerializeField] private TextMeshProUGUI criticalRateText;
 
-    [Header("ƒJƒ‰[İ’è")]
+    [Header("ã‚«ãƒ©ãƒ¼è¨­å®š")]
     [SerializeField] private Color commonColor = Color.white;
     [SerializeField] private Color rareColor = Color.blue;
     [SerializeField] private Color epicColor = Color.yellow;
     [SerializeField] private Color legendaryColor = Color.red;
 
-    [Header("‘®«ƒJƒ‰[İ’è")]
+    [Header("å±æ€§ã‚«ãƒ©ãƒ¼è¨­å®š")]
     [SerializeField] private Color fireColor = Color.red;
     [SerializeField] private Color waterColor = Color.blue;
     [SerializeField] private Color windColor = Color.green;
     [SerializeField] private Color earthColor = Color.yellow;
     [SerializeField] private Color noneColor = Color.gray;
 
-    [Header("İ’è")]
+    [Header("è¨­å®š")]
     [SerializeField] private bool enableDebugLog = true;
     [SerializeField] private bool showDetailedStats = true;
 
-    // “à•”ó‘Ô
+    // å†…éƒ¨çŠ¶æ…‹
     private MonsterMasterData monsterData;
 
     #region Unity Lifecycle
@@ -66,14 +66,14 @@ public class MonsterSlotUI : MonoBehaviour
 
     #endregion
 
-    #region ‰Šú‰»
+    #region åˆæœŸåŒ–
 
     /// <summary>
-    /// ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì‰Šú‰»
+    /// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®åˆæœŸåŒ–
     /// </summary>
     private void InitializeComponents()
     {
-        // ‰Šúó‘Ôİ’è
+        // åˆæœŸçŠ¶æ…‹è¨­å®š
         if (bossIcon != null)
         {
             bossIcon.SetActive(false);
@@ -84,7 +84,7 @@ public class MonsterSlotUI : MonoBehaviour
             criticalIcon.SetActive(false);
         }
 
-        // ƒŒƒAƒŠƒeƒBƒXƒ^[‰Šú‰»
+        // ãƒ¬ã‚¢ãƒªãƒ†ã‚£ã‚¹ã‚¿ãƒ¼åˆæœŸåŒ–
         if (rarityStars != null)
         {
             foreach (var star in rarityStars)
@@ -98,74 +98,74 @@ public class MonsterSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒg‚ğ‰Šú‰»
+    /// ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆã‚’åˆæœŸåŒ–
     /// </summary>
-    /// <param name="monsterMasterData">ƒ‚ƒ“ƒXƒ^[ƒ}ƒXƒ^[ƒf[ƒ^</param>
+    /// <param name="monsterMasterData">ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿</param>
     public void Initialize(MonsterMasterData monsterMasterData)
     {
         try
         {
             if (monsterMasterData == null)
             {
-                LogError("MonsterMasterData‚ªnull‚Å‚·");
+                LogError("MonsterMasterDataãŒnullã§ã™");
                 return;
             }
 
             this.monsterData = monsterMasterData;
 
-            // Šî–{î•ñ•\¦
+            // åŸºæœ¬æƒ…å ±è¡¨ç¤º
             DisplayBasicInfo();
 
-            // ƒXƒe[ƒ^ƒX•\¦
+            // ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¡¨ç¤º
             DisplayStats();
 
-            // ƒŒƒAƒŠƒeƒB•\Œ»
+            // ãƒ¬ã‚¢ãƒªãƒ†ã‚£è¡¨ç¾
             DisplayRarity();
 
-            // ‘®«•\Œ»
+            // å±æ€§è¡¨ç¾
             DisplayAttribute();
 
-            // “Áê•\¦
+            // ç‰¹æ®Šè¡¨ç¤º
             DisplaySpecialFeatures();
 
-            // ƒAƒCƒRƒ““Ç‚İ‚İ
+            // ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿
             LoadMonsterIcon();
 
-            Log($"ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒg‰Šú‰»Š®—¹: {monsterData.monsterName}");
+            Log($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆåˆæœŸåŒ–å®Œäº†: {monsterData.monsterName}");
         }
         catch (Exception e)
         {
-            LogError($"ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒg‰Šú‰»ƒGƒ‰[: {e.Message}");
+            LogError($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆåˆæœŸåŒ–ã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
     #endregion
 
-    #region Šî–{î•ñ•\¦
+    #region åŸºæœ¬æƒ…å ±è¡¨ç¤º
 
     /// <summary>
-    /// Šî–{î•ñ‚ğ•\¦
+    /// åŸºæœ¬æƒ…å ±ã‚’è¡¨ç¤º
     /// </summary>
     private void DisplayBasicInfo()
     {
         if (monsterData == null) return;
 
-        // ƒ‚ƒ“ƒXƒ^[–¼
+        // ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼å
         if (monsterNameText != null)
         {
             monsterNameText.text = monsterData.monsterName;
         }
 
-        // ƒ‚ƒ“ƒXƒ^[ƒ^ƒCƒv
+        // ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¿ã‚¤ãƒ—
         if (monsterTypeText != null)
         {
-            string typeDisplay = monsterData.IsBoss() ? "ƒ{ƒX" : "’Êí";
+            string typeDisplay = monsterData.IsBoss() ? "ãƒœã‚¹" : "é€šå¸¸";
             monsterTypeText.text = typeDisplay;
         }
     }
 
     /// <summary>
-    /// ƒXƒe[ƒ^ƒX‚ğ•\¦
+    /// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚’è¡¨ç¤º
     /// </summary>
     private void DisplayStats()
     {
@@ -177,19 +177,19 @@ public class MonsterSlotUI : MonoBehaviour
             hpText.text = $"HP: {monsterData.hp:N0}";
         }
 
-        // UŒ‚—Í
+        // æ”»æ’ƒåŠ›
         if (offenseText != null)
         {
             offenseText.text = $"ATK: {monsterData.offense:N0}";
         }
 
-        // –hŒä—Í
+        // é˜²å¾¡åŠ›
         if (defenseText != null)
         {
             defenseText.text = $"DEF: {monsterData.defense:N0}";
         }
 
-        // ‘¬“x
+        // é€Ÿåº¦
         if (speedText != null)
         {
             speedText.text = $"SPD: {monsterData.speed:N0}";
@@ -198,16 +198,16 @@ public class MonsterSlotUI : MonoBehaviour
 
     #endregion
 
-    #region ƒŒƒAƒŠƒeƒB•\Œ»
+    #region ãƒ¬ã‚¢ãƒªãƒ†ã‚£è¡¨ç¾
 
     /// <summary>
-    /// ƒŒƒAƒŠƒeƒB‚ğ•\Œ»
+    /// ãƒ¬ã‚¢ãƒªãƒ†ã‚£ã‚’è¡¨ç¾
     /// </summary>
     private void DisplayRarity()
     {
         if (monsterData == null) return;
 
-        // ƒŒƒAƒŠƒeƒBƒJƒ‰[İ’è
+        // ãƒ¬ã‚¢ãƒªãƒ†ã‚£ã‚«ãƒ©ãƒ¼è¨­å®š
         Color rarityColor = GetRarityColor(monsterData.rarity);
 
         if (rarityBorder != null)
@@ -218,19 +218,19 @@ public class MonsterSlotUI : MonoBehaviour
         if (rarityBackground != null)
         {
             Color bgColor = rarityColor;
-            bgColor.a = 0.3f; // “§–¾“x’²®
+            bgColor.a = 0.3f; // é€æ˜åº¦èª¿æ•´
             rarityBackground.color = bgColor;
         }
 
-        // ƒŒƒAƒŠƒeƒBƒXƒ^[•\¦
+        // ãƒ¬ã‚¢ãƒªãƒ†ã‚£ã‚¹ã‚¿ãƒ¼è¡¨ç¤º
         DisplayRarityStars(monsterData.rarity);
     }
 
     /// <summary>
-    /// ƒŒƒAƒŠƒeƒB‚É‘Î‰‚·‚éF‚ğæ“¾
+    /// ãƒ¬ã‚¢ãƒªãƒ†ã‚£ã«å¯¾å¿œã™ã‚‹è‰²ã‚’å–å¾—
     /// </summary>
-    /// <param name="rarity">ƒŒƒAƒŠƒeƒB</param>
-    /// <returns>ƒŒƒAƒŠƒeƒBƒJƒ‰[</returns>
+    /// <param name="rarity">ãƒ¬ã‚¢ãƒªãƒ†ã‚£</param>
+    /// <returns>ãƒ¬ã‚¢ãƒªãƒ†ã‚£ã‚«ãƒ©ãƒ¼</returns>
     private Color GetRarityColor(RarityType rarity)
     {
         return rarity switch
@@ -244,9 +244,9 @@ public class MonsterSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒŒƒAƒŠƒeƒBƒXƒ^[‚ğ•\¦
+    /// ãƒ¬ã‚¢ãƒªãƒ†ã‚£ã‚¹ã‚¿ãƒ¼ã‚’è¡¨ç¤º
     /// </summary>
-    /// <param name="rarity">ƒŒƒAƒŠƒeƒB</param>
+    /// <param name="rarity">ãƒ¬ã‚¢ãƒªãƒ†ã‚£</param>
     private void DisplayRarityStars(RarityType rarity)
     {
         if (rarityStars == null) return;
@@ -263,10 +263,10 @@ public class MonsterSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒŒƒAƒŠƒeƒB‚É‘Î‰‚·‚éƒXƒ^[”‚ğæ“¾
+    /// ãƒ¬ã‚¢ãƒªãƒ†ã‚£ã«å¯¾å¿œã™ã‚‹ã‚¹ã‚¿ãƒ¼æ•°ã‚’å–å¾—
     /// </summary>
-    /// <param name="rarity">ƒŒƒAƒŠƒeƒB</param>
-    /// <returns>ƒXƒ^[”</returns>
+    /// <param name="rarity">ãƒ¬ã‚¢ãƒªãƒ†ã‚£</param>
+    /// <returns>ã‚¹ã‚¿ãƒ¼æ•°</returns>
     private int GetRarityStarCount(RarityType rarity)
     {
         return rarity switch
@@ -281,34 +281,34 @@ public class MonsterSlotUI : MonoBehaviour
 
     #endregion
 
-    #region ‘®«•\Œ»
+    #region å±æ€§è¡¨ç¾
 
     /// <summary>
-    /// ‘®«‚ğ•\Œ»
+    /// å±æ€§ã‚’è¡¨ç¾
     /// </summary>
     private void DisplayAttribute()
     {
         if (monsterData == null) return;
 
-        // ‘®«ƒAƒCƒRƒ“
+        // å±æ€§ã‚¢ã‚¤ã‚³ãƒ³
         if (attributeIcon != null)
         {
             LoadAttributeIcon(monsterData.attributeType);
         }
 
-        // ‘®«”wŒiF
+        // å±æ€§èƒŒæ™¯è‰²
         if (attributeBackground != null)
         {
             Color attributeColor = GetAttributeColor(monsterData.attributeType);
-            attributeColor.a = 0.5f; // “§–¾“x’²®
+            attributeColor.a = 0.5f; // é€æ˜åº¦èª¿æ•´
             attributeBackground.color = attributeColor;
         }
     }
 
     /// <summary>
-    /// ‘®«ƒAƒCƒRƒ“‚ğ“Ç‚İ‚İ
+    /// å±æ€§ã‚¢ã‚¤ã‚³ãƒ³ã‚’èª­ã¿è¾¼ã¿
     /// </summary>
-    /// <param name="attributeType">‘®«ƒ^ƒCƒv</param>
+    /// <param name="attributeType">å±æ€§ã‚¿ã‚¤ãƒ—</param>
     private void LoadAttributeIcon(AttributeType attributeType)
     {
         try
@@ -329,22 +329,22 @@ public class MonsterSlotUI : MonoBehaviour
             }
             else
             {
-                Log($"‘®«ƒAƒCƒRƒ“‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: {iconPath}");
+                Log($"å±æ€§ã‚¢ã‚¤ã‚³ãƒ³ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: {iconPath}");
                 attributeIcon.gameObject.SetActive(false);
             }
         }
         catch (Exception e)
         {
-            LogError($"‘®«ƒAƒCƒRƒ““Ç‚İ‚İƒGƒ‰[: {e.Message}");
+            LogError($"å±æ€§ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿ã‚¨ãƒ©ãƒ¼: {e.Message}");
             attributeIcon.gameObject.SetActive(false);
         }
     }
 
     /// <summary>
-    /// ‘®«ƒAƒCƒRƒ“ƒpƒX‚ğæ“¾
+    /// å±æ€§ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹ã‚’å–å¾—
     /// </summary>
-    /// <param name="attributeType">‘®«ƒ^ƒCƒv</param>
-    /// <returns>ƒAƒCƒRƒ“ƒpƒX</returns>
+    /// <param name="attributeType">å±æ€§ã‚¿ã‚¤ãƒ—</param>
+    /// <returns>ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹</returns>
     private string GetAttributeIconPath(AttributeType attributeType)
     {
         return attributeType switch
@@ -358,10 +358,10 @@ public class MonsterSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ‘®«‚É‘Î‰‚·‚éF‚ğæ“¾
+    /// å±æ€§ã«å¯¾å¿œã™ã‚‹è‰²ã‚’å–å¾—
     /// </summary>
-    /// <param name="attributeType">‘®«ƒ^ƒCƒv</param>
-    /// <returns>‘®«ƒJƒ‰[</returns>
+    /// <param name="attributeType">å±æ€§ã‚¿ã‚¤ãƒ—</param>
+    /// <returns>å±æ€§ã‚«ãƒ©ãƒ¼</returns>
     private Color GetAttributeColor(AttributeType attributeType)
     {
         return attributeType switch
@@ -377,22 +377,22 @@ public class MonsterSlotUI : MonoBehaviour
 
     #endregion
 
-    #region “Áê•\¦
+    #region ç‰¹æ®Šè¡¨ç¤º
 
     /// <summary>
-    /// “Áê‹@”\‚ğ•\¦
+    /// ç‰¹æ®Šæ©Ÿèƒ½ã‚’è¡¨ç¤º
     /// </summary>
     private void DisplaySpecialFeatures()
     {
         if (monsterData == null) return;
 
-        // ƒ{ƒXƒAƒCƒRƒ“
+        // ãƒœã‚¹ã‚¢ã‚¤ã‚³ãƒ³
         if (bossIcon != null)
         {
             bossIcon.SetActive(monsterData.IsBoss());
         }
 
-        // ƒNƒŠƒeƒBƒJƒ‹î•ñ
+        // ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«æƒ…å ±
         if (monsterData.criticalRate > 0)
         {
             if (criticalIcon != null)
@@ -422,10 +422,10 @@ public class MonsterSlotUI : MonoBehaviour
 
     #endregion
 
-    #region ƒAƒCƒRƒ““Ç‚İ‚İ
+    #region ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿ï¼ˆä¿®æ­£ç‰ˆï¼‰
 
     /// <summary>
-    /// ƒ‚ƒ“ƒXƒ^[ƒAƒCƒRƒ“‚ğ“Ç‚İ‚İ
+    /// ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¢ã‚¤ã‚³ãƒ³ã‚’èª­ã¿è¾¼ã¿ï¼ˆä¿®æ­£ï¼šæ­£ã—ã„ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹å¯¾å¿œï¼‰
     /// </summary>
     private void LoadMonsterIcon()
     {
@@ -433,35 +433,57 @@ public class MonsterSlotUI : MonoBehaviour
         {
             if (monsterIcon == null || monsterData == null) return;
 
-            if (string.IsNullOrEmpty(monsterData.monsterIconPath))
-            {
-                Log("ƒ‚ƒ“ƒXƒ^[ƒAƒCƒRƒ“ƒpƒX‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
-                SetDefaultMonsterIcon();
-                return;
-            }
+            string iconPath = GetMonsterIconPathFromMasterData();
 
-            var sprite = Resources.Load<Sprite>(monsterData.monsterIconPath);
+            Log($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹å–å¾—: ID={monsterData.monsterId}, Path={iconPath}");
+
+            var sprite = Resources.Load<Sprite>(iconPath);
+
             if (sprite != null)
             {
                 monsterIcon.sprite = sprite;
                 monsterIcon.gameObject.SetActive(true);
-                Log($"ƒ‚ƒ“ƒXƒ^[ƒAƒCƒRƒ““Ç‚İ‚İ¬Œ÷: {monsterData.monsterIconPath}");
+                Log($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿æˆåŠŸ: {iconPath}");
             }
             else
             {
-                Log($"ƒ‚ƒ“ƒXƒ^[ƒAƒCƒRƒ“‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: {monsterData.monsterIconPath}");
+                Log($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¢ã‚¤ã‚³ãƒ³ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: {iconPath}");
                 SetDefaultMonsterIcon();
             }
         }
         catch (Exception e)
         {
-            LogError($"ƒ‚ƒ“ƒXƒ^[ƒAƒCƒRƒ““Ç‚İ‚İƒGƒ‰[: {e.Message}");
+            LogError($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿ã‚¨ãƒ©ãƒ¼: {e.Message}");
             SetDefaultMonsterIcon();
         }
     }
 
     /// <summary>
-    /// ƒfƒtƒHƒ‹ƒgƒ‚ƒ“ƒXƒ^[ƒAƒCƒRƒ“‚ğİ’è
+    /// MasterDataManagerã‹ã‚‰ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹ã‚’å–å¾—ï¼ˆä¿®æ­£ï¼šãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿å„ªå…ˆæ–¹å¼ï¼‰
+    /// </summary>
+    /// <returns>ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹</returns>
+    private string GetMonsterIconPathFromMasterData()
+    {
+        // ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã«ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹ãŒè¨­å®šã•ã‚Œã¦ã„ã‚‹å ´åˆã¯ã€ãã‚Œã‚’å„ªå…ˆã—ã¦ä½¿ç”¨
+        if (!string.IsNullOrEmpty(monsterData.monsterIconPath))
+        {
+            Log($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‹ã‚‰ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹å–å¾—æˆåŠŸ: ID={monsterData.monsterId}, Path={monsterData.monsterIconPath}");
+            return monsterData.monsterIconPath;
+        }
+        else
+        {
+            LogError($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã«ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹ãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“: ID={monsterData.monsterId}");
+            LogError($"ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã® monsterIconPath ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’ç¢ºèªã—ã¦ãã ã•ã„");
+
+            // ç·Šæ€¥ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ï¼ˆæœ¬æ¥ã¯ä½¿ç”¨ã•ã‚Œã‚‹ã¹ãã§ã¯ãªã„ï¼‰
+            string emergencyFallback = $"Icons/Monster/default_monster";
+            LogError($"ç·Šæ€¥ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ä½¿ç”¨: {emergencyFallback}");
+            return emergencyFallback;
+        }
+    }
+
+    /// <summary>
+    /// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¢ã‚¤ã‚³ãƒ³ã‚’è¨­å®š
     /// </summary>
     private void SetDefaultMonsterIcon()
     {
@@ -480,42 +502,42 @@ public class MonsterSlotUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"ƒfƒtƒHƒ‹ƒgƒAƒCƒRƒ“İ’èƒGƒ‰[: {e.Message}");
+            LogError($"ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚¢ã‚¤ã‚³ãƒ³è¨­å®šã‚¨ãƒ©ãƒ¼: {e.Message}");
             monsterIcon.gameObject.SetActive(false);
         }
     }
 
     #endregion
 
-    #region ƒ†[ƒeƒBƒŠƒeƒB
+    #region ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£
 
     /// <summary>
-    /// ƒ‚ƒ“ƒXƒ^[ƒf[ƒ^‚ğæ“¾
+    /// ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—
     /// </summary>
-    /// <returns>ƒ‚ƒ“ƒXƒ^[ƒ}ƒXƒ^[ƒf[ƒ^</returns>
+    /// <returns>ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿</returns>
     public MonsterMasterData GetMonsterData()
     {
         return monsterData;
     }
 
     /// <summary>
-    /// ƒXƒƒbƒg‚Ì—LŒø«‚ğƒ`ƒFƒbƒN
+    /// ã‚¹ãƒ­ãƒƒãƒˆã®æœ‰åŠ¹æ€§ã‚’ãƒã‚§ãƒƒã‚¯
     /// </summary>
-    /// <returns>—LŒø‚Èê‡true</returns>
+    /// <returns>æœ‰åŠ¹ãªå ´åˆtrue</returns>
     public bool IsValidSlot()
     {
         return monsterData != null && monsterData.monsterId > 0;
     }
 
     /// <summary>
-    /// ƒ‚ƒ“ƒXƒ^[î•ñ‚ÌXV
+    /// ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼æƒ…å ±ã®æ›´æ–°
     /// </summary>
-    /// <param name="updatedMonsterData">XV‚³‚ê‚½ƒ‚ƒ“ƒXƒ^[ƒf[ƒ^</param>
+    /// <param name="updatedMonsterData">æ›´æ–°ã•ã‚ŒãŸãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿</param>
     public void UpdateMonsterData(MonsterMasterData updatedMonsterData)
     {
         if (updatedMonsterData == null || updatedMonsterData.monsterId != monsterData?.monsterId)
         {
-            LogError("–³Œø‚Èƒ‚ƒ“ƒXƒ^[ƒf[ƒ^XV—v‹");
+            LogError("ç„¡åŠ¹ãªãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿æ›´æ–°è¦æ±‚");
             return;
         }
 
@@ -523,9 +545,9 @@ public class MonsterSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒfƒoƒbƒOî•ñ‚ğæ“¾
+    /// ãƒ‡ãƒãƒƒã‚°æƒ…å ±ã‚’å–å¾—
     /// </summary>
-    /// <returns>ƒfƒoƒbƒO—p•¶š—ñ</returns>
+    /// <returns>ãƒ‡ãƒãƒƒã‚°ç”¨æ–‡å­—åˆ—</returns>
     public string GetDebugInfo()
     {
         if (monsterData == null) return "MonsterData: null";
@@ -537,7 +559,7 @@ public class MonsterSlotUI : MonoBehaviour
 
     #endregion
 
-    #region ƒƒOEƒfƒoƒbƒO
+    #region ãƒ­ã‚°ãƒ»ãƒ‡ãƒãƒƒã‚°
 
     private void Log(string message)
     {
@@ -557,38 +579,38 @@ public class MonsterSlotUI : MonoBehaviour
 
     #endregion
 
-    #region ƒGƒfƒBƒ^[—pƒc[ƒ‹
+    #region ã‚¨ãƒ‡ã‚£ã‚¿ãƒ¼ç”¨ãƒ„ãƒ¼ãƒ«
 
 #if UNITY_EDITOR
-    [ContextMenu("ƒ‚ƒ“ƒXƒ^[î•ñ‚ğƒƒOo—Í")]
+    [ContextMenu("ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼æƒ…å ±ã‚’ãƒ­ã‚°å‡ºåŠ›")]
     private void LogMonsterInfo()
     {
         Log(GetDebugInfo());
     }
 
-    [ContextMenu("ƒŒƒAƒŠƒeƒB•\¦‚ğƒeƒXƒg")]
+    [ContextMenu("ãƒ¬ã‚¢ãƒªãƒ†ã‚£è¡¨ç¤ºã‚’ãƒ†ã‚¹ãƒˆ")]
     private void TestRarityDisplay()
     {
         if (monsterData != null)
         {
             DisplayRarity();
-            Log($"ƒŒƒAƒŠƒeƒB•\¦ƒeƒXƒg: {monsterData.rarity}");
+            Log($"ãƒ¬ã‚¢ãƒªãƒ†ã‚£è¡¨ç¤ºãƒ†ã‚¹ãƒˆ: {monsterData.rarity}");
         }
     }
 
-    [ContextMenu("‘®«•\¦‚ğƒeƒXƒg")]
+    [ContextMenu("å±æ€§è¡¨ç¤ºã‚’ãƒ†ã‚¹ãƒˆ")]
     private void TestAttributeDisplay()
     {
         if (monsterData != null)
         {
             DisplayAttribute();
-            Log($"‘®«•\¦ƒeƒXƒg: {monsterData.attributeType}");
+            Log($"å±æ€§è¡¨ç¤ºãƒ†ã‚¹ãƒˆ: {monsterData.attributeType}");
         }
     }
 
     private void OnValidate()
     {
-        // ƒGƒfƒBƒ^[ã‚Å‚ÌƒJƒ‰[•ÏX‚ğ‘¦À‚É”½‰f
+        // ã‚¨ãƒ‡ã‚£ã‚¿ãƒ¼ä¸Šã§ã®ã‚«ãƒ©ãƒ¼å¤‰æ›´ã‚’å³åº§ã«åæ˜ 
         if (Application.isPlaying && monsterData != null)
         {
             DisplayRarity();

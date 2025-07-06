@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -41,11 +42,6 @@ public class QuestListManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-
-            if (autoInitialize)
-            {
-                Initialize();
-            }
         }
         else
         {
@@ -55,20 +51,49 @@ public class QuestListManager : MonoBehaviour
 
     private void Start()
     {
-        // 依存関係の確認
-        if (!ValidateDependencies())
+        if (autoInitialize)
         {
-            LogError("必要な依存関係が満たされていません");
-            return;
+            // 依存関係が整うまで待機してから初期化
+            StartCoroutine(InitializeWithDependencyCheck());
         }
-
-        // 定期更新開始
-        InvokeRepeating(nameof(UpdateQuestStates), 1f, 30f); // 30秒ごとに更新
     }
 
     #endregion
 
     #region 初期化
+
+    /// <summary>
+    /// 依存関係確認付きの初期化（コルーチン）
+    /// </summary>
+    private IEnumerator InitializeWithDependencyCheck()
+    {
+        Log("依存関係の確認を開始します...");
+
+        // 最大10秒間依存関係の確認を試行
+        float timeout = 10f;
+        float elapsed = 0f;
+
+        while (elapsed < timeout)
+        {
+            if (ValidateDependencies())
+            {
+                Log("全ての依存関係が確認できました。初期化を続行します。");
+
+                // 初期化実行
+                if (Initialize())
+                {
+                    // 定期更新開始
+                    InvokeRepeating(nameof(UpdateQuestStates), 1f, 30f); // 30秒ごとに更新
+                }
+                yield break;
+            }
+
+            elapsed += 0.1f;
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        LogError($"依存関係の確認がタイムアウトしました（{timeout}秒）");
+    }
 
     /// <summary>
     /// QuestListManagerを初期化
@@ -83,11 +108,13 @@ public class QuestListManager : MonoBehaviour
             ongoingQuestIds = new HashSet<int>();
             lastUpdateTime = DateTime.Now;
 
-            // クエストリストの初期構築
-            RefreshQuestList();
-
             IsInitialized = true;
             Log("QuestListManager初期化完了");
+
+            // 初期化完了後にクエストリストを構築
+            Log("クエストリストの初期構築を開始");
+            RefreshQuestList();
+
             return true;
         }
         catch (Exception e)
@@ -102,31 +129,57 @@ public class QuestListManager : MonoBehaviour
     /// </summary>
     private bool ValidateDependencies()
     {
+        // QuestDataManagerの確認
         if (QuestDataManager.Instance == null)
         {
-            LogError("QuestDataManagerが見つかりません");
+            Log("QuestDataManagerが見つかりません（待機中）");
             return false;
         }
 
         if (!QuestDataManager.Instance.IsDataLoaded)
         {
-            LogError("QuestDataManagerのデータが読み込まれていません");
+            Log("QuestDataManagerのデータが読み込まれていません（待機中）");
             return false;
         }
 
+        // SaveDataManagerの確認
         if (SaveDataManager.Instance == null)
         {
-            LogError("SaveDataManagerが見つかりません");
+            Log("SaveDataManagerが見つかりません（待機中）");
             return false;
         }
 
         if (!SaveDataManager.Instance.IsDataLoaded)
         {
-            LogError("SaveDataManagerのデータが読み込まれていません");
+            Log("SaveDataManagerのデータが読み込まれていません（待機中）");
             return false;
         }
 
+        Log("全ての依存関係が確認できました");
         return true;
+    }
+
+    /// <summary>
+    /// 手動初期化（外部から呼び出し可能）
+    /// </summary>
+    public void ForceInitialize()
+    {
+        if (IsInitialized) return;
+
+        if (ValidateDependencies())
+        {
+            Initialize();
+
+            if (IsInitialized)
+            {
+                // 定期更新開始
+                InvokeRepeating(nameof(UpdateQuestStates), 1f, 30f);
+            }
+        }
+        else
+        {
+            LogError("依存関係が満たされていないため、手動初期化に失敗しました");
+        }
     }
 
     #endregion
@@ -139,12 +192,19 @@ public class QuestListManager : MonoBehaviour
     /// <returns>利用可能なクエストのリスト</returns>
     public List<QuestDisplayData> GetAvailableQuests()
     {
-        if (!IsInitialized) return new List<QuestDisplayData>();
+        if (!IsInitialized)
+        {
+            Log("QuestListManagerが初期化されていません");
+            return new List<QuestDisplayData>();
+        }
 
-        return availableQuests.Values
+        var result = availableQuests.Values
             .Where(quest => quest.isAvailable)
             .OrderBy(quest => quest.sortOrder)
             .ToList();
+
+        Log($"利用可能なクエスト数: {result.Count}");
+        return result;
     }
 
     /// <summary>
@@ -217,28 +277,57 @@ public class QuestListManager : MonoBehaviour
     #region 公開メソッド - クエスト詳細
 
     /// <summary>
-    /// クエスト詳細データを取得
+    /// クエスト詳細データを取得（修正版: userQuestDataのnull対応）
     /// </summary>
     /// <param name="questId">クエストID</param>
     /// <returns>クエスト詳細データ</returns>
     public QuestDetailData GetQuestDetail(int questId)
     {
         var questMaster = QuestDataManager.Instance.GetQuestData(questId);
-        if (questMaster == null) return null;
+        if (questMaster == null)
+        {
+            Log($"questMaster が見つかりません: questId={questId}");
+            return null;
+        }
 
+        // 修正: userQuestDataがnullでも処理を続行
         var userData = GetUserQuestData(questId);
         var displayData = availableQuests.TryGetValue(questId, out var display) ? display : null;
 
-        return new QuestDetailData
+        // 修正: 初回クリア判定のログ追加
+        bool hasFirstClearReward = questMaster.HasFirstClearReward();
+        int clearCount = userData?.clearCount ?? 0;
+        bool isFirstClear = clearCount == 0;
+
+        Log($"GetQuestDetail - questId: {questId}");
+        Log($"  questName: {questMaster.questName}");
+        Log($"  hasFirstClearReward: {hasFirstClearReward}");
+        Log($"  userData: {(userData != null ? "存在" : "null")}");
+        Log($"  clearCount: {clearCount}");
+        Log($"  isFirstClear: {isFirstClear}");
+
+        if (hasFirstClearReward)
+        {
+            Log($"  firstClearItemType: '{questMaster.firstClearItemType}'");
+            Log($"  firstClearItemId: {questMaster.firstClearItemId}");
+            Log($"  firstClearItemQuantity: {questMaster.firstClearItemQuantity}");
+        }
+
+        var questDetail = new QuestDetailData
         {
             questMaster = questMaster,
-            userQuestData = userData,
+            userQuestData = userData, // nullの可能性あり
             displayData = displayData,
             spawnMonsters = GetQuestMonsters(questId),
             dropTable = GetQuestDropTable(questId),
             isAvailable = CanStartQuest(questId),
             availabilityReason = GetQuestAvailabilityReason(questId)
         };
+
+        Log($"QuestDetailData作成完了: spawnMonsters={questDetail.spawnMonsters?.Count ?? 0}体, " +
+            $"dropTable={questDetail.dropTable?.dropItems?.Count ?? 0}種類");
+
+        return questDetail;
     }
 
     /// <summary>
@@ -535,30 +624,74 @@ public class QuestListManager : MonoBehaviour
     /// </summary>
     public void RefreshQuestList()
     {
-        if (!IsInitialized) return;
+        Log($"RefreshQuestList呼び出し - IsInitialized: {IsInitialized}");
+
+        if (!IsInitialized)
+        {
+            Log("QuestListManagerが初期化されていないため、RefreshQuestListをスキップします");
+            return;
+        }
 
         try
         {
             Log("クエストリスト更新開始");
 
+            // QuestDataManagerの状態確認
+            if (QuestDataManager.Instance == null)
+            {
+                LogError("QuestDataManager.Instanceがnullです");
+                return;
+            }
+
+            if (!QuestDataManager.Instance.IsDataLoaded)
+            {
+                LogError("QuestDataManager.IsDataLoadedがfalseです");
+                return;
+            }
+
+            // SaveDataManagerの状態確認
+            if (SaveDataManager.Instance == null)
+            {
+                LogError("SaveDataManager.Instanceがnullです");
+                return;
+            }
+
+            if (!SaveDataManager.Instance.IsDataLoaded)
+            {
+                LogError("SaveDataManager.IsDataLoadedがfalseです");
+                return;
+            }
+
+            if (SaveDataManager.Instance.CurrentSaveData == null)
+            {
+                LogError("SaveDataManager.CurrentSaveDataがnullです");
+                return;
+            }
+
             availableQuests.Clear();
             var allQuests = QuestDataManager.Instance.GetQuestDataList();
             var saveData = SaveDataManager.Instance.CurrentSaveData;
+
+            Log($"マスターデータから{allQuests.Count}個のクエストを取得");
 
             foreach (var questMaster in allQuests)
             {
                 var displayData = CreateQuestDisplayData(questMaster, saveData);
                 availableQuests[questMaster.questId] = displayData;
+
+                Log($"クエスト追加: {questMaster.questName} (利用可能: {displayData.isAvailable})");
             }
 
             lastUpdateTime = DateTime.Now;
             OnQuestListUpdated?.Invoke();
 
-            Log($"クエストリスト更新完了: {availableQuests.Count}個のクエスト");
+            var availableCount = availableQuests.Values.Count(q => q.isAvailable);
+            Log($"クエストリスト更新完了: 総数{availableQuests.Count}個、利用可能{availableCount}個");
         }
         catch (Exception e)
         {
             LogError($"クエストリスト更新エラー: {e.Message}");
+            LogError($"スタックトレース: {e.StackTrace}");
         }
     }
 
@@ -610,11 +743,21 @@ public class QuestListManager : MonoBehaviour
     /// </summary>
     private QuestDisplayData CreateQuestDisplayData(QuestMasterData questMaster, UserSaveData saveData)
     {
+        Log($"CreateQuestDisplayData開始: {questMaster.questName}");
+
         var userQuestData = GetUserQuestData(questMaster.questId);
         bool isNew = userQuestData == null || userQuestData.isNew;
-        bool isAvailable = questMaster.IsQuestActive() && CanStartQuest(questMaster.questId);
 
-        return new QuestDisplayData
+        // クエストの利用可能性チェック
+        bool isQuestActive = questMaster.IsQuestActive();
+        bool canStart = CanStartQuest(questMaster.questId);
+        bool isAvailable = isQuestActive && canStart;
+
+        Log($"  クエスト期間チェック: {isQuestActive}");
+        Log($"  開始可能チェック: {canStart}");
+        Log($"  最終利用可能: {isAvailable}");
+
+        var displayData = new QuestDisplayData
         {
             questId = questMaster.questId,
             questName = questMaster.questName,
@@ -632,6 +775,9 @@ public class QuestListManager : MonoBehaviour
             rewards = GetExpectedRewards(questMaster.questId),
             questIconPath = questMaster.questIconPath
         };
+
+        Log($"CreateQuestDisplayData完了: {questMaster.questName} -> 利用可能: {displayData.isAvailable}");
+        return displayData;
     }
 
     /// <summary>
@@ -898,6 +1044,19 @@ public class QuestListManager : MonoBehaviour
         foreach (var quest in availableQuests.Values.Take(5))
         {
             Log($"  {quest.questName} - 利用可能: {quest.isAvailable}, ステータス: {quest.status}");
+        }
+    }
+
+    [ContextMenu("依存関係を強制確認")]
+    private void ForceValidateDependencies()
+    {
+        bool isValid = ValidateDependencies();
+        Log($"依存関係確認結果: {(isValid ? "正常" : "異常")}");
+
+        if (!isValid && !IsInitialized)
+        {
+            Log("手動初期化を試行します");
+            ForceInitialize();
         }
     }
 #endif

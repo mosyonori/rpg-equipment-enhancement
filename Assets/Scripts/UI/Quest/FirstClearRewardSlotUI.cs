@@ -1,40 +1,40 @@
-using System;
+ï»¿using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// ‰‰ñƒNƒŠƒA•ñVƒXƒƒbƒgƒvƒŒƒnƒu§ŒäƒNƒ‰ƒX
-/// Ó”C”ÍˆÍF
-/// - ‰‰ñƒNƒŠƒA•ñVƒAƒCƒeƒ€‚Ì•\¦
-/// - “Á•Ê•ñV‚Å‚ ‚é‚±‚Æ‚Ì‹Šo“I‹­’²
+/// åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆãƒ—ãƒ¬ãƒãƒ–åˆ¶å¾¡ã‚¯ãƒ©ã‚¹
+/// è²¬ä»»ç¯„å›²ï¼š
+/// - åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¢ã‚¤ãƒ†ãƒ ã®è¡¨ç¤º
+/// - ç‰¹åˆ¥å ±é…¬ã§ã‚ã‚‹ã“ã¨ã®è¦–è¦šçš„å¼·èª¿
 /// </summary>
 public class FirstClearRewardSlotUI : MonoBehaviour
 {
-    [Header("Šî–{î•ñ•\¦")]
+    [Header("åŸºæœ¬æƒ…å ±è¡¨ç¤º")]
     [SerializeField] private Image itemIcon;
     [SerializeField] private TextMeshProUGUI itemNameText;
     [SerializeField] private TextMeshProUGUI quantityText;
 
-    [Header("‰‰ñ•ñVê—p•\¦")]
+    [Header("åˆå›å ±é…¬å°‚ç”¨è¡¨ç¤º")]
     [SerializeField] private Image firstClearBadge;
     [SerializeField] private TextMeshProUGUI firstClearText;
     [SerializeField] private GameObject specialEffectObject;
 
-    [Header("ƒAƒCƒeƒ€ƒ^ƒCƒv•\¦")]
+    [Header("ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—è¡¨ç¤º")]
     [SerializeField] private Image typeIcon;
     [SerializeField] private TextMeshProUGUI typeText;
 
-    [Header("“Á•Ê‰‰o")]
+    [Header("ç‰¹åˆ¥æ¼”å‡º")]
     [SerializeField] private Image glowEffect;
     [SerializeField] private ParticleSystem sparkleEffect;
     [SerializeField] private Animator rewardAnimator;
 
-    [Header("ƒJƒ‰[İ’è")]
+    [Header("ã‚«ãƒ©ãƒ¼è¨­å®š")]
     [SerializeField] private Color firstClearGlowColor = Color.yellow;
     [SerializeField] private Color specialBorderColor = Color.red;
 
-    [Header("ƒAƒCƒeƒ€ƒ^ƒCƒvƒJƒ‰[")]
+    [Header("ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—ã‚«ãƒ©ãƒ¼")]
     [SerializeField] private Color equipmentColor = Color.white;
     [SerializeField] private Color enhanceItemColor = Color.white;
     [SerializeField] private Color supportItemColor = Color.white;
@@ -42,12 +42,12 @@ public class FirstClearRewardSlotUI : MonoBehaviour
     [SerializeField] private Color gemColor = Color.cyan;
     [SerializeField] private Color defaultColor = Color.white;
 
-    [Header("İ’è")]
+    [Header("è¨­å®š")]
     [SerializeField] private bool enableDebugLog = true;
     [SerializeField] private bool enableSpecialEffects = true;
     [SerializeField] private bool autoPlayAnimation = true;
 
-    // “à•”ó‘Ô
+    // å†…éƒ¨çŠ¶æ…‹
     private QuestMasterData questMasterData;
     private string rewardItemType;
     private int rewardItemId;
@@ -70,14 +70,14 @@ public class FirstClearRewardSlotUI : MonoBehaviour
 
     #endregion
 
-    #region ‰Šú‰»
+    #region åˆæœŸåŒ–
 
     /// <summary>
-    /// ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì‰Šú‰»
+    /// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®åˆæœŸåŒ–
     /// </summary>
     private void InitializeComponents()
     {
-        // ‰Šúó‘Ôİ’è
+        // åˆæœŸçŠ¶æ…‹è¨­å®š
         if (specialEffectObject != null)
         {
             specialEffectObject.SetActive(enableSpecialEffects);
@@ -97,10 +97,10 @@ public class FirstClearRewardSlotUI : MonoBehaviour
 
         if (firstClearText != null)
         {
-            firstClearText.text = "‰‰ñƒNƒŠƒA•ñV";
+            firstClearText.text = "åˆå›ã‚¯ãƒªã‚¢å ±é…¬";
         }
 
-        // ƒOƒ[Œø‰Ê‚Ì‰Šúİ’è
+        // ã‚°ãƒ­ãƒ¼åŠ¹æœã®åˆæœŸè¨­å®š
         if (glowEffect != null)
         {
             glowEffect.color = firstClearGlowColor;
@@ -108,22 +108,22 @@ public class FirstClearRewardSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰‰ñƒNƒŠƒA•ñVƒXƒƒbƒg‚ğ‰Šú‰»
+    /// åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆã‚’åˆæœŸåŒ–
     /// </summary>
-    /// <param name="questMaster">ƒNƒGƒXƒgƒ}ƒXƒ^[ƒf[ƒ^</param>
+    /// <param name="questMaster">ã‚¯ã‚¨ã‚¹ãƒˆãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿</param>
     public void Initialize(QuestMasterData questMaster)
     {
         try
         {
             if (questMaster == null)
             {
-                LogError("QuestMasterData‚ªnull‚Å‚·");
+                LogError("QuestMasterDataãŒnullã§ã™");
                 return;
             }
 
             if (!questMaster.HasFirstClearReward())
             {
-                LogError("‰‰ñƒNƒŠƒA•ñV‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+                LogError("åˆå›ã‚¯ãƒªã‚¢å ±é…¬ãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“");
                 return;
             }
 
@@ -132,45 +132,45 @@ public class FirstClearRewardSlotUI : MonoBehaviour
             this.rewardItemId = questMaster.firstClearItemId;
             this.rewardQuantity = questMaster.firstClearItemQuantity;
 
-            // Šî–{î•ñ•\¦
+            // åŸºæœ¬æƒ…å ±è¡¨ç¤º
             DisplayBasicInfo();
 
-            // ƒAƒCƒeƒ€ƒ^ƒCƒv•\¦
+            // ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—è¡¨ç¤º
             DisplayItemType();
 
-            // ƒAƒCƒRƒ““Ç‚İ‚İ
+            // ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿
             LoadRewardIcon();
 
-            // “Á•Ê‰‰o
+            // ç‰¹åˆ¥æ¼”å‡º
             SetupSpecialEffects();
 
-            Log($"‰‰ñƒNƒŠƒA•ñVƒXƒƒbƒg‰Šú‰»Š®—¹: {GetRewardDisplayName()}");
+            Log($"åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆåˆæœŸåŒ–å®Œäº†: {GetRewardDisplayName()}");
         }
         catch (Exception e)
         {
-            LogError($"‰‰ñƒNƒŠƒA•ñVƒXƒƒbƒg‰Šú‰»ƒGƒ‰[: {e.Message}");
+            LogError($"åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆåˆæœŸåŒ–ã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
     #endregion
 
-    #region Šî–{î•ñ•\¦
+    #region åŸºæœ¬æƒ…å ±è¡¨ç¤º
 
     /// <summary>
-    /// Šî–{î•ñ‚ğ•\¦
+    /// åŸºæœ¬æƒ…å ±ã‚’è¡¨ç¤º
     /// </summary>
     private void DisplayBasicInfo()
     {
         if (questMasterData == null) return;
 
-        // ƒAƒCƒeƒ€–¼
+        // ã‚¢ã‚¤ãƒ†ãƒ å
         if (itemNameText != null)
         {
             string displayName = GetRewardDisplayName();
             itemNameText.text = displayName;
         }
 
-        // ”—Ê
+        // æ•°é‡
         if (quantityText != null)
         {
             if (rewardQuantity > 1)
@@ -186,65 +186,133 @@ public class FirstClearRewardSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// •ñV‚Ì•\¦–¼‚ğæ“¾
+    /// å ±é…¬ã®è¡¨ç¤ºåã‚’å–å¾—
     /// </summary>
-    /// <returns>•ñV•\¦–¼</returns>
+    /// <returns>å ±é…¬è¡¨ç¤ºå</returns>
     private string GetRewardDisplayName()
     {
-        if (string.IsNullOrEmpty(rewardItemType)) return "•s–¾‚ÈƒAƒCƒeƒ€";
+        if (string.IsNullOrEmpty(rewardItemType)) return "ä¸æ˜ãªã‚¢ã‚¤ãƒ†ãƒ ";
 
         return rewardItemType.ToLower() switch
         {
-            "gold" => "ƒS[ƒ‹ƒh",
-            "gem" => "ƒWƒFƒ€",
+            "gold" => "ã‚´ãƒ¼ãƒ«ãƒ‰",
+            "gem" => "ã‚¸ã‚§ãƒ ",
             "equipment" => GetEquipmentName(rewardItemId),
             "enhanceitem" => GetEnhanceItemName(rewardItemId),
+            "enhance" => GetEnhanceItemName(rewardItemId),
             "supportitem" => GetSupportItemName(rewardItemId),
+            "support" => GetSupportItemName(rewardItemId),
             _ => $"{rewardItemType} ID:{rewardItemId}"
         };
     }
 
     /// <summary>
-    /// ‘•”õ–¼‚ğæ“¾i‰¼À‘•j
+    /// è£…å‚™åã‚’MasterDataManagerã‹ã‚‰å–å¾—
     /// </summary>
-    /// <param name="equipmentId">‘•”õID</param>
-    /// <returns>‘•”õ–¼</returns>
+    /// <param name="equipmentId">è£…å‚™ID</param>
+    /// <returns>è£…å‚™å</returns>
     private string GetEquipmentName(int equipmentId)
     {
-        // TODO: MasterDataManager‚©‚ç‘•”õ–¼‚ğæ“¾
-        return $"‘•”õ ID:{equipmentId}";
+        try
+        {
+            if (MasterDataManager.Instance == null)
+            {
+                LogError("MasterDataManagerãŒåˆ©ç”¨ã§ãã¾ã›ã‚“");
+                return $"è£…å‚™ ID:{equipmentId}";
+            }
+
+            var equipmentData = MasterDataManager.Instance.GetEquipmentData(equipmentId);
+            if (equipmentData != null)
+            {
+                return equipmentData.equipmentName;
+            }
+            else
+            {
+                LogError($"è£…å‚™ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: ID {equipmentId}");
+                return $"è£…å‚™ ID:{equipmentId}";
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"è£…å‚™åå–å¾—ã‚¨ãƒ©ãƒ¼: {e.Message}");
+            return $"è£…å‚™ ID:{equipmentId}";
+        }
     }
 
     /// <summary>
-    /// ‹­‰»ƒAƒCƒeƒ€–¼‚ğæ“¾i‰¼À‘•j
+    /// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ åã‚’MasterDataManagerã‹ã‚‰å–å¾—
     /// </summary>
-    /// <param name="itemId">ƒAƒCƒeƒ€ID</param>
-    /// <returns>ƒAƒCƒeƒ€–¼</returns>
+    /// <param name="itemId">ã‚¢ã‚¤ãƒ†ãƒ ID</param>
+    /// <returns>ã‚¢ã‚¤ãƒ†ãƒ å</returns>
     private string GetEnhanceItemName(int itemId)
     {
-        // TODO: MasterDataManager‚©‚ç‹­‰»ƒAƒCƒeƒ€–¼‚ğæ“¾
-        return $"‹­‰»‘fŞ ID:{itemId}";
+        try
+        {
+            if (MasterDataManager.Instance == null)
+            {
+                LogError("MasterDataManagerãŒåˆ©ç”¨ã§ãã¾ã›ã‚“");
+                return $"å¼·åŒ–ç´ æ ID:{itemId}";
+            }
+
+            var enhanceItemData = MasterDataManager.Instance.GetEnhanceItemData(itemId);
+            if (enhanceItemData != null)
+            {
+                return enhanceItemData.enhanceItemName;
+            }
+            else
+            {
+                LogError($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: ID {itemId}");
+                return $"å¼·åŒ–ç´ æ ID:{itemId}";
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ åå–å¾—ã‚¨ãƒ©ãƒ¼: {e.Message}");
+            return $"å¼·åŒ–ç´ æ ID:{itemId}";
+        }
     }
 
     /// <summary>
-    /// •â•ƒAƒCƒeƒ€–¼‚ğæ“¾i‰¼À‘•j
+    /// è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ åã‚’MasterDataManagerã‹ã‚‰å–å¾—
     /// </summary>
-    /// <param name="itemId">ƒAƒCƒeƒ€ID</param>
-    /// <returns>ƒAƒCƒeƒ€–¼</returns>
+    /// <param name="itemId">ã‚¢ã‚¤ãƒ†ãƒ ID</param>
+    /// <returns>ã‚¢ã‚¤ãƒ†ãƒ å</returns>
     private string GetSupportItemName(int itemId)
     {
-        // TODO: MasterDataManager‚©‚ç•â•ƒAƒCƒeƒ€–¼‚ğæ“¾
-        return $"•â•ƒAƒCƒeƒ€ ID:{itemId}";
+        try
+        {
+            if (MasterDataManager.Instance == null)
+            {
+                LogError("MasterDataManagerãŒåˆ©ç”¨ã§ãã¾ã›ã‚“");
+                return $"è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ  ID:{itemId}";
+            }
+
+            var supportItemData = MasterDataManager.Instance.GetSupportItemData(itemId);
+            if (supportItemData != null)
+            {
+                return supportItemData.supportItemName;
+            }
+            else
+            {
+                LogError($"è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: ID {itemId}");
+                return $"è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ  ID:{itemId}";
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ åå–å¾—ã‚¨ãƒ©ãƒ¼: {e.Message}");
+            return $"è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ  ID:{itemId}";
+        }
     }
 
     /// <summary>
-    /// ƒAƒCƒeƒ€ƒ^ƒCƒv‚ğ•\¦
+    /// ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—ã‚’è¡¨ç¤º
     /// </summary>
     private void DisplayItemType()
     {
         if (string.IsNullOrEmpty(rewardItemType)) return;
 
-        // ƒ^ƒCƒvƒeƒLƒXƒg
+        // ã‚¿ã‚¤ãƒ—ãƒ†ã‚­ã‚¹ãƒˆ
         if (typeText != null)
         {
             string typeDisplayName = GetItemTypeDisplayName(rewardItemType);
@@ -252,7 +320,7 @@ public class FirstClearRewardSlotUI : MonoBehaviour
             typeText.color = GetItemTypeColor(rewardItemType);
         }
 
-        // ƒ^ƒCƒvƒAƒCƒRƒ“
+        // ã‚¿ã‚¤ãƒ—ã‚¢ã‚¤ã‚³ãƒ³
         if (typeIcon != null)
         {
             LoadItemTypeIcon(rewardItemType);
@@ -260,28 +328,30 @@ public class FirstClearRewardSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒAƒCƒeƒ€ƒ^ƒCƒv‚Ì•\¦–¼‚ğæ“¾
+    /// ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—ã®è¡¨ç¤ºåã‚’å–å¾—
     /// </summary>
-    /// <param name="itemType">ƒAƒCƒeƒ€ƒ^ƒCƒv</param>
-    /// <returns>•\¦–¼</returns>
+    /// <param name="itemType">ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—</param>
+    /// <returns>è¡¨ç¤ºå</returns>
     private string GetItemTypeDisplayName(string itemType)
     {
         return itemType?.ToLower() switch
         {
-            "gold" => "’Ê‰İ",
-            "gem" => "ƒvƒŒƒ~ƒAƒ€’Ê‰İ",
-            "equipment" => "‘•”õ",
-            "enhanceitem" => "‹­‰»‘fŞ",
-            "supportitem" => "•â•ƒAƒCƒeƒ€",
-            _ => "“Á•Ê•ñV"
+            "gold" => "é€šè²¨",
+            "gem" => "ãƒ—ãƒ¬ãƒŸã‚¢ãƒ é€šè²¨",
+            "equipment" => "è£…å‚™",
+            "enhanceitem" => "å¼·åŒ–ç´ æ",
+            "enhance" => "å¼·åŒ–ç´ æ",
+            "supportitem" => "è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ ",
+            "support" => "è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ ",
+            _ => "ç‰¹åˆ¥å ±é…¬"
         };
     }
 
     /// <summary>
-    /// ƒAƒCƒeƒ€ƒ^ƒCƒv‚É‘Î‰‚·‚éF‚ğæ“¾
+    /// ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—ã«å¯¾å¿œã™ã‚‹è‰²ã‚’å–å¾—
     /// </summary>
-    /// <param name="itemType">ƒAƒCƒeƒ€ƒ^ƒCƒv</param>
-    /// <returns>‘Î‰‚·‚éF</returns>
+    /// <param name="itemType">ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—</param>
+    /// <returns>å¯¾å¿œã™ã‚‹è‰²</returns>
     private Color GetItemTypeColor(string itemType)
     {
         return itemType?.ToLower() switch
@@ -290,17 +360,19 @@ public class FirstClearRewardSlotUI : MonoBehaviour
             "gem" => gemColor,
             "equipment" => equipmentColor,
             "enhanceitem" => enhanceItemColor,
+            "enhance" => enhanceItemColor,
             "supportitem" => supportItemColor,
+            "support" => supportItemColor,
             _ => defaultColor
         };
     }
 
     #endregion
 
-    #region ƒAƒCƒRƒ““Ç‚İ‚İ
+    #region ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿
 
     /// <summary>
-    /// •ñVƒAƒCƒRƒ“‚ğ“Ç‚İ‚İ
+    /// å ±é…¬ã‚¢ã‚¤ã‚³ãƒ³ã‚’èª­ã¿è¾¼ã¿
     /// </summary>
     private void LoadRewardIcon()
     {
@@ -308,51 +380,203 @@ public class FirstClearRewardSlotUI : MonoBehaviour
         {
             if (itemIcon == null) return;
 
-            string iconPath = GetRewardIconPath(rewardItemType, rewardItemId);
+            string iconPath = GetRewardIconPathFromMasterData(rewardItemType, rewardItemId);
             var sprite = Resources.Load<Sprite>(iconPath);
 
             if (sprite != null)
             {
                 itemIcon.sprite = sprite;
                 itemIcon.gameObject.SetActive(true);
-                Log($"•ñVƒAƒCƒRƒ““Ç‚İ‚İ¬Œ÷: {iconPath}");
+                Log($"å ±é…¬ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿æˆåŠŸ: {iconPath}");
             }
             else
             {
-                Log($"•ñVƒAƒCƒRƒ“‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: {iconPath}");
+                Log($"å ±é…¬ã‚¢ã‚¤ã‚³ãƒ³ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: {iconPath}");
                 SetDefaultRewardIcon();
             }
         }
         catch (Exception e)
         {
-            LogError($"•ñVƒAƒCƒRƒ““Ç‚İ‚İƒGƒ‰[: {e.Message}");
+            LogError($"å ±é…¬ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿ã‚¨ãƒ©ãƒ¼: {e.Message}");
             SetDefaultRewardIcon();
         }
     }
 
     /// <summary>
-    /// •ñVƒAƒCƒRƒ“ƒpƒX‚ğæ“¾
+    /// MasterDataManagerã‹ã‚‰å ±é…¬ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹ã‚’å–å¾—
     /// </summary>
-    /// <param name="itemType">ƒAƒCƒeƒ€ƒ^ƒCƒv</param>
-    /// <param name="itemId">ƒAƒCƒeƒ€ID</param>
-    /// <returns>ƒAƒCƒRƒ“ƒpƒX</returns>
-    private string GetRewardIconPath(string itemType, int itemId)
+    /// <param name="itemType">ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—</param>
+    /// <param name="itemId">ã‚¢ã‚¤ãƒ†ãƒ ID</param>
+    /// <returns>ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹</returns>
+    private string GetRewardIconPathFromMasterData(string itemType, int itemId)
+    {
+        // é€šè²¨ç³»ã¯å¾“æ¥é€šã‚Š
+        if (itemType?.ToLower() == "gold" || itemType?.ToLower() == "gem")
+        {
+            return GetFallbackRewardIconPath(itemType, itemId);
+        }
+
+        // MasterDataManagerãŒåˆ©ç”¨å¯èƒ½ã‹ãƒã‚§ãƒƒã‚¯
+        if (MasterDataManager.Instance == null)
+        {
+            LogError("MasterDataManagerãŒåˆ©ç”¨ã§ãã¾ã›ã‚“ - ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯å‡¦ç†");
+            return GetFallbackRewardIconPath(itemType, itemId);
+        }
+
+        try
+        {
+            return itemType?.ToLower() switch
+            {
+                "equipment" => GetEquipmentIconPath(itemId),
+                "enhanceitem" => GetEnhanceItemIconPath(itemId),
+                "enhance" => GetEnhanceItemIconPath(itemId),
+                "supportitem" => GetSupportItemIconPath(itemId),
+                "support" => GetSupportItemIconPath(itemId),
+                _ => GetFallbackRewardIconPath(itemType, itemId)
+            };
+        }
+        catch (Exception e)
+        {
+            LogError($"ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‹ã‚‰ã®ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹å–å¾—ã‚¨ãƒ©ãƒ¼: {e.Message}");
+            return GetFallbackRewardIconPath(itemType, itemId);
+        }
+    }
+
+    /// <summary>
+    /// è£…å‚™ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹ã‚’å–å¾—
+    /// </summary>
+    /// <param name="equipmentId">è£…å‚™ID</param>
+    /// <returns>ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹</returns>
+    private string GetEquipmentIconPath(int equipmentId)
+    {
+        var equipmentData = MasterDataManager.Instance.GetEquipmentData(equipmentId);
+        if (equipmentData != null)
+        {
+            // è£…å‚™ã‚¿ã‚¤ãƒ—ã«å¿œã˜ãŸãƒ•ã‚©ãƒ«ãƒ€ã‚’æ±ºå®š
+            string equipmentTypeFolder = GetEquipmentTypeFolder(equipmentData.equipmentType);
+
+            if (!string.IsNullOrEmpty(equipmentData.equipmentIconPath))
+            {
+                return equipmentData.equipmentIconPath;
+            }
+            else if (equipmentData.equipmentIcon != null)
+            {
+                return $"Icons/{equipmentTypeFolder}/{equipmentData.equipmentIcon.name}";
+            }
+            else
+            {
+                return $"Icons/{equipmentTypeFolder}/{equipmentTypeFolder}_{equipmentId}";
+            }
+        }
+        else
+        {
+            LogError($"è£…å‚™ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: ID={equipmentId}");
+            return $"Icons/Weapon/Weapon_{equipmentId}";
+        }
+    }
+
+    /// <summary>
+    /// è£…å‚™ã‚¿ã‚¤ãƒ—ã«å¯¾å¿œã™ã‚‹ãƒ•ã‚©ãƒ«ãƒ€åã‚’å–å¾—
+    /// </summary>
+    /// <param name="equipmentType">è£…å‚™ã‚¿ã‚¤ãƒ—</param>
+    /// <returns>ãƒ•ã‚©ãƒ«ãƒ€å</returns>
+    private string GetEquipmentTypeFolder(EquipmentType equipmentType)
+    {
+        return equipmentType switch
+        {
+            EquipmentType.Weapon => "Weapon",
+            EquipmentType.Armor => "Armor",
+            EquipmentType.Accessory => "Accessory",
+            _ => "Weapon"
+        };
+    }
+
+    /// <summary>
+    /// å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹ã‚’å–å¾—
+    /// </summary>
+    /// <param name="itemId">å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ID</param>
+    /// <returns>ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹</returns>
+    private string GetEnhanceItemIconPath(int itemId)
+    {
+        var enhanceItemData = MasterDataManager.Instance.GetEnhanceItemData(itemId);
+        if (enhanceItemData != null)
+        {
+            if (!string.IsNullOrEmpty(enhanceItemData.enhanceItemIconPath))
+            {
+                return enhanceItemData.enhanceItemIconPath;
+            }
+            else if (enhanceItemData.enhanceItemIcon != null)
+            {
+                return $"Icons/EnhanceItem/{enhanceItemData.enhanceItemIcon.name}";
+            }
+            else
+            {
+                return $"Icons/EnhanceItem/Enhance_{itemId}";
+            }
+        }
+        else
+        {
+            LogError($"å¼·åŒ–ã‚¢ã‚¤ãƒ†ãƒ ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: ID={itemId}");
+            return $"Icons/EnhanceItem/Enhance_{itemId}";
+        }
+    }
+
+    /// <summary>
+    /// è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹ã‚’å–å¾—
+    /// </summary>
+    /// <param name="itemId">è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ ID</param>
+    /// <returns>ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹</returns>
+    private string GetSupportItemIconPath(int itemId)
+    {
+        var supportItemData = MasterDataManager.Instance.GetSupportItemData(itemId);
+        if (supportItemData != null)
+        {
+            if (!string.IsNullOrEmpty(supportItemData.supportItemIconPath))
+            {
+                return supportItemData.supportItemIconPath;
+            }
+            else if (supportItemData.supportItemIcon != null)
+            {
+                return $"Icons/SupportItem/{supportItemData.supportItemIcon.name}";
+            }
+            else
+            {
+                return $"Icons/SupportItem/Support_{itemId}";
+            }
+        }
+        else
+        {
+            LogError($"è£œåŠ©ã‚¢ã‚¤ãƒ†ãƒ ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“: ID={itemId}");
+            return $"Icons/SupportItem/Support_{itemId}";
+        }
+    }
+
+    /// <summary>
+    /// ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯å ±é…¬ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹ã‚’å–å¾—
+    /// </summary>
+    /// <param name="itemType">ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—</param>
+    /// <param name="itemId">ã‚¢ã‚¤ãƒ†ãƒ ID</param>
+    /// <returns>ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹</returns>
+    private string GetFallbackRewardIconPath(string itemType, int itemId)
     {
         return itemType?.ToLower() switch
         {
             "gold" => "Icons/Currency/gold_icon",
             "gem" => "Icons/Currency/gem_icon",
-            "equipment" => $"Icons/Equipment/item_{itemId}",
-            "enhanceitem" => $"Icons/EnhanceItem/item_{itemId}",
-            "supportitem" => $"Icons/SupportItem/item_{itemId}",
+            "equipment" => $"Icons/Weapon/Weapon_{itemId}",
+            "enhanceitem" => $"Icons/EnhanceItem/Enhance_{itemId}",
+            "enhance" => $"Icons/EnhanceItem/Enhance_{itemId}",
+            "supportitem" => $"Icons/SupportItem/Support_{itemId}",
+            "support" => $"Icons/SupportItem/Support_{itemId}",
+            "skill" => $"Icons/Skill/skill_{itemId}",
             _ => "Icons/Reward/special_reward"
         };
     }
 
     /// <summary>
-    /// ƒ^ƒCƒvƒAƒCƒRƒ“‚ğ“Ç‚İ‚İ
+    /// ã‚¿ã‚¤ãƒ—ã‚¢ã‚¤ã‚³ãƒ³ã‚’èª­ã¿è¾¼ã¿
     /// </summary>
-    /// <param name="itemType">ƒAƒCƒeƒ€ƒ^ƒCƒv</param>
+    /// <param name="itemType">ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—</param>
     private void LoadItemTypeIcon(string itemType)
     {
         try
@@ -373,16 +597,16 @@ public class FirstClearRewardSlotUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"ƒ^ƒCƒvƒAƒCƒRƒ““Ç‚İ‚İƒGƒ‰[: {e.Message}");
+            LogError($"ã‚¿ã‚¤ãƒ—ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿ã‚¨ãƒ©ãƒ¼: {e.Message}");
             typeIcon.gameObject.SetActive(false);
         }
     }
 
     /// <summary>
-    /// ƒAƒCƒeƒ€ƒ^ƒCƒvƒAƒCƒRƒ“ƒpƒX‚ğæ“¾
+    /// ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹ã‚’å–å¾—
     /// </summary>
-    /// <param name="itemType">ƒAƒCƒeƒ€ƒ^ƒCƒv</param>
-    /// <returns>ƒAƒCƒRƒ“ƒpƒX</returns>
+    /// <param name="itemType">ã‚¢ã‚¤ãƒ†ãƒ ã‚¿ã‚¤ãƒ—</param>
+    /// <returns>ã‚¢ã‚¤ã‚³ãƒ³ãƒ‘ã‚¹</returns>
     private string GetItemTypeIconPath(string itemType)
     {
         return itemType?.ToLower() switch
@@ -391,13 +615,15 @@ public class FirstClearRewardSlotUI : MonoBehaviour
             "gem" => "Icons/Currency/gem_type_icon",
             "equipment" => "Icons/ItemType/equipment_icon",
             "enhanceitem" => "Icons/ItemType/enhance_icon",
+            "enhance" => "Icons/ItemType/enhance_icon",
             "supportitem" => "Icons/ItemType/support_icon",
+            "support" => "Icons/ItemType/support_icon",
             _ => "Icons/ItemType/special_icon"
         };
     }
 
     /// <summary>
-    /// ƒfƒtƒHƒ‹ƒg•ñVƒAƒCƒRƒ“‚ğİ’è
+    /// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå ±é…¬ã‚¢ã‚¤ã‚³ãƒ³ã‚’è¨­å®š
     /// </summary>
     private void SetDefaultRewardIcon()
     {
@@ -416,47 +642,47 @@ public class FirstClearRewardSlotUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"ƒfƒtƒHƒ‹ƒg•ñVƒAƒCƒRƒ“İ’èƒGƒ‰[: {e.Message}");
+            LogError($"ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå ±é…¬ã‚¢ã‚¤ã‚³ãƒ³è¨­å®šã‚¨ãƒ©ãƒ¼: {e.Message}");
             itemIcon.gameObject.SetActive(false);
         }
     }
 
     #endregion
 
-    #region “Á•Ê‰‰o
+    #region ç‰¹åˆ¥æ¼”å‡º
 
     /// <summary>
-    /// “Á•Ê‰‰o‚ğİ’è
+    /// ç‰¹åˆ¥æ¼”å‡ºã‚’è¨­å®š
     /// </summary>
     private void SetupSpecialEffects()
     {
         if (!enableSpecialEffects) return;
 
-        // ƒOƒ[Œø‰Ê
+        // ã‚°ãƒ­ãƒ¼åŠ¹æœ
         SetupGlowEffect();
 
-        // ƒp[ƒeƒBƒNƒ‹Œø‰Ê
+        // ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«åŠ¹æœ
         SetupParticleEffect();
 
-        // ƒoƒbƒW•\¦
+        // ãƒãƒƒã‚¸è¡¨ç¤º
         SetupFirstClearBadge();
     }
 
     /// <summary>
-    /// ƒOƒ[Œø‰Ê‚ğİ’è
+    /// ã‚°ãƒ­ãƒ¼åŠ¹æœã‚’è¨­å®š
     /// </summary>
     private void SetupGlowEffect()
     {
         if (glowEffect == null) return;
 
-        // ƒOƒ[Fİ’è
+        // ã‚°ãƒ­ãƒ¼è‰²è¨­å®š
         Color glowColor = GetItemTypeColor(rewardItemType);
         glowEffect.color = glowColor;
         glowEffect.gameObject.SetActive(true);
     }
 
     /// <summary>
-    /// ƒp[ƒeƒBƒNƒ‹Œø‰Ê‚ğİ’è
+    /// ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«åŠ¹æœã‚’è¨­å®š
     /// </summary>
     private void SetupParticleEffect()
     {
@@ -465,7 +691,7 @@ public class FirstClearRewardSlotUI : MonoBehaviour
         var main = sparkleEffect.main;
         main.startColor = firstClearGlowColor;
 
-        // ƒp[ƒeƒBƒNƒ‹Ä¶
+        // ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«å†ç”Ÿ
         if (sparkleEffect.isPlaying)
         {
             sparkleEffect.Stop();
@@ -474,7 +700,7 @@ public class FirstClearRewardSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰‰ñƒNƒŠƒAƒoƒbƒW‚ğİ’è
+    /// åˆå›ã‚¯ãƒªã‚¢ãƒãƒƒã‚¸ã‚’è¨­å®š
     /// </summary>
     private void SetupFirstClearBadge()
     {
@@ -485,7 +711,7 @@ public class FirstClearRewardSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒCƒ“ƒgƒƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄ¶
+    /// ã‚¤ãƒ³ãƒˆãƒ­ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å†ç”Ÿ
     /// </summary>
     private void PlayIntroAnimation()
     {
@@ -494,16 +720,16 @@ public class FirstClearRewardSlotUI : MonoBehaviour
         try
         {
             rewardAnimator.SetTrigger("PlayIntro");
-            Log("‰‰ñƒNƒŠƒA•ñVƒCƒ“ƒgƒƒAƒjƒ[ƒVƒ‡ƒ“Ä¶");
+            Log("åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¤ãƒ³ãƒˆãƒ­ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å†ç”Ÿ");
         }
         catch (Exception e)
         {
-            LogError($"ƒCƒ“ƒgƒƒAƒjƒ[ƒVƒ‡ƒ“Ä¶ƒGƒ‰[: {e.Message}");
+            LogError($"ã‚¤ãƒ³ãƒˆãƒ­ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å†ç”Ÿã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
     /// <summary>
-    /// æ“¾ƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄ¶
+    /// å–å¾—ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å†ç”Ÿ
     /// </summary>
     public void PlayObtainAnimation()
     {
@@ -513,38 +739,38 @@ public class FirstClearRewardSlotUI : MonoBehaviour
         {
             rewardAnimator.SetTrigger("PlayObtain");
 
-            // ƒp[ƒeƒBƒNƒ‹Œø‰Ê‚àÄ¶
+            // ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«åŠ¹æœã‚‚å†ç”Ÿ
             if (sparkleEffect != null)
             {
                 sparkleEffect.Stop();
                 sparkleEffect.Play();
             }
 
-            Log("•ñVæ“¾ƒAƒjƒ[ƒVƒ‡ƒ“Ä¶");
+            Log("å ±é…¬å–å¾—ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å†ç”Ÿ");
         }
         catch (Exception e)
         {
-            LogError($"æ“¾ƒAƒjƒ[ƒVƒ‡ƒ“Ä¶ƒGƒ‰[: {e.Message}");
+            LogError($"å–å¾—ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å†ç”Ÿã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
     #endregion
 
-    #region ƒ†[ƒeƒBƒŠƒeƒB
+    #region ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£
 
     /// <summary>
-    /// •ñVƒf[ƒ^‚ğæ“¾
+    /// å ±é…¬ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—
     /// </summary>
-    /// <returns>•ñVƒf[ƒ^iƒ^ƒvƒ‹j</returns>
+    /// <returns>å ±é…¬ãƒ‡ãƒ¼ã‚¿ï¼ˆã‚¿ãƒ—ãƒ«ï¼‰</returns>
     public (string itemType, int itemId, int quantity) GetRewardData()
     {
         return (rewardItemType, rewardItemId, rewardQuantity);
     }
 
     /// <summary>
-    /// ƒXƒƒbƒg‚Ì—LŒø«‚ğƒ`ƒFƒbƒN
+    /// ã‚¹ãƒ­ãƒƒãƒˆã®æœ‰åŠ¹æ€§ã‚’ãƒã‚§ãƒƒã‚¯
     /// </summary>
-    /// <returns>—LŒø‚Èê‡true</returns>
+    /// <returns>æœ‰åŠ¹ãªå ´åˆtrue</returns>
     public bool IsValidSlot()
     {
         return questMasterData != null &&
@@ -553,9 +779,9 @@ public class FirstClearRewardSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// “Á•Ê‰‰o‚Ì—LŒø/–³Œø‚ğØ‚è‘Ö‚¦
+    /// ç‰¹åˆ¥æ¼”å‡ºã®æœ‰åŠ¹/ç„¡åŠ¹ã‚’åˆ‡ã‚Šæ›¿ãˆ
     /// </summary>
-    /// <param name="enabled">—LŒøƒtƒ‰ƒO</param>
+    /// <param name="enabled">æœ‰åŠ¹ãƒ•ãƒ©ã‚°</param>
     public void SetSpecialEffectsEnabled(bool enabled)
     {
         enableSpecialEffects = enabled;
@@ -586,27 +812,28 @@ public class FirstClearRewardSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// •ñV‰¿’l‚ğŒvZi‰¼À‘•j
+    /// å ±é…¬ä¾¡å€¤ã‚’è¨ˆç®—
     /// </summary>
-    /// <returns>•ñV‰¿’l</returns>
+    /// <returns>å ±é…¬ä¾¡å€¤</returns>
     public int CalculateRewardValue()
     {
-        // TODO: ‚æ‚è³Šm‚È‰¿’lŒvZƒƒWƒbƒN‚ğÀ‘•
         return rewardItemType?.ToLower() switch
         {
             "gold" => rewardQuantity,
-            "gem" => rewardQuantity * 100, // ƒWƒFƒ€‚Í‚‰¿’l
+            "gem" => rewardQuantity * 100,
             "equipment" => rewardQuantity * 1000,
             "enhanceitem" => rewardQuantity * 50,
+            "enhance" => rewardQuantity * 50,
             "supportitem" => rewardQuantity * 25,
+            "support" => rewardQuantity * 25,
             _ => rewardQuantity
         };
     }
 
     /// <summary>
-    /// ƒfƒoƒbƒOî•ñ‚ğæ“¾
+    /// ãƒ‡ãƒãƒƒã‚°æƒ…å ±ã‚’å–å¾—
     /// </summary>
-    /// <returns>ƒfƒoƒbƒO—p•¶š—ñ</returns>
+    /// <returns>ãƒ‡ãƒãƒƒã‚°ç”¨æ–‡å­—åˆ—</returns>
     public string GetDebugInfo()
     {
         if (questMasterData == null) return "QuestMasterData: null";
@@ -618,7 +845,7 @@ public class FirstClearRewardSlotUI : MonoBehaviour
 
     #endregion
 
-    #region ƒƒOEƒfƒoƒbƒO
+    #region ãƒ­ã‚°ãƒ»ãƒ‡ãƒãƒƒã‚°
 
     private void Log(string message)
     {
@@ -638,38 +865,38 @@ public class FirstClearRewardSlotUI : MonoBehaviour
 
     #endregion
 
-    #region ƒGƒfƒBƒ^[—pƒc[ƒ‹
+    #region ã‚¨ãƒ‡ã‚£ã‚¿ãƒ¼ç”¨ãƒ„ãƒ¼ãƒ«
 
 #if UNITY_EDITOR
-    [ContextMenu("•ñVî•ñ‚ğƒƒOo—Í")]
+    [ContextMenu("å ±é…¬æƒ…å ±ã‚’ãƒ­ã‚°å‡ºåŠ›")]
     private void LogRewardInfo()
     {
         Log(GetDebugInfo());
     }
 
-    [ContextMenu("æ“¾ƒAƒjƒ[ƒVƒ‡ƒ“‚ğƒeƒXƒg")]
+    [ContextMenu("å–å¾—ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ãƒ†ã‚¹ãƒˆ")]
     private void TestObtainAnimation()
     {
         PlayObtainAnimation();
     }
 
-    [ContextMenu("“Á•Ê‰‰o‚ğƒgƒOƒ‹")]
+    [ContextMenu("ç‰¹åˆ¥æ¼”å‡ºã‚’ãƒˆã‚°ãƒ«")]
     private void ToggleSpecialEffects()
     {
         SetSpecialEffectsEnabled(!enableSpecialEffects);
-        Log($"“Á•Ê‰‰o: {enableSpecialEffects}");
+        Log($"ç‰¹åˆ¥æ¼”å‡º: {enableSpecialEffects}");
     }
 
-    [ContextMenu("•ñV‰¿’l‚ğŒvZ")]
+    [ContextMenu("å ±é…¬ä¾¡å€¤ã‚’è¨ˆç®—")]
     private void CalculateAndLogRewardValue()
     {
         int value = CalculateRewardValue();
-        Log($"•ñV‰¿’l: {value}");
+        Log($"å ±é…¬ä¾¡å€¤: {value}");
     }
 
     private void OnValidate()
     {
-        // ƒGƒfƒBƒ^[ã‚Å‚Ìİ’è•ÏX‚ğ‘¦À‚É”½‰f
+        // ã‚¨ãƒ‡ã‚£ã‚¿ãƒ¼ä¸Šã§ã®è¨­å®šå¤‰æ›´ã‚’å³åº§ã«åæ˜ 
         if (Application.isPlaying && questMasterData != null)
         {
             SetupSpecialEffects();

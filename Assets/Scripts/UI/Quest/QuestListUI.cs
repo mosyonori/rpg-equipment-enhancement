@@ -104,6 +104,13 @@ public class QuestListUI : MonoBehaviour
             return;
         }
 
+        // QuestDetailUIのイベント設定（修正版）
+        if (questDetailUI != null)
+        {
+            questDetailUI.OnStartBattleClicked += OnQuestDetailStartBattleClicked;
+            questDetailUI.OnCloseClicked += OnQuestDetailCloseRequested;
+        }
+
         // 初期状態設定
         questDetailPanel.SetActive(false);
 
@@ -112,6 +119,42 @@ public class QuestListUI : MonoBehaviour
             loadingPanel.SetActive(false);
         }
     }
+    /// <summary>
+    /// クエスト詳細画面からの出撃ボタンクリック処理
+    /// </summary>
+    private void OnQuestDetailStartBattleClicked(int questId)
+    {
+        try
+        {
+            Log($"詳細画面から出撃要求: {questId}");
+
+            // 外部イベントに転送
+            OnQuestStartRequested?.Invoke(questId);
+        }
+        catch (Exception e)
+        {
+            LogError($"詳細画面出撃処理エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// クエスト詳細画面の閉じるボタンクリック処理
+    /// </summary>
+    private void OnQuestDetailCloseRequested()
+    {
+        try
+        {
+            Log("クエスト詳細画面を閉じる要求を受信");
+            HideQuestDetail();
+            ClearSelection();
+        }
+        catch (Exception e)
+        {
+            LogError($"クエスト詳細閉じる処理エラー: {e.Message}");
+        }
+    }
+
+
 
     /// <summary>
     /// QuestListUIを初期化
@@ -210,6 +253,13 @@ public class QuestListUI : MonoBehaviour
             QuestListManager.OnQuestListUpdated -= OnQuestListUpdated;
             QuestListManager.OnQuestStarted -= OnQuestStarted;
             QuestListManager.OnQuestError -= OnQuestError;
+        }
+
+        // QuestDetailUIのイベント解除
+        if (questDetailUI != null)
+        {
+            questDetailUI.OnStartBattleClicked -= OnQuestDetailStartBattleClicked;
+            questDetailUI.OnCloseClicked -= OnQuestDetailCloseRequested;
         }
     }
 
@@ -504,7 +554,7 @@ public class QuestListUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 戻るボタンクリック処理
+    /// 戻るボタンクリック処理（修正版）
     /// </summary>
     private void OnBackButtonClicked()
     {
@@ -512,14 +562,20 @@ public class QuestListUI : MonoBehaviour
         {
             Log("戻るボタンクリック");
 
-            // 詳細パネルが表示されている場合は閉じる
-            if (questDetailPanel.activeInHierarchy)
+            // 詳細パネルが表示されている場合は詳細を閉じる
+            if (questDetailPanel != null && questDetailPanel.activeInHierarchy)
             {
+                Log("詳細パネルを閉じます");
                 HideQuestDetail();
                 ClearSelection();
             }
             else
             {
+                Log("クエストリスト画面を閉じます");
+
+                // クエストリスト画面自体を非表示にする
+                HideQuestListUI();
+
                 // 上位画面への遷移イベント
                 OnBackRequested?.Invoke();
             }
@@ -530,35 +586,96 @@ public class QuestListUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// クエストリストUI全体を非表示にする
+    /// </summary>
+    public void HideQuestListUI()
+    {
+        try
+        {
+            // 詳細パネルが開いている場合は閉じる
+            if (questDetailPanel != null && questDetailPanel.activeInHierarchy)
+            {
+                HideQuestDetail();
+            }
+
+            // 選択状態をクリア
+            ClearSelection();
+
+            // このGameObject自体を非表示にする
+            gameObject.SetActive(false);
+
+            Log("クエストリストUI全体を非表示にしました");
+        }
+        catch (Exception e)
+        {
+            LogError($"クエストリストUI非表示エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// クエストリストUI全体を表示する
+    /// </summary>
+    public void ShowQuestListUI()
+    {
+        try
+        {
+            gameObject.SetActive(true);
+
+            // UIが表示されたらクエストリストを更新
+            RefreshQuestList();
+
+            Log("クエストリストUI全体を表示しました");
+        }
+        catch (Exception e)
+        {
+            LogError($"クエストリストUI表示エラー: {e.Message}");
+        }
+    }
+
+
+
     #endregion
 
     #region 詳細表示制御
 
     /// <summary>
-    /// クエスト詳細を表示
+    /// クエスト詳細を表示（修正版）
     /// </summary>
     /// <param name="questId">クエストID</param>
     private void ShowQuestDetail(int questId)
     {
         try
         {
+            Log($"クエスト詳細表示要求: questId={questId}");
+
             // 詳細データ取得
             var questDetail = QuestListManager.Instance.GetQuestDetail(questId);
             if (questDetail == null)
             {
-                LogError($"クエスト詳細データが見つかりません: {questId}");
+                LogError($"クエスト詳細データが取得できませんでした: {questId}");
                 return;
             }
 
-            // 詳細UI表示
-            if (questDetailUI != null)
+            // 修正: questDetailPanelを先にアクティブにする
+            if (questDetailPanel != null)
             {
-                questDetailUI.DisplayQuestDetail(questDetail);
+                questDetailPanel.SetActive(true);
+                Log("クエスト詳細パネルをアクティブにしました");
             }
 
-            questDetailPanel.SetActive(true);
+            // 修正: DisplayQuestDetailImmediateを使用（コルーチン問題回避）
+            if (questDetailUI != null)
+            {
+                questDetailUI.DisplayQuestDetailImmediate(questDetail);
+                Log("クエスト詳細UI表示完了");
+            }
+            else
+            {
+                LogError("QuestDetailUIコンポーネントが見つかりません");
+            }
 
-            Log($"クエスト詳細表示: {questDetail.questMaster?.questName}");
+            Log($"クエスト詳細表示完了: {questDetail.questMaster?.questName}");
         }
         catch (Exception e)
         {

@@ -117,7 +117,7 @@ public class DropItemSlotUI : MonoBehaviour
             // レアリティ表現
             DisplayRarity();
 
-            Log($"ドロップアイテムスロット初期化完了: {dropItemData.itemName}");
+            Log($"ドロップアイテムスロット初期化完了: {GetItemDisplayName()}");
         }
         catch (Exception e)
         {
@@ -136,10 +136,11 @@ public class DropItemSlotUI : MonoBehaviour
     {
         if (dropItemData == null) return;
 
-        // アイテム名
+        // アイテム名（修正：MasterDataManagerから取得）
         if (itemNameText != null)
         {
-            itemNameText.text = dropItemData.itemName;
+            string displayName = GetItemDisplayName();
+            itemNameText.text = displayName;
         }
 
         // 数量
@@ -154,6 +155,112 @@ public class DropItemSlotUI : MonoBehaviour
             {
                 quantityText.gameObject.SetActive(false);
             }
+        }
+    }
+
+    /// <summary>
+    /// アイテム表示名を取得（修正：MasterDataManagerから実際の名前を取得）
+    /// </summary>
+    /// <returns>アイテム表示名</returns>
+    private string GetItemDisplayName()
+    {
+        if (dropItemData == null) return "不明なアイテム";
+
+        // MasterDataManagerが利用可能かチェック
+        if (MasterDataManager.Instance == null)
+        {
+            LogError("MasterDataManagerが利用できません");
+            return $"{dropItemData.itemType} ID:{dropItemData.itemId}";
+        }
+
+        // アイテムタイプに応じてマスターデータから名前を取得
+        return dropItemData.itemType?.ToLower() switch
+        {
+            "equipment" => GetEquipmentName(dropItemData.itemId),
+            "enhanceitem" => GetEnhanceItemName(dropItemData.itemId),
+            "supportitem" => GetSupportItemName(dropItemData.itemId),
+            _ => dropItemData.itemName ?? $"{dropItemData.itemType} ID:{dropItemData.itemId}"
+        };
+    }
+
+    /// <summary>
+    /// 装備名をMasterDataManagerから取得
+    /// </summary>
+    /// <param name="equipmentId">装備ID</param>
+    /// <returns>装備名</returns>
+    private string GetEquipmentName(int equipmentId)
+    {
+        try
+        {
+            var equipmentData = MasterDataManager.Instance.GetEquipmentData(equipmentId);
+            if (equipmentData != null)
+            {
+                return equipmentData.equipmentName;
+            }
+            else
+            {
+                LogError($"装備マスターデータが見つかりません: ID {equipmentId}");
+                return $"装備 ID:{equipmentId}";
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"装備名取得エラー: {e.Message}");
+            return $"装備 ID:{equipmentId}";
+        }
+    }
+
+    /// <summary>
+    /// 強化アイテム名をMasterDataManagerから取得
+    /// </summary>
+    /// <param name="itemId">強化アイテムID</param>
+    /// <returns>強化アイテム名</returns>
+    private string GetEnhanceItemName(int itemId)
+    {
+        try
+        {
+            var enhanceItemData = MasterDataManager.Instance.GetEnhanceItemData(itemId);
+            if (enhanceItemData != null)
+            {
+                return enhanceItemData.enhanceItemName;
+            }
+            else
+            {
+                LogError($"強化アイテムマスターデータが見つかりません: ID {itemId}");
+                return $"強化素材 ID:{itemId}";
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"強化アイテム名取得エラー: {e.Message}");
+            return $"強化素材 ID:{itemId}";
+        }
+    }
+
+    /// <summary>
+    /// 補助アイテム名をMasterDataManagerから取得
+    /// </summary>
+    /// <param name="itemId">補助アイテムID</param>
+    /// <returns>補助アイテム名</returns>
+    private string GetSupportItemName(int itemId)
+    {
+        try
+        {
+            var supportItemData = MasterDataManager.Instance.GetSupportItemData(itemId);
+            if (supportItemData != null)
+            {
+                return supportItemData.supportItemName;
+            }
+            else
+            {
+                LogError($"補助アイテムマスターデータが見つかりません: ID {itemId}");
+                return $"補助アイテム ID:{itemId}";
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"補助アイテム名取得エラー: {e.Message}");
+            return $"補助アイテム ID:{itemId}";
         }
     }
 
@@ -270,10 +377,10 @@ public class DropItemSlotUI : MonoBehaviour
 
     #endregion
 
-    #region アイコン読み込み
+    #region アイコン読み込み（修正版）
 
     /// <summary>
-    /// アイテムアイコンを読み込み
+    /// アイテムアイコンを読み込み（修正：正しいフォルダパス対応）
     /// </summary>
     private void LoadItemIcon()
     {
@@ -281,7 +388,7 @@ public class DropItemSlotUI : MonoBehaviour
         {
             if (itemIcon == null || dropItemData == null) return;
 
-            string iconPath = GetItemIconPath(dropItemData.itemType, dropItemData.itemId);
+            string iconPath = GetItemIconPathFromMasterData(dropItemData.itemType, dropItemData.itemId);
             var sprite = Resources.Load<Sprite>(iconPath);
 
             if (sprite != null)
@@ -304,22 +411,219 @@ public class DropItemSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// アイテムアイコンパスを取得
+    /// MasterDataManagerからアイテムアイコンパスを取得（修正：正しいパス生成）
     /// </summary>
     /// <param name="itemType">アイテムタイプ</param>
     /// <param name="itemId">アイテムID</param>
     /// <returns>アイコンパス</returns>
-    private string GetItemIconPath(string itemType, int itemId)
+    private string GetItemIconPathFromMasterData(string itemType, int itemId)
     {
-        string typeFolder = itemType?.ToLower() switch
+        if (MasterDataManager.Instance == null)
         {
-            "equipment" => "Equipment",
-            "enhanceitem" => "EnhanceItem",
-            "supportitem" => "SupportItem",
-            _ => "Item"
+            LogError("MasterDataManagerが利用できません - フォールバック処理");
+            return GetFallbackIconPath(itemType, itemId);
+        }
+
+        try
+        {
+            string iconPath = itemType?.ToLower() switch
+            {
+                "equipment" => GetEquipmentIconPath(itemId),
+                "enhanceitem" => GetEnhanceItemIconPath(itemId),
+                "enhance" => GetEnhanceItemIconPath(itemId), // "enhance"タイプも対応
+                "supportitem" => GetSupportItemIconPath(itemId),
+                "support" => GetSupportItemIconPath(itemId), // "support"タイプも対応
+                _ => GetFallbackIconPath(itemType, itemId)
+            };
+
+            Log($"アイコンパス取得: Type={itemType}, ID={itemId}, Path={iconPath}");
+            return iconPath;
+        }
+        catch (Exception e)
+        {
+            LogError($"マスターデータからのアイコンパス取得エラー: {e.Message}");
+            return GetFallbackIconPath(itemType, itemId);
+        }
+    }
+
+    /// <summary>
+    /// 装備アイコンパスを取得（修正：装備タイプ別フォルダ対応）
+    /// </summary>
+    /// <param name="equipmentId">装備ID</param>
+    /// <returns>アイコンパス</returns>
+    private string GetEquipmentIconPath(int equipmentId)
+    {
+        var equipmentData = MasterDataManager.Instance.GetEquipmentData(equipmentId);
+        if (equipmentData != null)
+        {
+            Log($"装備マスターデータ取得成功: ID={equipmentId}, Name={equipmentData.equipmentName}, Type={equipmentData.equipmentType}");
+
+            // 装備タイプに応じたフォルダを決定
+            string equipmentTypeFolder = GetEquipmentTypeFolder(equipmentData.equipmentType);
+
+            if (!string.IsNullOrEmpty(equipmentData.equipmentIconPath))
+            {
+                Log($"装備アイコンパス取得成功: ID={equipmentId}, Path={equipmentData.equipmentIconPath}");
+                return equipmentData.equipmentIconPath;
+            }
+            else
+            {
+                Log($"装備マスターデータにアイコンパスが設定されていません: ID={equipmentId}");
+
+                // equipmentIconプロパティも確認
+                if (equipmentData.equipmentIcon != null)
+                {
+                    Log($"装備にSpriteが直接設定されています: ID={equipmentId}, SpriteName={equipmentData.equipmentIcon.name}");
+                    // 装備タイプ別フォルダにSpriteが配置されている前提
+                    return $"Icons/{equipmentTypeFolder}/{equipmentData.equipmentIcon.name}";
+                }
+                else
+                {
+                    Log($"装備にSpriteも設定されていません: ID={equipmentId}");
+                    // 修正：正しいファイル名パターンを使用
+                    return $"Icons/{equipmentTypeFolder}/{equipmentTypeFolder}_{equipmentId}";
+                }
+            }
+        }
+        else
+        {
+            LogError($"装備マスターデータが見つかりません: ID={equipmentId}");
+            // フォールバックとして武器フォルダを使用
+            return $"Icons/Weapon/Weapon_{equipmentId}";
+        }
+    }
+
+    /// <summary>
+    /// 装備タイプに対応するフォルダ名を取得
+    /// </summary>
+    /// <param name="equipmentType">装備タイプ</param>
+    /// <returns>フォルダ名</returns>
+    private string GetEquipmentTypeFolder(EquipmentType equipmentType)
+    {
+        return equipmentType switch
+        {
+            EquipmentType.Weapon => "Weapon",
+            EquipmentType.Armor => "Armor",
+            EquipmentType.Accessory => "Accessory",
+            _ => "Weapon" // デフォルトは武器
+        };
+    }
+
+    /// <summary>
+    /// 強化アイテムアイコンパスを取得（修正：武器と同じ手法を適用）
+    /// </summary>
+    /// <param name="itemId">強化アイテムID</param>
+    /// <returns>アイコンパス</returns>
+    private string GetEnhanceItemIconPath(int itemId)
+    {
+        var enhanceItemData = MasterDataManager.Instance.GetEnhanceItemData(itemId);
+        if (enhanceItemData != null)
+        {
+            Log($"強化アイテムマスターデータ取得成功: ID={itemId}, Name={enhanceItemData.enhanceItemName}");
+
+            if (!string.IsNullOrEmpty(enhanceItemData.enhanceItemIconPath))
+            {
+                Log($"強化アイテムアイコンパス取得成功: ID={itemId}, Path={enhanceItemData.enhanceItemIconPath}");
+                return enhanceItemData.enhanceItemIconPath;
+            }
+            else
+            {
+                Log($"強化アイテムマスターデータにアイコンパスが設定されていません: ID={itemId}");
+
+                // enhanceItemIconプロパティも確認
+                if (enhanceItemData.enhanceItemIcon != null)
+                {
+                    Log($"強化アイテムにSpriteが直接設定されています: ID={itemId}, SpriteName={enhanceItemData.enhanceItemIcon.name}");
+                    // 統一フォルダ構造に対応
+                    return $"Icons/EnhanceItem/{enhanceItemData.enhanceItemIcon.name}";
+                }
+                else
+                {
+                    Log($"強化アイテムにSpriteも設定されていません: ID={itemId}");
+                    // 武器と同じ手法：正しいファイル名パターンを使用
+                    return $"Icons/EnhanceItem/Enhance_{itemId}";
+                }
+            }
+        }
+        else
+        {
+            LogError($"強化アイテムマスターデータが見つかりません: ID={itemId}");
+        }
+
+        // フォールバック：武器と同じ手法
+        string fallbackPath = $"Icons/EnhanceItem/Enhance_{itemId}";
+        Log($"強化アイテムアイコンフォールバック: {fallbackPath}");
+        return fallbackPath;
+    }
+
+    /// <summary>
+    /// 補助アイテムアイコンパスを取得（修正：武器と同じ手法を適用）
+    /// </summary>
+    /// <param name="itemId">補助アイテムID</param>
+    /// <returns>アイコンパス</returns>
+    private string GetSupportItemIconPath(int itemId)
+    {
+        var supportItemData = MasterDataManager.Instance.GetSupportItemData(itemId);
+        if (supportItemData != null)
+        {
+            Log($"補助アイテムマスターデータ取得成功: ID={itemId}, Name={supportItemData.supportItemName}");
+
+            if (!string.IsNullOrEmpty(supportItemData.supportItemIconPath))
+            {
+                Log($"補助アイテムアイコンパス取得成功: ID={itemId}, Path={supportItemData.supportItemIconPath}");
+                return supportItemData.supportItemIconPath;
+            }
+            else
+            {
+                Log($"補助アイテムマスターデータにアイコンパスが設定されていません: ID={itemId}");
+
+                // supportItemIconプロパティも確認
+                if (supportItemData.supportItemIcon != null)
+                {
+                    Log($"補助アイテムにSpriteが直接設定されています: ID={itemId}, SpriteName={supportItemData.supportItemIcon.name}");
+                    // 統一フォルダ構造に対応
+                    return $"Icons/SupportItem/{supportItemData.supportItemIcon.name}";
+                }
+                else
+                {
+                    Log($"補助アイテムにSpriteも設定されていません: ID={itemId}");
+                    // 武器と同じ手法：正しいファイル名パターンを使用
+                    return $"Icons/SupportItem/Support_{itemId}";
+                }
+            }
+        }
+        else
+        {
+            LogError($"補助アイテムマスターデータが見つかりません: ID={itemId}");
+        }
+
+        // フォールバック：武器と同じ手法
+        string fallbackPath = $"Icons/SupportItem/Support_{itemId}";
+        Log($"補助アイテムアイコンフォールバック: {fallbackPath}");
+        return fallbackPath;
+    }
+
+    /// <summary>
+    /// フォールバックアイコンパスを取得（修正：正しいファイル名パターン対応）
+    /// </summary>
+    /// <param name="itemType">アイテムタイプ</param>
+    /// <param name="itemId">アイテムID</param>
+    /// <returns>アイコンパス</returns>
+    private string GetFallbackIconPath(string itemType, int itemId)
+    {
+        string fallbackPath = itemType?.ToLower() switch
+        {
+            "equipment" => $"Icons/Weapon/Weapon_{itemId}", // 装備のフォールバックは武器フォルダ
+            "enhanceitem" => $"Icons/EnhanceItem/Enhance_{itemId}",
+            "enhance" => $"Icons/EnhanceItem/Enhance_{itemId}", // "enhance"タイプも対応
+            "supportitem" => $"Icons/SupportItem/Support_{itemId}",
+            "support" => $"Icons/SupportItem/Support_{itemId}", // "support"タイプも対応
+            "skill" => $"Icons/Skill/skill_{itemId}",
+            _ => $"Icons/Item/item_{itemId}"
         };
 
-        return $"Icons/{typeFolder}/item_{itemId}";
+        Log($"フォールバックパス生成: Type={itemType}, ID={itemId}, Path={fallbackPath}");
+        return fallbackPath;
     }
 
     /// <summary>
@@ -403,7 +707,7 @@ public class DropItemSlotUI : MonoBehaviour
     {
         if (dropItemData == null) return;
 
-        // ドロップ率に基づいてレアリティを判定
+        // ドロップ率に応じてレアリティを判定
         RarityLevel rarity = DetermineRarityFromDropRate(dropItemData.dropRate);
         Color rarityColor = GetRarityColorFromLevel(rarity);
 
@@ -518,6 +822,7 @@ public class DropItemSlotUI : MonoBehaviour
         Initialize(updatedDropItem);
     }
 
+
     /// <summary>
     /// 表示設定を変更
     /// </summary>
@@ -560,7 +865,7 @@ public class DropItemSlotUI : MonoBehaviour
     {
         if (dropItemData == null) return "DropItemData: null";
 
-        return $"DropItem[{dropItemData.itemId}] {dropItemData.itemName} - " +
+        return $"DropItem[{dropItemData.itemId}] {GetItemDisplayName()} - " +
                $"Type: {dropItemData.itemType}, Quantity: {dropItemData.quantity}, " +
                $"DropRate: {dropItemData.dropRate}%, Expected: {CalculateExpectedDrops():F2}";
     }
