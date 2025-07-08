@@ -43,6 +43,7 @@ public class BattleDataManager : MonoBehaviour
 
     /// <summary>
     /// 戦闘データ初期化
+    /// ★修正: HomeManagerパターンを参考にしたデータ初期化
     /// </summary>
     /// <param name="characters">戦闘参加キャラクター</param>
     /// <param name="battleSetup">戦闘設定データ</param>
@@ -65,6 +66,9 @@ public class BattleDataManager : MonoBehaviour
                 InitializeCharacterData(character);
             }
 
+            // ★新規追加: プレイヤーキャラクターの装備スキル詳細ログ
+            LogPlayerSkillDetails();
+
             IsInitialized = true;
             Log($"BattleDataManager初期化完了: キャラクター{battleCharacters.Count}体");
         }
@@ -77,6 +81,7 @@ public class BattleDataManager : MonoBehaviour
 
     /// <summary>
     /// キャラクター個別データ初期化
+    /// ★修正: プレイヤーの装備スキル読み込みを強化
     /// </summary>
     private void InitializeCharacterData(BattleCharacterData character)
     {
@@ -103,25 +108,122 @@ public class BattleDataManager : MonoBehaviour
 
     /// <summary>
     /// プレイヤーの装備スキル追加
+    /// ★修正: HomeManagerのパターンを参考にしたスキル読み込み
     /// </summary>
     private void AddPlayerEquippedSkills(BattleCharacterData character)
     {
-        if (currentBattleSetup?.playerSkillIds == null) return;
-
-        foreach (var skillId in currentBattleSetup.playerSkillIds)
+        if (currentBattleSetup?.playerSkillIds == null)
         {
-            var userSkill = SaveDataManager.Instance.CurrentSaveData?.GetSkill(skillId);
-            if (userSkill != null)
+            Log("戦闘用スキルIDが設定されていません");
+            return;
+        }
+
+        Log("=== プレイヤー装備スキル読み込み開始 ===");
+
+        // SaveDataから直接ユーザーデータを取得（HomeManagerパターン）
+        var userData = SaveDataManager.Instance?.CurrentSaveData;
+        if (userData == null)
+        {
+            LogError("UserSaveDataの取得に失敗しました");
+            return;
+        }
+
+        Log($"戦闘スキル1ID: {userData.battleSkill1Id}");
+        Log($"戦闘スキル2ID: {userData.battleSkill2Id}");
+
+        // 戦闘用スキル追加
+        AddBattleSkillToCharacter(character, userData.battleSkill1Id, "戦闘スキル1");
+        AddBattleSkillToCharacter(character, userData.battleSkill2Id, "戦闘スキル2");
+
+        // 装備中の装備にセットされたスキルも追加
+        AddEquipmentSkillsToCharacter(character, userData);
+
+        Log("=== プレイヤー装備スキル読み込み完了 ===");
+    }
+
+    /// <summary>
+    /// ★新規追加: 個別の戦闘スキルをキャラクターに追加
+    /// </summary>
+    private void AddBattleSkillToCharacter(BattleCharacterData character, string skillId, string skillType)
+    {
+        if (string.IsNullOrEmpty(skillId))
+        {
+            Log($"{skillType}: 未設定");
+            return;
+        }
+
+        var userSkill = SaveDataManager.Instance.CurrentSaveData?.GetSkill(skillId);
+        if (userSkill != null)
+        {
+            var skillMaster = MasterDataManager.Instance?.GetSkillData(userSkill.skillMasterId);
+            if (skillMaster != null)
             {
-                var skillMaster = MasterDataManager.Instance.GetSkillData(userSkill.skillMasterId);
-                if (skillMaster != null)
+                var battleSkill = BattleSkillData.CreateFromSkillMaster(skillMaster);
+                character.availableSkills.Add(battleSkill);
+                characterSkills[character.characterId][battleSkill.skillId] = battleSkill;
+                Log($"{skillType}追加: {skillMaster.skillName} (威力:{skillMaster.skillDamageMultiplier})");
+            }
+            else
+            {
+                LogError($"{skillType}のマスターデータが見つかりません: SkillMasterID={userSkill.skillMasterId}");
+            }
+        }
+        else
+        {
+            LogError($"{skillType}のユーザースキルが見つかりません: ID={skillId}");
+        }
+    }
+
+    /// <summary>
+    /// ★新規追加: 装備中の装備にセットされたスキルをキャラクターに追加
+    /// </summary>
+    private void AddEquipmentSkillsToCharacter(BattleCharacterData character, UserSaveData userData)
+    {
+        if (userData.equipments == null) return;
+
+        var equippedItems = userData.equipments.FindAll(e => e.isEquipped);
+        Log($"装備中アイテム数: {equippedItems.Count}");
+
+        foreach (var equipment in equippedItems)
+        {
+            if (equipment.HasEquippedSkill())
+            {
+                var skillId = equipment.GetEquippedSkill();
+                var userSkill = userData.GetSkill(skillId);
+                if (userSkill != null)
                 {
-                    var battleSkill = BattleSkillData.CreateFromSkillMaster(skillMaster);
-                    character.availableSkills.Add(battleSkill);
-                    characterSkills[character.characterId][battleSkill.skillId] = battleSkill;
-                    Log($"プレイヤースキル追加: {battleSkill.skillName}");
+                    var skillMaster = MasterDataManager.Instance?.GetSkillData(userSkill.skillMasterId);
+                    if (skillMaster != null)
+                    {
+                        var battleSkill = BattleSkillData.CreateFromSkillMaster(skillMaster);
+                        character.availableSkills.Add(battleSkill);
+                        characterSkills[character.characterId][battleSkill.skillId] = battleSkill;
+                        Log($"装備スキル追加: {skillMaster.skillName} (装備:{equipment.userEquipmentId})");
+                    }
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// ★新規追加: プレイヤースキル詳細ログ出力
+    /// </summary>
+    private void LogPlayerSkillDetails()
+    {
+        var playerChar = battleCharacters?.Find(c => c.isPlayer);
+        if (playerChar != null)
+        {
+            Log("=== プレイヤー最終スキル一覧 ===");
+            Log($"利用可能スキル数: {playerChar.availableSkills?.Count ?? 0}");
+
+            if (playerChar.availableSkills != null)
+            {
+                foreach (var skill in playerChar.availableSkills)
+                {
+                    Log($"- {skill.skillName} (ID:{skill.skillId}, 威力:{skill.damageMultiplier}, CT:{skill.maxCoolTime})");
+                }
+            }
+            Log("=== プレイヤースキル一覧終了 ===");
         }
     }
 
@@ -180,7 +282,7 @@ public class BattleDataManager : MonoBehaviour
             int oldHp = character.currentHp;
             character.currentHp = Mathf.Clamp(newHp, 0, character.maxHp);
 
-            // 死亡判定
+            // 撃破判定
             if (character.currentHp <= 0 && character.isAlive)
             {
                 character.isAlive = false;
@@ -440,8 +542,10 @@ public class BattleDataManager : MonoBehaviour
 
     #endregion
 
+    #region 公開メソッド - スキル使用後の状態効果発動・適用の統合処理
+
     /// <summary>
-    /// スキル使用時の状態効果発動・適用の統合処理
+    /// スキル使用後の状態効果発動・適用の統合処理
     /// BattleTurnManagerから呼び出される
     /// </summary>
     public bool ProcessSkillStatusEffect(BattleCharacterData caster, BattleCharacterData target, BattleSkillData skill)
@@ -530,6 +634,7 @@ public class BattleDataManager : MonoBehaviour
 
         try
         {
+            // ★追加: effectMaster変数を定義
             var effectMaster = MasterDataManager.Instance?.GetSkillEffectData(skill.statusEffectId);
             if (effectMaster == null)
             {
@@ -560,8 +665,7 @@ public class BattleDataManager : MonoBehaviour
         }
     }
 
-
-
+    #endregion
 
     #region 公開メソッド - 戦闘ログ管理
 
@@ -722,6 +826,28 @@ public class BattleDataManager : MonoBehaviour
                     $"状態効果{statusCount}個, スキル{skillCount}個, " +
                     $"与ダメージ{character.damageDealt}, 被ダメージ{character.damageReceived}");
             }
+        }
+    }
+
+    [ContextMenu("プレイヤースキル詳細確認")]
+    private void EditorLogPlayerSkillDetails()
+    {
+        LogPlayerSkillDetails();
+    }
+
+    [ContextMenu("装備スキル再読み込みテスト")]
+    private void EditorTestEquipmentSkillReload()
+    {
+        var playerChar = battleCharacters?.Find(c => c.isPlayer);
+        if (playerChar != null)
+        {
+            Log("=== 装備スキル再読み込みテスト ===");
+            var userData = SaveDataManager.Instance?.CurrentSaveData;
+            if (userData != null)
+            {
+                AddEquipmentSkillsToCharacter(playerChar, userData);
+            }
+            LogPlayerSkillDetails();
         }
     }
 #endif

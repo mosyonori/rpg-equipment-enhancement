@@ -258,6 +258,9 @@ public class BattleManager : MonoBehaviour
                 return false;
             }
 
+            // ★修正: 装備データの詳細ログ出力
+            LogPlayerEquipmentDetails(userData);
+
             // スタミナ消費チェック・実行
             if (!userData.ConsumeStamina(questData.requiredStamina))
             {
@@ -278,6 +281,57 @@ public class BattleManager : MonoBehaviour
             OnBattleError?.Invoke("戦闘開始に失敗しました");
             return false;
         }
+    }
+
+    /// <summary>
+    /// ★新規追加: プレイヤーの装備データの詳細ログ出力（HomeManagerパターンを参考）
+    /// </summary>
+    private void LogPlayerEquipmentDetails(UserSaveData userData)
+    {
+        Log("=== プレイヤー装備データ詳細確認 ===");
+
+        Log($"全装備数: {userData.equipments?.Count ?? 0}");
+        Log($"装備武器ID数: {userData.equippedWeaponIds?.Count ?? 0}");
+        Log($"装備防具ID数: {userData.equippedArmorIds?.Count ?? 0}");
+        Log($"装備アクセサリID数: {userData.equippedAccessoryIds?.Count ?? 0}");
+        Log($"戦闘スキル1: {userData.battleSkill1Id}");
+        Log($"戦闘スキル2: {userData.battleSkill2Id}");
+
+        // 装備中のアイテム詳細確認（HomeManagerのUpdateEquipmentSummary相当）
+        if (userData.equipments != null)
+        {
+            var equippedItems = userData.equipments.FindAll(e => e.isEquipped);
+            Log($"装備中アイテム数: {equippedItems.Count}");
+
+            int totalPower = 0;
+            foreach (var item in equippedItems)
+            {
+                var masterData = MasterDataManager.Instance?.GetEquipmentData(item.equipmentMasterId);
+                if (masterData != null)
+                {
+                    var totalStats = item.CalculateTotalStats(masterData);
+                    Log($"装備: {masterData.equipmentName} - HP:{totalStats.hp}, ATK:{totalStats.offense}, DEF:{totalStats.defense}");
+
+                    // 戦闘力計算（UserDataUtilityのCalculateTotalPowerと同じロジック）
+                    totalPower += totalStats.hp / 10;
+                    totalPower += totalStats.offense * 2;
+                    totalPower += totalStats.defense;
+                    totalPower += totalStats.speed;
+                    totalPower += totalStats.fireOffence;
+                    totalPower += totalStats.waterOffence;
+                    totalPower += totalStats.windOffence;
+                    totalPower += totalStats.earthOffence;
+                }
+                else
+                {
+                    LogError($"装備ID {item.equipmentMasterId} のマスターデータが見つかりません");
+                }
+            }
+
+            Log($"合計戦闘力: {totalPower}");
+        }
+
+        Log("=== 装備データ詳細確認終了 ===");
     }
 
     /// <summary>
@@ -438,7 +492,7 @@ public class BattleManager : MonoBehaviour
             // 戦闘データManager初期化
             battleDataManager.InitializeBattle(allCharacters, currentBattleSetup);
 
-            // BattleTurnManagerの依存関係設定（メモ手順に従って実行）
+            // BattleTurnManagerの依存関係設定（メモ書きに従って実行）
             // 1. BattleDataManagerの参照を設定
             battleTurnManager.SetDataManager(battleDataManager);
 
@@ -473,21 +527,28 @@ public class BattleManager : MonoBehaviour
 
     /// <summary>
     /// 戦闘参加キャラクター作成
+    /// ★修正: HomeManagerのパターンを参考に装備データを適切に計算
     /// </summary>
     private void CreateBattleCharacters()
     {
         allCharacters.Clear();
 
-        // プレイヤーキャラクター作成
+        // ★修正: プレイヤーキャラクター作成時に装備込みステータスを計算
         var playerCharacterMaster = MasterDataManager.Instance.GetCharacterData(1); // プレイヤーキャラクターID=1と仮定
         if (playerCharacterMaster != null)
         {
+            // ★重要: HomeManagerのUpdateEquipmentSummary()と同じパターンで装備ステータスを計算
+            var userData = SaveDataManager.Instance.CurrentSaveData;
+            var equipmentStats = CalculatePlayerEquipmentStats(userData);
+
+            Log($"計算済み装備ステータス: HP+{equipmentStats.hp}, ATK+{equipmentStats.offense}, DEF+{equipmentStats.defense}");
+
             var playerChar = BattleCharacterData.CreateFromCharacterMaster(
                 playerCharacterMaster,
-                currentBattleSetup.playerStats
+                equipmentStats // 計算済み装備ステータスを渡す
             );
             allCharacters.Add(playerChar);
-            Log($"プレイヤーキャラクター作成: {playerChar.characterName}");
+            Log($"プレイヤーキャラクター作成: {playerChar.characterName} (最終HP:{playerChar.maxHp}, ATK:{playerChar.offense})");
         }
 
         // 敵モンスター作成（QuestDataManagerを使用）
@@ -506,13 +567,62 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
+    /// ★新規追加: プレイヤーの装備ステータス計算（HomeManagerのEquipmentSummaryData.CreateFromSaveDataパターンを参考）
+    /// </summary>
+    private EquipmentTotalStats CalculatePlayerEquipmentStats(UserSaveData userData)
+    {
+        var totalStats = new EquipmentTotalStats();
+
+        if (userData?.equipments == null)
+        {
+            Log("装備データが存在しません");
+            return totalStats;
+        }
+
+        Log("=== 装備ステータス計算開始 ===");
+
+        // 装備中のアイテムのみを対象にステータス計算
+        var equippedItems = userData.equipments.FindAll(e => e.isEquipped);
+        Log($"装備中アイテム数: {equippedItems.Count}");
+
+        foreach (var equipment in equippedItems)
+        {
+            var masterData = MasterDataManager.Instance?.GetEquipmentData(equipment.equipmentMasterId);
+            if (masterData != null)
+            {
+                var equipStats = equipment.CalculateTotalStats(masterData);
+
+                totalStats.hp += equipStats.hp;
+                totalStats.offense += equipStats.offense;
+                totalStats.defense += equipStats.defense;
+                totalStats.speed += equipStats.speed;
+                totalStats.criticalRate += equipStats.criticalRate;
+                totalStats.criticalDamageRate += equipStats.criticalDamageRate;
+                totalStats.fireOffence += equipStats.fireOffence;
+                totalStats.waterOffence += equipStats.waterOffence;
+                totalStats.windOffence += equipStats.windOffence;
+                totalStats.earthOffence += equipStats.earthOffence;
+
+                Log($"装備 {masterData.equipmentName}: HP+{equipStats.hp}, ATK+{equipStats.offense}, DEF+{equipStats.defense}");
+            }
+            else
+            {
+                LogError($"装備ID {equipment.equipmentMasterId} のマスターデータが見つかりません");
+            }
+        }
+
+        Log($"=== 装備ステータス合計: HP+{totalStats.hp}, ATK+{totalStats.offense}, DEF+{totalStats.defense} ===");
+        return totalStats;
+    }
+
+    /// <summary>
     /// 戦闘メインループ
     /// </summary>
     private IEnumerator BattleMainLoop()
     {
         Log("戦闘メインループ開始");
 
-        // 4. ターン処理開始（メモ手順の最後のステップ）
+        // 4. ターン処理開始（メモ書きの最後のステップ）
         // BattleTurnManagerは自動でターン処理を行うため、
         // ここでは戦闘状態の監視のみ行う
         while (CurrentState == BattleState.InProgress)
@@ -782,6 +892,21 @@ public class BattleManager : MonoBehaviour
     private void EditorForceEndBattle()
     {
         ForceEndBattle();
+    }
+
+    [ContextMenu("装備ステータス計算テスト")]
+    private void TestEquipmentCalculation()
+    {
+        var userData = SaveDataManager.Instance?.CurrentSaveData;
+        if (userData != null)
+        {
+            var equipmentStats = CalculatePlayerEquipmentStats(userData);
+            Log($"テスト結果 - HP:{equipmentStats.hp}, ATK:{equipmentStats.offense}, DEF:{equipmentStats.defense}");
+        }
+        else
+        {
+            LogError("UserSaveDataが取得できません");
+        }
     }
 #endif
 
