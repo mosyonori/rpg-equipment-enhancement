@@ -440,6 +440,129 @@ public class BattleDataManager : MonoBehaviour
 
     #endregion
 
+    /// <summary>
+    /// スキル使用時の状態効果発動・適用の統合処理
+    /// BattleTurnManagerから呼び出される
+    /// </summary>
+    public bool ProcessSkillStatusEffect(BattleCharacterData caster, BattleCharacterData target, BattleSkillData skill)
+    {
+        if (caster == null || target == null || skill == null || !skill.HasStatusEffect())
+        {
+            return false;
+        }
+
+        try
+        {
+            // 1. BattleCalculationManagerで発動判定
+            if (BattleCalculationManager.Instance == null)
+            {
+                LogError("BattleCalculationManagerが見つかりません");
+                return false;
+            }
+
+            bool effectTriggered = BattleCalculationManager.Instance.CalculateStatusEffectChance(skill, target);
+            if (!effectTriggered)
+            {
+                Log($"{skill.skillName}の状態効果発動判定: 失敗");
+                return false;
+            }
+
+            // 2. 状態効果データの作成
+            var statusEffect = CreateStatusEffectFromSkill(skill, caster.characterId);
+            if (statusEffect == null)
+            {
+                LogError($"状態効果の作成に失敗: {skill.skillName}");
+                return false;
+            }
+
+            // 3. 既存のApplyStatusEffect()メソッドを使用して適用
+            ApplyStatusEffect(target.characterId, statusEffect);
+
+            Log($"{caster.characterName}が{target.characterName}に{statusEffect.effectName}を付与");
+            return true;
+        }
+        catch (System.Exception e)
+        {
+            LogError($"状態効果処理中にエラー: {e.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 自分自身への状態効果適用（100%発動）
+    /// </summary>
+    public bool ProcessSelfStatusEffect(BattleCharacterData caster, BattleSkillData skill)
+    {
+        if (caster == null || skill == null || !skill.HasStatusEffect())
+        {
+            return false;
+        }
+
+        try
+        {
+            var statusEffect = CreateStatusEffectFromSkill(skill, caster.characterId);
+            if (statusEffect == null)
+            {
+                LogError($"自分自身への状態効果作成に失敗: {skill.skillName}");
+                return false;
+            }
+
+            ApplyStatusEffect(caster.characterId, statusEffect);
+            Log($"{caster.characterName}が自分自身に{statusEffect.effectName}を付与");
+            return true;
+        }
+        catch (System.Exception e)
+        {
+            LogError($"自分自身への状態効果処理中にエラー: {e.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// スキル情報から状態効果データを作成
+    /// </summary>
+    private StatusEffectData CreateStatusEffectFromSkill(BattleSkillData skill, string casterId)
+    {
+        if (skill == null || !skill.HasStatusEffect())
+        {
+            return null;
+        }
+
+        try
+        {
+            var effectMaster = MasterDataManager.Instance?.GetSkillEffectData(skill.statusEffectId);
+            if (effectMaster == null)
+            {
+                LogError($"スキル効果マスターデータが見つかりません: ID={skill.statusEffectId}");
+                return null;
+            }
+
+            // StatusEffectData.CreateFromSkillEffectMasterの正しいシグネチャに合わせて呼び出し
+            var statusEffect = StatusEffectData.CreateFromSkillEffectMaster(
+                effectMaster,
+                casterId,
+                casterId,  // targetIdとしてもcasterIdを使用（自分に付与する場合）
+                skill.skillId
+            );
+
+            if (statusEffect == null)
+            {
+                LogError($"StatusEffectDataの作成に失敗: SkillEffectID={skill.statusEffectId}");
+                return null;
+            }
+
+            return statusEffect;
+        }
+        catch (System.Exception e)
+        {
+            LogError($"状態効果作成中にエラー: {e.Message}");
+            return null;
+        }
+    }
+
+
+
+
     #region 公開メソッド - 戦闘ログ管理
 
     /// <summary>

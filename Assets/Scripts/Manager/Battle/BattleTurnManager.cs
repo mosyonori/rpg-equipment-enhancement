@@ -38,11 +38,47 @@ public class BattleTurnManager : MonoBehaviour
     public static event System.Action<int> OnTurnCompleted; // BattleManager互換用
     public static event System.Action OnAllEnemiesDefeated; // BattleManager互換用
     public static event System.Action OnPlayerDefeated; // BattleManager互換用
-    public static event System.Action OnTurnLimitReached; // BattleManager互換用（boolパラメータを削除）
+    public static event System.Action OnTurnLimitReached; // BattleManager互換用
 
     // 参照Manager
     private BattleDataManager dataManager;
     private BattleCalculationManager calculationManager;
+
+    // ターン制限値
+    private int turnLimit = -1; // -1は無制限
+
+    // コルーチン制御
+    private Coroutine turnCoroutine;
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    private void Start()
+    {
+        // 依存関係は実行時に取得（BattleDataManagerはシングルトンではない）
+        calculationManager = BattleCalculationManager.Instance;
+
+        if (calculationManager == null)
+        {
+            DebugLogError("BattleCalculationManagerが見つかりません");
+        }
+    }
+
+    #endregion
+
+    #region 公開メソッド - 設定・制御
 
     /// <summary>
     /// BattleDataManagerの参照を設定
@@ -50,12 +86,8 @@ public class BattleTurnManager : MonoBehaviour
     public void SetDataManager(BattleDataManager battleDataManager)
     {
         dataManager = battleDataManager;
+        DebugLog("BattleDataManagerの参照を設定しました");
     }
-
-    /// <summary>
-    /// ターン制限値を設定
-    /// </summary>
-    private int turnLimit = -1; // -1は無制限
 
     /// <summary>
     /// ターン制限を設定
@@ -63,6 +95,7 @@ public class BattleTurnManager : MonoBehaviour
     public void SetTurnLimit(int limit)
     {
         turnLimit = limit;
+        DebugLog($"ターン制限を設定: {(limit > 0 ? limit.ToString() : "無制限")}");
     }
 
     /// <summary>
@@ -100,101 +133,9 @@ public class BattleTurnManager : MonoBehaviour
         DebugLog($"戦闘初期化完了: キャラクター{characters.Count}体, ターン制限{battleTurnLimit}");
     }
 
-    /// <summary>
-    /// 現在のターンキャラクターを取得（BattleManager互換用）
-    /// </summary>
-    public BattleCharacterData GetCurrentTurnCharacter()
-    {
-        return GetCurrentActor();
-    }
-
-    /// <summary>
-    /// 次のターンに進める（BattleManager互換用）
-    /// </summary>
-    public void AdvanceToNextTurn()
-    {
-        AdvanceToNextActor();
-    }
-
-    /// <summary>
-    /// キャラクターの行動を決定（BattleManager互換用）
-    /// </summary>
-    public ActionData DecideAction(BattleCharacterData character, List<BattleCharacterData> allCharacters)
-    {
-        // 優先順位に基づくスキル選択
-        var selectedSkill = SelectSkillByPriority(character);
-
-        if (selectedSkill != null)
-        {
-            // スキル使用のActionDataを作成
-            var targets = GetValidTargets(character, selectedSkill);
-            if (targets.Count > 0)
-            {
-                var targetIds = targets.Select(t => t.characterId).ToList();
-                var targetNames = targets.Select(t => t.characterName).ToList();
-
-                return ActionData.CreateSkillUse(
-                    character.characterId,
-                    character.characterName,
-                    character.isPlayer,
-                    selectedSkill,
-                    targetIds,
-                    targetNames,
-                    CurrentTurnNumber
-                );
-            }
-        }
-
-        // 通常攻撃のActionDataを作成
-        var enemies = allCharacters.Where(c => c.isPlayer != character.isPlayer && c.isAlive).ToList();
-        if (enemies.Count > 0)
-        {
-            var target = enemies[Random.Range(0, enemies.Count)];
-            return ActionData.CreateNormalAttack(
-                character.characterId,
-                character.characterName,
-                character.isPlayer,
-                target.characterId,
-                target.characterName,
-                CurrentTurnNumber
-            );
-        }
-
-        return null;
-    }
-
-    // コルーチン制御
-    private Coroutine turnCoroutine;
-
-    #region Unity Lifecycle
-
-    private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-
-    private void Start()
-    {
-        // 依存関係は実行時に取得（BattleDataManagerはシングルトンではない）
-        calculationManager = BattleCalculationManager.Instance;
-
-        if (calculationManager == null)
-        {
-            DebugLogError("BattleCalculationManagerが見つかりません");
-        }
-    }
-
     #endregion
 
-    #region 公開メソッド
+    #region 公開メソッド - ターン管理
 
     /// <summary>
     /// 戦闘開始時の行動順序を決定
@@ -297,6 +238,69 @@ public class BattleTurnManager : MonoBehaviour
             .ToList();
     }
 
+    /// <summary>
+    /// 現在のターンキャラクターを取得（BattleManager互換用）
+    /// </summary>
+    public BattleCharacterData GetCurrentTurnCharacter()
+    {
+        return GetCurrentActor();
+    }
+
+    /// <summary>
+    /// 次のターンに進む（BattleManager互換用）
+    /// </summary>
+    public void AdvanceToNextTurn()
+    {
+        AdvanceToNextActor();
+    }
+
+    /// <summary>
+    /// キャラクターの行動を決定（BattleManager互換用）
+    /// </summary>
+    public ActionData DecideAction(BattleCharacterData character, List<BattleCharacterData> allCharacters)
+    {
+        // 優先順位に基づくスキル選択
+        var selectedSkill = SelectSkillByPriority(character);
+
+        if (selectedSkill != null)
+        {
+            // スキル使用のActionDataを作成
+            var targets = GetValidTargets(character, selectedSkill);
+            if (targets.Count > 0)
+            {
+                var targetIds = targets.Select(t => t.characterId).ToList();
+                var targetNames = targets.Select(t => t.characterName).ToList();
+
+                return ActionData.CreateSkillUse(
+                    character.characterId,
+                    character.characterName,
+                    character.isPlayer,
+                    selectedSkill,
+                    targetIds,
+                    targetNames,
+                    CurrentTurnNumber
+                );
+            }
+        }
+
+        // 通常攻撃のActionDataを作成
+        var enemies = allCharacters.Where(c => c.isPlayer != character.isPlayer && c.isAlive).ToList();
+        if (enemies.Count > 0)
+        {
+            var target = enemies[UnityEngine.Random.Range(0, enemies.Count)];
+            return ActionData.CreateNormalAttack(
+                character.characterId,
+                character.characterName,
+                character.isPlayer,
+                target.characterId,
+                target.characterName,
+                CurrentTurnNumber
+            );
+        }
+
+        return null;
+    }
+
     #endregion
 
     #region ターン処理コルーチン
@@ -314,7 +318,7 @@ public class BattleTurnManager : MonoBehaviour
             // ステップ5: 限界ターン数チェック
             if (CheckTurnLimit())
             {
-                OnTurnLimitReached?.Invoke(); // boolパラメータを削除
+                OnTurnLimitReached?.Invoke();
                 yield break;
             }
 
@@ -336,9 +340,17 @@ public class BattleTurnManager : MonoBehaviour
             yield return StartCoroutine(PreActionProcessing(currentActor));
 
             // 行動不能チェック（スタン等）
-            if (!currentActor.CanAct())
+            if (!currentActor.CanAct() || dataManager.IsCharacterActionBlocked(currentActor.characterId))
             {
-                DebugLog($"{currentActor.characterName}は行動不能です");
+                if (dataManager.IsCharacterActionBlocked(currentActor.characterId))
+                {
+                    DebugLog($"{currentActor.characterName}は状態効果により行動不能です");
+                }
+                else
+                {
+                    DebugLog($"{currentActor.characterName}は行動不能です");
+                }
+
                 yield return StartCoroutine(PostActionProcessing(currentActor));
                 AdvanceToNextActor();
                 continue;
@@ -353,12 +365,12 @@ public class BattleTurnManager : MonoBehaviour
             // ステップ13: 勝敗判定
             if (dataManager.AreAllPlayersDefeated())
             {
-                OnPlayerDefeated?.Invoke(); // BattleManager互換用イベント
+                OnPlayerDefeated?.Invoke();
                 break;
             }
             else if (dataManager.AreAllEnemiesDefeated())
             {
-                OnAllEnemiesDefeated?.Invoke(); // BattleManager互換用イベント
+                OnAllEnemiesDefeated?.Invoke();
                 break;
             }
 
@@ -380,18 +392,17 @@ public class BattleTurnManager : MonoBehaviour
     private IEnumerator PreActionProcessing(BattleCharacterData actor)
     {
         // 全スキルのCT減算
-        var skills = dataManager.GetCharacterSkills(actor.characterId);
-        foreach (var skill in skills)
-        {
-            skill.ReduceCoolTime();
-        }
+        dataManager.ReduceSkillCooldowns(actor.characterId);
 
         // ターン開始時の状態効果処理
-        var turnStartEffects = calculationManager.CalculateTurnStartEffects(actor);
-        foreach (var effectDamage in turnStartEffects)
+        if (calculationManager != null)
         {
-            effectDamage.ApplyDamageToTarget(actor);
-            DebugLog($"{actor.characterName}にターン開始効果: {effectDamage}");
+            var turnStartEffects = calculationManager.CalculateTurnStartEffects(actor);
+            foreach (var effectDamage in turnStartEffects)
+            {
+                effectDamage.ApplyDamageToTarget(actor);
+                DebugLog($"{actor.characterName}にターン開始効果: {effectDamage.finalDamage}");
+            }
         }
 
         yield return new WaitForSeconds(0.1f);
@@ -448,7 +459,7 @@ public class BattleTurnManager : MonoBehaviour
         {
             if (skill.CanUse(actor.currentHp, actor.currentMp))
             {
-                // スキルの使用可否をAIで判定
+                // スキルの使用可能性をAIで判定
                 if (IsSkillWorthUsing(actor, skill))
                 {
                     return skill;
@@ -494,7 +505,7 @@ public class BattleTurnManager : MonoBehaviour
         // バフ・デバフスキルの場合
         if (skill.IsBuffSkill() || skill.IsDebuffSkill())
         {
-            // 状態効果がない場合に使用
+            // 状態効果が付いていない場合に使用
             return !actor.statusEffects.Any(e => e.effectId == skill.statusEffectId && e.IsActive());
         }
 
@@ -538,7 +549,7 @@ public class BattleTurnManager : MonoBehaviour
             else
             {
                 // ランダム選択
-                return validTargets[Random.Range(0, validTargets.Count)];
+                return validTargets[UnityEngine.Random.Range(0, validTargets.Count)];
             }
         }
         else if (skill.IsAllyTargetSkill())
@@ -568,7 +579,6 @@ public class BattleTurnManager : MonoBehaviour
     private IEnumerator ExecuteSkillActionCoroutine(BattleCharacterData actor, BattleSkillData skill)
     {
         var targets = new List<BattleCharacterData>();
-        var targetNames = new List<string>();
 
         // ターゲット選択
         if (skill.targetType == TargetType.EnemyAll || skill.targetType == TargetType.AllyAll)
@@ -592,7 +602,7 @@ public class BattleTurnManager : MonoBehaviour
             yield break;
         }
 
-        targetNames = targets.Select(t => t.characterName).ToList();
+        var targetNames = targets.Select(t => t.characterName).ToList();
 
         // ActionData作成
         var action = ActionData.CreateSkillUse(
@@ -622,39 +632,50 @@ public class BattleTurnManager : MonoBehaviour
             damageData.ApplyDamageToTarget(target);
             action.AddDamageResult(damageData);
 
-            // 状態効果の付与判定
+            // 状態効果の付与判定（修正版：TODOを解決）
             if (skill.HasStatusEffect())
             {
-                bool effectApplied = calculationManager.CalculateStatusEffectChance(
-                    skill.statusEffectChance,
-                    target.isPlayer == actor.isPlayer
-                );
+                bool statusEffectApplied;
 
-                if (effectApplied)
+                if (skill.targetType == TargetType.Self)
                 {
-                    // TODO: 状態効果付与処理（SkillEffectMasterDataから作成）
-                    DebugLog($"{target.characterName}に状態効果ID:{skill.statusEffectId}を付与");
+                    // 自分対象は100%発動
+                    statusEffectApplied = dataManager.ProcessSelfStatusEffect(actor, skill);
+                }
+                else
+                {
+                    // その他は確率判定を含めて処理
+                    statusEffectApplied = dataManager.ProcessSkillStatusEffect(actor, target, skill);
+                }
+
+                if (statusEffectApplied)
+                {
+                    DebugLog($"{actor.characterName}が{target.characterName}に状態効果を適用成功: {skill.skillName}");
+                }
+                else
+                {
+                    DebugLog($"{actor.characterName}の{target.characterName}への状態効果適用失敗: {skill.skillName}");
                 }
             }
+
+            action.actionSucceeded = true;
+            action.resultMessage = $"{skill.skillName}を使用";
+
+            // 統計更新
+            dataManager.UpdateCharacterSkillUsage(actor.characterId);
+
+            // ステップ12: 使用スキルのCT設定
+            dataManager.UseSkill(actor.characterId, skill.skillId);
+            DebugLog($"{skill.skillName}のCTをリセット: {skill.maxCoolTime}ターン");
+
+            // イベント通知
+            OnActionExecuted?.Invoke(action);
+            dataManager.AddBattleLog(action);
+
+            DebugLog($"{actor.characterName}が{skill.skillName}を使用: {action.GetActionSummary()}");
+
+            yield return new WaitForSeconds(skillAnimationDelay);
         }
-
-        action.actionSucceeded = true;
-        action.resultMessage = $"{skill.skillName}を使用";
-
-        // 統計更新
-        actor.skillsUsed++;
-
-        // ステップ12: 使用スキルのCT設定
-        skill.ResetCoolTime();
-        DebugLog($"{skill.skillName}のCTをリセット: {skill.maxCoolTime}ターン");
-
-        // イベント通知
-        OnActionExecuted?.Invoke(action);
-        dataManager.AddBattleLog(action);
-
-        DebugLog($"{actor.characterName}が{skill.skillName}を使用: {action.GetActionSummary()}");
-
-        yield return new WaitForSeconds(skillAnimationDelay);
     }
 
     /// <summary>
@@ -673,7 +694,7 @@ public class BattleTurnManager : MonoBehaviour
             yield break;
         }
 
-        var target = enemies[Random.Range(0, enemies.Count)];
+        var target = enemies[UnityEngine.Random.Range(0, enemies.Count)];
 
         // ActionData作成
         var action = ActionData.CreateNormalAttack(
@@ -694,7 +715,7 @@ public class BattleTurnManager : MonoBehaviour
         action.resultMessage = "通常攻撃";
 
         // 統計更新
-        actor.damageDealt += damageData.finalDamage;
+        dataManager.UpdateCharacterDamageStats(actor.characterId, damageData.finalDamage, 0);
 
         // イベント通知
         OnActionExecuted?.Invoke(action);
@@ -734,7 +755,7 @@ public class BattleTurnManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 次の行動者に進める
+    /// 次の行動者に進む
     /// 戦闘画面フロー ステップ17の実装
     /// </summary>
     private void AdvanceToNextActor()
@@ -743,7 +764,7 @@ public class BattleTurnManager : MonoBehaviour
 
         currentTurnIndex = (currentTurnIndex + 1) % turnOrder.Count;
 
-        // 1周した場合はターン数を増加
+        // 1巡した場合はターン数を増加
         if (currentTurnIndex == 0)
         {
             CurrentTurnNumber++;

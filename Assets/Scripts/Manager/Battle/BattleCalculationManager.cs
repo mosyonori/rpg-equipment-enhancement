@@ -25,6 +25,7 @@ public class BattleCalculationManager : MonoBehaviour
 
     // イベント
     public static event System.Action<DamageData> OnDamageCalculated;
+    public static event System.Action<StatusEffectData> OnStatusEffectApplied;
 
     // 依存Manager参照
     private BattleDataManager battleDataManager;
@@ -114,7 +115,7 @@ public class BattleCalculationManager : MonoBehaviour
         }
 
         // ランダム補正適用
-        float randomMultiplier = Random.Range(randomDamageMin, randomDamageMax);
+        float randomMultiplier = UnityEngine.Random.Range(randomDamageMin, randomDamageMax);
         damageData.randomMultiplier = randomMultiplier;
         baseDamage = Mathf.RoundToInt(baseDamage * randomMultiplier);
 
@@ -148,7 +149,7 @@ public class BattleCalculationManager : MonoBehaviour
         int healAmount = Mathf.RoundToInt(casterStats.offense * skill.damageMultiplier);
 
         // ランダム補正
-        float randomMultiplier = Random.Range(randomDamageMin, randomDamageMax);
+        float randomMultiplier = UnityEngine.Random.Range(randomDamageMin, randomDamageMax);
         healAmount = Mathf.RoundToInt(healAmount * randomMultiplier);
 
         // 回復は負の値で表現
@@ -207,23 +208,93 @@ public class BattleCalculationManager : MonoBehaviour
     public bool CalculateCritical(int criticalRate)
     {
         if (criticalRate <= 0) return false;
-        return Random.Range(0, 100) < criticalRate;
+        return UnityEngine.Random.Range(0, 100) < criticalRate;
     }
 
     /// <summary>
-    /// 状態効果の発動判定
+    /// 状態効果の発動判定（モンスタータイプ対応版）
+    /// CSVデータのskill_effect_chanceとskill_effect_chance_bossを正確に使用
     /// </summary>
-    public bool CalculateStatusEffectChance(int chance, bool isBossTarget = false)
+    public bool CalculateStatusEffectChance(BattleSkillData skill, BattleCharacterData target)
     {
-        if (chance <= 0) return false;
+        if (skill == null || target == null)
+        {
+            DebugLogError("状態効果計算でnullパラメータが渡されました");
+            return false;
+        }
 
-        // ボス相手の場合は効果が低下する可能性がある
-        int effectiveChance = isBossTarget ? chance / 2 : chance;
-        return Random.Range(0, 100) < effectiveChance;
+        // スキルマスターデータを取得
+        var skillMaster = MasterDataManager.Instance?.GetSkillData(skill.skillId);
+        if (skillMaster == null)
+        {
+            DebugLogError($"スキルマスターデータが見つかりません: SkillID={skill.skillId}");
+            return false;
+        }
+
+        // 状態効果がない場合
+        if (skillMaster.skillEffectChance <= 0)
+        {
+            return false;
+        }
+
+        // モンスタータイプ判定（プレイヤーの場合は通常扱い）
+        bool isBossTarget = false;
+        if (!target.isPlayer)
+        {
+            // BattleCharacterDataのcharacterIdからモンスターIDを抽出
+            if (target.characterId.StartsWith("monster_"))
+            {
+                string monsterIdStr = target.characterId.Replace("monster_", "");
+                if (int.TryParse(monsterIdStr, out int monsterId))
+                {
+                    var monsterMaster = QuestDataManager.Instance?.GetMonsterData(monsterId);
+                    if (monsterMaster != null)
+                    {
+                        isBossTarget = monsterMaster.IsBoss();
+                    }
+                    else
+                    {
+                        DebugLogWarning($"モンスターマスターデータが見つかりません: MonsterID={monsterId}");
+                    }
+                }
+                else
+                {
+                    DebugLogWarning($"characterIdからモンスターIDを解析できません: {target.characterId}");
+                }
+            }
+            else
+            {
+                // characterIdがmonster_形式でない場合、直接数値として解析を試行
+                if (int.TryParse(target.characterId, out int monsterId))
+                {
+                    var monsterMaster = QuestDataManager.Instance?.GetMonsterData(monsterId);
+                    if (monsterMaster != null)
+                    {
+                        isBossTarget = monsterMaster.IsBoss();
+                    }
+                }
+                else
+                {
+                    DebugLogWarning($"モンスターのcharacterID形式が不明です: {target.characterId}");
+                }
+            }
+        }
+
+        // CSVデータから正確な確率値を取得
+        int effectiveChance = isBossTarget ?
+            skillMaster.skillEffectChanceBoss :
+            skillMaster.skillEffectChance;
+
+        bool success = UnityEngine.Random.Range(0, 100) < effectiveChance;
+
+        DebugLog($"状態効果判定: {skill.skillName} → {target.characterName} " +
+                $"(確率: {effectiveChance}%, ボス: {isBossTarget}, 結果: {(success ? "成功" : "失敗")})");
+
+        return success;
     }
 
     /// <summary>
-    /// ActionDataに基づくダメージ計算（BattleManager連携用）
+    /// ActionDataに基づくダメージ計算（BattleManager用）
     /// </summary>
     public List<DamageData> CalculateActionDamage(ActionData action, List<BattleCharacterData> allCharacters)
     {
@@ -246,7 +317,7 @@ public class BattleCalculationManager : MonoBehaviour
             if (action.IsSkillUse())
             {
                 // スキル使用の場合
-                var skill = GetSkillData(actor.characterId, action.skillId);
+                var skill = battleDataManager.GetCharacterSkill(actor.characterId, action.skillId);
                 if (skill != null && skill.IsHealSkill())
                 {
                     damageData = CalculateHealAmount(actor, target, skill);
@@ -273,15 +344,6 @@ public class BattleCalculationManager : MonoBehaviour
     #region 内部メソッド
 
     /// <summary>
-    /// スキルデータを取得（BattleDataManager経由）
-    /// </summary>
-    private BattleSkillData GetSkillData(string characterId, int skillId)
-    {
-        if (battleDataManager == null) return null;
-        return battleDataManager.GetCharacterSkill(characterId, skillId);
-    }
-
-    /// <summary>
     /// 攻撃属性を決定
     /// </summary>
     private AttributeType DetermineAttackAttribute(BattleCharacterData attacker, BattleSkillData skill)
@@ -306,7 +368,7 @@ public class BattleCalculationManager : MonoBehaviour
             return 1.0f;
         }
 
-        // MonsterMasterDataの属性相性計算を活用
+        // MonsterMasterDataの属性相性計算を参考
         return GetAttributeCompatibility(attackAttribute, defenderAttribute);
     }
 
@@ -463,6 +525,14 @@ public class BattleCalculationManager : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log($"[BattleCalculationManager] {message}");
+        }
+    }
+
+    private void DebugLogWarning(string message)
+    {
+        if (enableDebugLog)
+        {
+            Debug.LogWarning($"[BattleCalculationManager] {message}");
         }
     }
 
