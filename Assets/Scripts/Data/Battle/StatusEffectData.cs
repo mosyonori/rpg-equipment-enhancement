@@ -42,7 +42,7 @@ public class StatusEffectData
     public int displayPriority;             // 表示優先度
 
     /// <summary>
-    /// デフォルトコンストラクタ
+    /// デフォルトコンストラクタ（修正版）
     /// </summary>
     public StatusEffectData()
     {
@@ -52,7 +52,8 @@ public class StatusEffectData
         waterOffenseMultiplier = 1.0f;
         windOffenseMultiplier = 1.0f;
         earthOffenseMultiplier = 1.0f;
-        appliedTimestamp = Time.time;
+        // Time.time の呼び出しを削除（初期化時に個別設定）
+        appliedTimestamp = 0f;
         isPositive = true;
     }
 
@@ -96,7 +97,18 @@ public class StatusEffectData
             displayPriority = masterData.skillEffectPriority
         };
 
+        // Time.timeは作成時に設定
+        statusEffect.SetAppliedTimestamp();
+
         return statusEffect;
+    }
+
+    /// <summary>
+    /// 付与時刻を現在時刻に設定（安全な場所で呼び出し）
+    /// </summary>
+    public void SetAppliedTimestamp()
+    {
+        appliedTimestamp = Time.time;
     }
 
     /// <summary>

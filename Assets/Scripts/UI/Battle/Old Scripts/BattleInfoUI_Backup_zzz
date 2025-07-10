@@ -1,0 +1,904 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+/// <summary>
+/// 戦闘進行情報の表示制御
+/// 役割：現在ターン数表示、次行動者ハイライト、残りターン警告
+/// データアクセス統一ルール: UI層 → Manager層 → データ層
+/// </summary>
+public class BattleInfoUI : MonoBehaviour
+{
+    [Header("ターン情報表示")]
+    [SerializeField] private TextMeshProUGUI currentTurnText;
+    [SerializeField] private TextMeshProUGUI maxTurnText;
+    [SerializeField] private TextMeshProUGUI remainingTurnText;
+    [SerializeField] private Slider turnProgressSlider;
+
+    [Header("行動順序表示")]
+    [SerializeField] private Transform turnOrderParent;
+    [SerializeField] private GameObject turnOrderSlotPrefab;
+    [SerializeField] private int maxTurnOrderDisplay = 5;
+
+    [Header("現在行動者表示")]
+    [SerializeField] private GameObject currentActorPanel;
+    [SerializeField] private TextMeshProUGUI currentActorNameText;
+    [SerializeField] private Image currentActorImage;
+    [SerializeField] private Image currentActorBackground;
+
+    [Header("戦闘状態表示")]
+    [SerializeField] private TextMeshProUGUI battleStateText;
+    [SerializeField] private Image battleStateIcon;
+    [SerializeField] private TextMeshProUGUI battleTimeText;
+
+    [Header("警告表示")]
+    [SerializeField] private GameObject turnWarningPanel;
+    [SerializeField] private TextMeshProUGUI turnWarningText;
+    [SerializeField] private Image turnWarningIcon;
+    [SerializeField] private AnimationCurve warningPulseCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
+
+    [Header("色設定")]
+    [SerializeField] private Color playerTurnColor = new Color(0.2f, 0.6f, 1f, 1f);      // 青
+    [SerializeField] private Color enemyTurnColor = new Color(1f, 0.4f, 0.2f, 1f);       // 赤
+    [SerializeField] private Color neutralColor = new Color(0.7f, 0.7f, 0.7f, 1f);      // グレー
+    [SerializeField] private Color warningColor = new Color(1f, 0.8f, 0f, 1f);          // 黄
+    [SerializeField] private Color dangerColor = new Color(1f, 0.2f, 0.2f, 1f);         // 赤
+
+    [Header("警告設定")]
+    [SerializeField][Range(0f, 1f)] private float turnWarningThreshold = 0.8f; // 80%で警告
+    [SerializeField][Range(0f, 1f)] private float turnDangerThreshold = 0.95f;  // 95%で危険
+    [SerializeField] private float warningPulseSpeed = 2f;
+    [SerializeField] private bool enableTurnWarning = true;
+
+    [Header("アニメーション設定")]
+    [SerializeField] private float actorChangeAnimationDuration = 0.3f;
+    [SerializeField] private float turnProgressAnimationDuration = 0.5f;
+    [SerializeField] private AnimationCurve actorChangeEasing = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+    [Header("テキストフォーマット")]
+    [SerializeField] private string turnFormat = "ターン: {0}";
+    [SerializeField] private string maxTurnFormat = "/ {0}";
+    [SerializeField] private string remainingTurnFormat = "残り: {0}";
+    [SerializeField] private string battleTimeFormat = "{0:mm\\:ss}";
+    [SerializeField] private string turnWarningFormat = "残り{0}ターン！";
+
+    // イベント
+    public static event Action<int> OnTurnChanged;
+    public static event Action<string> OnCurrentActorChanged;
+    public static event Action OnTurnWarningTriggered;
+    public static event Action OnTurnDangerTriggered;
+
+    // 内部状態
+    private bool isInitialized = false;
+    private int currentTurn = 1;
+    private int maxTurn = -1; // -1は無制限
+    private float battleStartTime;
+    private string currentActorId = "";
+    private List<TurnOrderSlot> turnOrderSlots;
+    private Coroutine actorChangeCoroutine;
+    private Coroutine turnProgressCoroutine;
+    private Coroutine warningPulseCoroutine;
+    private bool isWarningActive = false;
+
+    #region Unity Lifecycle
+
+    private void Awake()
+    {
+        InitializeCollections();
+        ValidateComponents();
+    }
+
+    private void Start()
+    {
+        InitializeBattleInfo();
+    }
+
+    private void Update()
+    {
+        UpdateBattleTime();
+    }
+
+    private void OnDestroy()
+    {
+        StopAllCoroutines();
+    }
+
+    #endregion
+
+    #region 初期化
+
+    /// <summary>
+    /// 戦闘情報UI初期化
+    /// </summary>
+    public void Initialize()
+    {
+        try
+        {
+            Log("BattleInfoUI初期化開始");
+            InitializeCollections();
+            InitializeBattleInfo();
+            isInitialized = true;
+            Log("BattleInfoUI初期化完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"BattleInfoUI初期化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// コレクション初期化
+    /// </summary>
+    private void InitializeCollections()
+    {
+        turnOrderSlots = new List<TurnOrderSlot>();
+    }
+
+    /// <summary>
+    /// コンポーネント検証
+    /// </summary>
+    private void ValidateComponents()
+    {
+        if (currentTurnText == null)
+            LogWarning("currentTurnTextが設定されていません");
+
+        if (turnOrderParent == null)
+            LogWarning("turnOrderParentが設定されていません");
+
+        if (currentActorPanel == null)
+            LogWarning("currentActorPanelが設定されていません");
+    }
+
+    /// <summary>
+    /// 戦闘情報基本設定
+    /// </summary>
+    private void InitializeBattleInfo()
+    {
+        try
+        {
+            // ターン進捗スライダー設定
+            if (turnProgressSlider != null)
+            {
+                turnProgressSlider.minValue = 0f;
+                turnProgressSlider.maxValue = 1f;
+                turnProgressSlider.value = 0f;
+                turnProgressSlider.interactable = false;
+            }
+
+            // 初期状態設定
+            battleStartTime = Time.time;
+            UpdateTurnDisplay();
+            UpdateBattleStateDisplay(BattleState.Idle);
+
+            // 警告パネル非表示
+            if (turnWarningPanel != null)
+                turnWarningPanel.SetActive(false);
+
+            Log("戦闘情報基本設定完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"戦闘情報初期化エラー: {e.Message}");
+        }
+    }
+
+    #endregion
+
+    #region 公開メソッド - イベントハンドラ
+
+    /// <summary>
+    /// 戦闘開始時の処理
+    /// </summary>
+    public void OnBattleStart(BattleSetupData setupData)
+    {
+        if (!isInitialized) Initialize();
+
+        try
+        {
+            Log("戦闘開始 - 戦闘情報UI初期化");
+
+            // 戦闘設定から最大ターン数設定
+            maxTurn = setupData.turnLimit;
+            currentTurn = 1;
+            battleStartTime = Time.time;
+
+            // 行動順序表示初期化
+            InitializeTurnOrder();
+
+            // 表示更新
+            UpdateTurnDisplay();
+            UpdateTurnProgressDisplay();
+            UpdateBattleStateDisplay(BattleState.InProgress);
+
+            Log($"戦闘情報初期化完了: 最大ターン{(maxTurn > 0 ? maxTurn.ToString() : "無制限")}");
+        }
+        catch (Exception e)
+        {
+            LogError($"戦闘開始処理エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// ターン開始時の処理
+    /// </summary>
+    public void OnTurnStart(BattleCharacterData character)
+    {
+        try
+        {
+            // 現在行動者更新
+            UpdateCurrentActor(character);
+
+            // ターン数更新（プレイヤーのターン時のみ）
+            if (character.isPlayer)
+            {
+                UpdateTurnNumber();
+            }
+
+            // 行動順序表示更新
+            UpdateTurnOrderDisplay();
+
+            Log($"ターン開始処理: {character.characterName} (ターン{currentTurn})");
+        }
+        catch (Exception e)
+        {
+            LogError($"ターン開始処理エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 行動実行時の処理
+    /// </summary>
+    public void OnActionExecuted(ActionData action)
+    {
+        try
+        {
+            // 特別な処理は現在なし（将来拡張用）
+            Log($"行動実行: {action.actorName} - {action.GetActionSummary()}");
+        }
+        catch (Exception e)
+        {
+            LogError($"行動実行処理エラー: {e.Message}");
+        }
+    }
+
+    #endregion
+
+    #region 公開メソッド - 状態更新
+
+    /// <summary>
+    /// 戦闘状態更新
+    /// </summary>
+    public void UpdateBattleStateDisplay(BattleState state)
+    {
+        try
+        {
+            if (battleStateText != null)
+            {
+                battleStateText.text = GetBattleStateText(state);
+            }
+
+            // 状態アイコン更新（実装予定）
+            if (battleStateIcon != null)
+            {
+                battleStateIcon.color = GetBattleStateColor(state);
+            }
+
+            Log($"戦闘状態表示更新: {state}");
+        }
+        catch (Exception e)
+        {
+            LogError($"戦闘状態表示更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// ターン数強制更新
+    /// </summary>
+    public void SetTurnNumber(int turn)
+    {
+        try
+        {
+            currentTurn = Math.Max(1, turn);
+            UpdateTurnDisplay();
+            UpdateTurnProgressDisplay();
+            OnTurnChanged?.Invoke(currentTurn);
+
+            Log($"ターン数設定: {currentTurn}");
+        }
+        catch (Exception e)
+        {
+            LogError($"ターン数設定エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 最大ターン数設定
+    /// </summary>
+    public void SetMaxTurn(int maxTurnCount)
+    {
+        try
+        {
+            maxTurn = maxTurnCount;
+            UpdateTurnDisplay();
+            UpdateTurnProgressDisplay();
+
+            Log($"最大ターン数設定: {(maxTurn > 0 ? maxTurn.ToString() : "無制限")}");
+        }
+        catch (Exception e)
+        {
+            LogError($"最大ターン数設定エラー: {e.Message}");
+        }
+    }
+
+    #endregion
+
+    #region 内部メソッド - ターン管理
+
+    /// <summary>
+    /// ターン数更新
+    /// </summary>
+    private void UpdateTurnNumber()
+    {
+        currentTurn++;
+        UpdateTurnDisplay();
+        UpdateTurnProgressDisplay();
+        OnTurnChanged?.Invoke(currentTurn);
+
+        // ターン警告チェック
+        CheckTurnWarning();
+    }
+
+    /// <summary>
+    /// ターン表示更新
+    /// </summary>
+    private void UpdateTurnDisplay()
+    {
+        try
+        {
+            if (currentTurnText != null)
+                currentTurnText.text = string.Format(turnFormat, currentTurn);
+
+            if (maxTurnText != null && maxTurn > 0)
+                maxTurnText.text = string.Format(maxTurnFormat, maxTurn);
+
+            if (remainingTurnText != null && maxTurn > 0)
+            {
+                int remaining = Math.Max(0, maxTurn - currentTurn + 1);
+                remainingTurnText.text = string.Format(remainingTurnFormat, remaining);
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"ターン表示更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// ターン進捗表示更新
+    /// </summary>
+    private void UpdateTurnProgressDisplay()
+    {
+        if (turnProgressSlider == null || maxTurn <= 0) return;
+
+        try
+        {
+            float progress = (float)currentTurn / maxTurn;
+
+            if (turnProgressCoroutine != null)
+                StopCoroutine(turnProgressCoroutine);
+
+            turnProgressCoroutine = StartCoroutine(TurnProgressAnimationCoroutine(progress));
+        }
+        catch (Exception e)
+        {
+            LogError($"ターン進捗更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// ターン進捗アニメーション
+    /// </summary>
+    private IEnumerator TurnProgressAnimationCoroutine(float targetProgress)
+    {
+        float startProgress = turnProgressSlider.value;
+        float elapsed = 0f;
+
+        while (elapsed < turnProgressAnimationDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / turnProgressAnimationDuration;
+            float currentProgress = Mathf.Lerp(startProgress, targetProgress, t);
+
+            turnProgressSlider.value = currentProgress;
+
+            // 色変更
+            UpdateProgressBarColor(currentProgress);
+
+            yield return null;
+        }
+
+        turnProgressSlider.value = targetProgress;
+        UpdateProgressBarColor(targetProgress);
+        turnProgressCoroutine = null;
+    }
+
+    /// <summary>
+    /// 進捗バー色更新
+    /// </summary>
+    private void UpdateProgressBarColor(float progress)
+    {
+        if (turnProgressSlider?.fillRect?.GetComponent<Image>() == null) return;
+
+        Image fillImage = turnProgressSlider.fillRect.GetComponent<Image>();
+
+        if (progress >= turnDangerThreshold)
+            fillImage.color = dangerColor;
+        else if (progress >= turnWarningThreshold)
+            fillImage.color = warningColor;
+        else
+            fillImage.color = neutralColor;
+    }
+
+    #endregion
+
+    #region 内部メソッド - 行動者管理
+
+    /// <summary>
+    /// 現在行動者更新
+    /// </summary>
+    private void UpdateCurrentActor(BattleCharacterData character)
+    {
+        try
+        {
+            string oldActorId = currentActorId;
+            currentActorId = character.characterId;
+
+            if (actorChangeCoroutine != null)
+                StopCoroutine(actorChangeCoroutine);
+
+            actorChangeCoroutine = StartCoroutine(ActorChangeAnimationCoroutine(character));
+
+            OnCurrentActorChanged?.Invoke(currentActorId);
+            Log($"現在行動者更新: {character.characterName}");
+        }
+        catch (Exception e)
+        {
+            LogError($"現在行動者更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 行動者変更アニメーション
+    /// </summary>
+    private IEnumerator ActorChangeAnimationCoroutine(BattleCharacterData character)
+    {
+        // フェードアウト
+        yield return StartCoroutine(FadeCurrentActorPanel(0f, actorChangeAnimationDuration * 0.3f));
+
+        // 内容更新
+        UpdateCurrentActorDisplay(character);
+
+        // フェードイン
+        yield return StartCoroutine(FadeCurrentActorPanel(1f, actorChangeAnimationDuration * 0.7f));
+
+        actorChangeCoroutine = null;
+    }
+
+    /// <summary>
+    /// 現在行動者パネルフェード
+    /// </summary>
+    private IEnumerator FadeCurrentActorPanel(float targetAlpha, float duration)
+    {
+        if (currentActorPanel == null) yield break;
+
+        CanvasGroup canvasGroup = currentActorPanel.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+            canvasGroup = currentActorPanel.AddComponent<CanvasGroup>();
+
+        float startAlpha = canvasGroup.alpha;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, actorChangeEasing.Evaluate(t));
+            yield return null;
+        }
+
+        canvasGroup.alpha = targetAlpha;
+    }
+
+    /// <summary>
+    /// 現在行動者表示更新
+    /// </summary>
+    private void UpdateCurrentActorDisplay(BattleCharacterData character)
+    {
+        try
+        {
+            if (currentActorNameText != null)
+                currentActorNameText.text = character.characterName;
+
+            // 背景色設定
+            if (currentActorBackground != null)
+            {
+                currentActorBackground.color = character.isPlayer ? playerTurnColor : enemyTurnColor;
+            }
+
+            // キャラクター画像設定（実装予定）
+            if (currentActorImage != null)
+            {
+                // 将来的にキャラクター画像設定
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"現在行動者表示更新エラー: {e.Message}");
+        }
+    }
+
+    #endregion
+
+    #region 内部メソッド - 行動順序表示
+
+    /// <summary>
+    /// 行動順序表示初期化
+    /// </summary>
+    private void InitializeTurnOrder()
+    {
+        if (turnOrderParent == null || BattleManager.Instance == null) return;
+
+        try
+        {
+            // 既存スロットクリア
+            ClearTurnOrderSlots();
+
+            // BattleTurnManager経由で行動順序取得
+            if (BattleTurnManager.Instance != null)
+            {
+                var turnOrder = BattleTurnManager.Instance.GetTurnOrder();
+                CreateTurnOrderSlots(turnOrder);
+            }
+
+            Log("行動順序表示初期化完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"行動順序表示初期化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 行動順序スロット作成
+    /// </summary>
+    private void CreateTurnOrderSlots(List<BattleCharacterData> characters)
+    {
+        if (turnOrderSlotPrefab == null) return;
+
+        int displayCount = Math.Min(characters.Count, maxTurnOrderDisplay);
+
+        for (int i = 0; i < displayCount; i++)
+        {
+            GameObject slotObj = Instantiate(turnOrderSlotPrefab, turnOrderParent);
+            var slotComponent = slotObj.GetComponent<TurnOrderSlot>();
+
+            if (slotComponent != null)
+            {
+                slotComponent.SetCharacter(characters[i], i == 0);
+                turnOrderSlots.Add(slotComponent);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 行動順序表示更新
+    /// </summary>
+    private void UpdateTurnOrderDisplay()
+    {
+        try
+        {
+            if (BattleTurnManager.Instance == null) return;
+
+            var currentActor = BattleTurnManager.Instance.GetCurrentTurnCharacter();
+
+            foreach (var slot in turnOrderSlots)
+            {
+                if (slot != null && currentActor != null)
+                {
+                    bool isActive = slot.GetCharacterId() == currentActor.characterId;
+                    slot.SetActive(isActive);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"行動順序表示更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 行動順序スロットクリア
+    /// </summary>
+    private void ClearTurnOrderSlots()
+    {
+        foreach (var slot in turnOrderSlots)
+        {
+            if (slot != null && slot.gameObject != null)
+                DestroyImmediate(slot.gameObject);
+        }
+        turnOrderSlots.Clear();
+    }
+
+    #endregion
+
+    #region 内部メソッド - 警告システム
+
+    /// <summary>
+    /// ターン警告チェック
+    /// </summary>
+    private void CheckTurnWarning()
+    {
+        if (!enableTurnWarning || maxTurn <= 0) return;
+
+        try
+        {
+            float progress = (float)currentTurn / maxTurn;
+
+            if (progress >= turnDangerThreshold && !isWarningActive)
+            {
+                ShowTurnWarning(true);
+                OnTurnDangerTriggered?.Invoke();
+            }
+            else if (progress >= turnWarningThreshold && !isWarningActive)
+            {
+                ShowTurnWarning(false);
+                OnTurnWarningTriggered?.Invoke();
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"ターン警告チェックエラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// ターン警告表示
+    /// </summary>
+    private void ShowTurnWarning(bool isDanger)
+    {
+        if (turnWarningPanel == null) return;
+
+        try
+        {
+            turnWarningPanel.SetActive(true);
+            isWarningActive = true;
+
+            int remainingTurns = Math.Max(0, maxTurn - currentTurn + 1);
+
+            if (turnWarningText != null)
+                turnWarningText.text = string.Format(turnWarningFormat, remainingTurns);
+
+            if (turnWarningIcon != null)
+                turnWarningIcon.color = isDanger ? dangerColor : warningColor;
+
+            // パルスアニメーション開始
+            StartWarningPulse();
+
+            Log($"ターン警告表示: {(isDanger ? "危険" : "警告")} (残り{remainingTurns}ターン)");
+        }
+        catch (Exception e)
+        {
+            LogError($"ターン警告表示エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 警告パルス開始
+    /// </summary>
+    private void StartWarningPulse()
+    {
+        if (warningPulseCoroutine != null)
+            StopCoroutine(warningPulseCoroutine);
+
+        warningPulseCoroutine = StartCoroutine(WarningPulseCoroutine());
+    }
+
+    /// <summary>
+    /// 警告パルスコルーチン
+    /// </summary>
+    private IEnumerator WarningPulseCoroutine()
+    {
+        while (isWarningActive && turnWarningPanel != null && turnWarningPanel.activeInHierarchy)
+        {
+            float pulse = warningPulseCurve.Evaluate((Time.time * warningPulseSpeed) % 1f);
+
+            if (turnWarningPanel != null)
+            {
+                var canvasGroup = turnWarningPanel.GetComponent<CanvasGroup>();
+                if (canvasGroup == null)
+                    canvasGroup = turnWarningPanel.AddComponent<CanvasGroup>();
+
+                canvasGroup.alpha = Mathf.Lerp(0.7f, 1f, pulse);
+            }
+
+            yield return null;
+        }
+
+        warningPulseCoroutine = null;
+    }
+
+    #endregion
+
+    #region 内部メソッド - ユーティリティ
+
+    /// <summary>
+    /// 戦闘時間更新
+    /// </summary>
+    private void UpdateBattleTime()
+    {
+        if (battleTimeText == null) return;
+
+        try
+        {
+            float elapsedTime = Time.time - battleStartTime;
+            TimeSpan timeSpan = TimeSpan.FromSeconds(elapsedTime);
+            battleTimeText.text = string.Format(battleTimeFormat, timeSpan);
+        }
+        catch (Exception e)
+        {
+            LogError($"戦闘時間更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 戦闘状態テキスト取得
+    /// </summary>
+    private string GetBattleStateText(BattleState state)
+    {
+        return state switch
+        {
+            BattleState.Idle => "待機中",
+            BattleState.Initializing => "初期化中",
+            BattleState.InProgress => "戦闘中",
+            BattleState.Completed => "完了",
+            _ => "不明"
+        };
+    }
+
+    /// <summary>
+    /// 戦闘状態色取得
+    /// </summary>
+    private Color GetBattleStateColor(BattleState state)
+    {
+        return state switch
+        {
+            BattleState.Idle => neutralColor,
+            BattleState.Initializing => warningColor,
+            BattleState.InProgress => playerTurnColor,
+            BattleState.Completed => neutralColor,
+            _ => neutralColor
+        };
+    }
+
+    #endregion
+
+    #region ログ・デバッグ
+
+    private void Log(string message)
+    {
+        Debug.Log($"[BattleInfoUI] {message}");
+    }
+
+    private void LogWarning(string message)
+    {
+        Debug.LogWarning($"[BattleInfoUI] {message}");
+    }
+
+    private void LogError(string message)
+    {
+        Debug.LogError($"[BattleInfoUI] {message}");
+    }
+
+    #endregion
+
+    #region エディタ用ツール
+
+#if UNITY_EDITOR
+    [ContextMenu("ターン数テスト（警告域）")]
+    private void TestTurnWarning()
+    {
+        if (maxTurn > 0)
+        {
+            int warningTurn = Mathf.RoundToInt(maxTurn * turnWarningThreshold);
+            SetTurnNumber(warningTurn);
+            Log($"ターン警告テスト: ターン{warningTurn}に設定");
+        }
+    }
+
+    [ContextMenu("ターン数テスト（危険域）")]
+    private void TestTurnDanger()
+    {
+        if (maxTurn > 0)
+        {
+            int dangerTurn = Mathf.RoundToInt(maxTurn * turnDangerThreshold);
+            SetTurnNumber(dangerTurn);
+            Log($"ターン危険テスト: ターン{dangerTurn}に設定");
+        }
+    }
+
+    [ContextMenu("最大ターン設定テスト")]
+    private void TestSetMaxTurn()
+    {
+        SetMaxTurn(10);
+        Log("最大ターンを10に設定");
+    }
+#endif
+
+    #endregion
+}
+
+/// <summary>
+/// 行動順序スロット基本コンポーネント（簡易実装）
+/// 将来的に専用クラスファイルで詳細実装予定
+/// </summary>
+public class TurnOrderSlot : MonoBehaviour
+{
+    [SerializeField] private TextMeshProUGUI characterNameText;
+    [SerializeField] private Image characterIcon;
+    [SerializeField] private Image backgroundImage;
+    [SerializeField] private GameObject activeIndicator;
+
+    private BattleCharacterData character;
+    private bool isActive = false;
+
+    public void SetCharacter(BattleCharacterData characterData, bool active = false)
+    {
+        character = characterData;
+        isActive = active;
+        UpdateDisplay();
+    }
+
+    public void SetActive(bool active)
+    {
+        isActive = active;
+        UpdateActiveState();
+    }
+
+    public string GetCharacterId()
+    {
+        return character?.characterId ?? "";
+    }
+
+    private void UpdateDisplay()
+    {
+        if (character == null) return;
+
+        if (characterNameText != null)
+            characterNameText.text = character.characterName;
+
+        if (backgroundImage != null)
+        {
+            backgroundImage.color = character.isPlayer ?
+                new Color(0.2f, 0.6f, 1f, 0.3f) : new Color(1f, 0.4f, 0.2f, 0.3f);
+        }
+
+        UpdateActiveState();
+    }
+
+    private void UpdateActiveState()
+    {
+        if (activeIndicator != null)
+            activeIndicator.SetActive(isActive);
+
+        if (backgroundImage != null && character != null)
+        {
+            float alpha = isActive ? 0.8f : 0.3f;
+            Color currentColor = backgroundImage.color;
+            currentColor.a = alpha;
+            backgroundImage.color = currentColor;
+        }
+    }
+}

@@ -58,11 +58,12 @@ public class BattleSkillData
             mpCost = masterData.skillMpCost
         };
 
-        // 状態効果設定（skillEffectから解析）
+        // 状態効果設定（修正箇所）
         if (!string.IsNullOrEmpty(masterData.skillEffect))
         {
-            // 簡易的な解析（実際の実装では詳細な解析が必要）
-            if (int.TryParse(masterData.skillEffect, out int effectId))
+            // 文字列を状態効果IDに変換
+            int effectId = ConvertSkillEffectNameToId(masterData.skillEffect);
+            if (effectId > 0)
             {
                 battleSkill.statusEffectId = effectId;
                 battleSkill.statusEffectChance = masterData.skillEffectChance;
@@ -70,6 +71,25 @@ public class BattleSkillData
         }
 
         return battleSkill;
+    }
+
+    /// <summary>
+    /// スキル効果名を状態効果IDに変換
+    /// CSVの文字列データを対応する数値IDに変換
+    /// </summary>
+    private static int ConvertSkillEffectNameToId(string effectName)
+    {
+        return effectName switch
+        {
+            "attack_down" => 1,    // 攻撃力低下
+            "defense_down" => 2,   // 防御力低下
+            "attack_up" => 3,      // 攻撃力増加
+            "defense_up" => 4,     // 防御力増加
+            "stun" => 6,           // 気絶
+            "poison" => 7,         // 毒
+            "regen" => 8,          // 継続回復
+            _ => 0                 // 不明な効果名は0（効果なし）
+        };
     }
 
     /// <summary>
@@ -92,7 +112,7 @@ public class BattleSkillData
     }
 
     /// <summary>
-    /// CTをリセット（スキル使用時）
+    /// CTをリセット（スキル使用後）
     /// </summary>
     public void ResetCoolTime()
     {

@@ -634,7 +634,7 @@ public class BattleDataManager : MonoBehaviour
 
         try
         {
-            // ★追加: effectMaster変数を定義
+            // 状態効果マスターデータを取得
             var effectMaster = MasterDataManager.Instance?.GetSkillEffectData(skill.statusEffectId);
             if (effectMaster == null)
             {
@@ -642,17 +642,21 @@ public class BattleDataManager : MonoBehaviour
                 return null;
             }
 
-            // StatusEffectData.CreateFromSkillEffectMasterの正しいシグネチャに合わせて呼び出し
+            // スキルマスターデータから継続時間を取得
+            var skillMaster = MasterDataManager.Instance?.GetSkillData(skill.skillId);
+            int duration = skillMaster?.skillEffectDuration ?? 1;
+
+            // StatusEffectData を作成（修正箇所：durationを正しく渡す）
             var statusEffect = StatusEffectData.CreateFromSkillEffectMaster(
                 effectMaster,
                 casterId,
-                casterId,  // targetIdとしてもcasterIdを使用（自分に付与する場合）
-                skill.skillId
+                casterId,  // targetId として casterId を使用
+                duration   // skillId ではなく duration を渡す
             );
 
             if (statusEffect == null)
             {
-                LogError($"StatusEffectDataの作成に失敗: SkillEffectID={skill.statusEffectId}");
+                LogError($"StatusEffectData の作成に失敗: SkillEffectID={skill.statusEffectId}");
                 return null;
             }
 
