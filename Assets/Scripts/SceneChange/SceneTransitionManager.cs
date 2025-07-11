@@ -142,16 +142,36 @@ public class SceneTransitionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// クエスト戦闘シーンに遷移（未実装）
+    /// クエスト戦闘シーンに遷移
     /// </summary>
     public void TransitionToQuestBattle()
     {
-        if (!SceneNames.IsSceneImplemented(SceneNames.QUEST_BATTLE))
+        LogDebug("クエスト戦闘シーンに遷移します");
+
+        // 修正: より詳細なデバッグログ
+        int selectedQuestId = QuestSelectionData.GetSelectedQuestId();
+        bool hasValidQuest = QuestSelectionData.HasValidQuest();
+
+        LogDebug($"選択されたクエストID: {selectedQuestId}");
+        LogDebug($"有効なクエストが選択されているか: {hasValidQuest}");
+
+        // 選択されたクエストが有効かチェック
+        if (!hasValidQuest)
         {
-            ShowNotImplementedMessage("クエスト・戦闘");
+            LogError($"有効なクエストが選択されていません - questId={selectedQuestId}");
+            LogError("QuestDetailUIでSetSelectedQuest()が正しく呼ばれているか確認してください");
+
+            // 修正: デバッグ情報を追加
+            LogError($"QuestSelectionData.GetSelectedQuestId() = {QuestSelectionData.GetSelectedQuestId()}");
+            LogError($"QuestSelectionData.HasValidQuest() = {QuestSelectionData.HasValidQuest()}");
+
             return;
         }
-        TransitionToScene(SceneNames.QUEST_BATTLE);
+
+        LogDebug($"選択されたクエストID: {selectedQuestId}");
+
+        // 実際のシーン名「BattleScene」に修正
+        TransitionToScene("BattleScene");
     }
 
     /// <summary>
@@ -399,73 +419,68 @@ public class SceneTransitionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// シーンの依存関係チェック
+    /// シーンの依存関係チェック（デバッグ強化版）
     /// </summary>
     private bool ValidateSceneDependencies(string sceneName)
     {
         // 依存関係チェックを無効化している場合はスキップ
         if (!validateDependencies)
         {
+            LogDebug("依存関係チェックが無効化されています");
             return true;
         }
 
+        LogDebug($"シーン依存関係チェック開始: {sceneName}");
+
         switch (sceneName)
         {
-            case SceneNames.EQUIPMENT_EDIT:
-                // 装備編集シーンの場合：
-                // InventoryManagerは遷移先シーンで初期化されるため、事前チェックは不要
-                // 代わりに必要なデータマネージャーの存在のみチェック
-                if (SaveDataManager.Instance == null)
-                {
-                    LogError("SaveDataManagerが見つかりません - 装備編集シーンに遷移できません");
-                    return false;
-                }
-                if (MasterDataManager.Instance == null)
-                {
-                    LogError("MasterDataManagerが見つかりません - 装備編集シーンに遷移できません");
-                    return false;
-                }
-                LogDebug("装備編集シーン依存関係チェック完了 - 必要なデータマネージャーが利用可能");
-                break;
-
-            case SceneNames.EQUIPMENT_ENHANCE:
-                // 装備強化シーンの場合：
-                // EquipmentEnhanceManagerは遷移先シーンで初期化されるため、事前チェックは不要
-                // 代わりに必要なデータマネージャーの存在のみチェック
-                if (SaveDataManager.Instance == null)
-                {
-                    LogError("SaveDataManagerが見つかりません - 装備強化シーンに遷移できません");
-                    return false;
-                }
-                if (MasterDataManager.Instance == null)
-                {
-                    LogError("MasterDataManagerが見つかりません - 装備強化シーンに遷移できません");
-                    return false;
-                }
-                LogDebug("装備強化シーン依存関係チェック完了 - 必要なデータマネージャーが利用可能");
-                break;
-
             case SceneNames.QUEST_BATTLE:
-                // 戦闘シーンの場合（未実装）
-                LogDebug("戦闘シーン依存関係チェック（未実装のためスキップ）");
+                // 戦闘シーンの場合（デバッグ強化版）
+                LogDebug("戦闘シーン依存関係チェック開始");
+
+                // 必須マネージャーチェック
+                if (SaveDataManager.Instance == null || !SaveDataManager.Instance.IsDataLoaded)
+                {
+                    LogError("SaveDataManagerが未初期化 - 戦闘シーンに遷移できません");
+                    return false;
+                }
+                LogDebug("SaveDataManager: OK");
+
+                if (MasterDataManager.Instance == null || !MasterDataManager.Instance.IsDataLoaded)
+                {
+                    LogError("MasterDataManagerが未初期化 - 戦闘シーンに遷移できません");
+                    return false;
+                }
+                LogDebug("MasterDataManager: OK");
+
+                if (QuestDataManager.Instance == null || !QuestDataManager.Instance.IsDataLoaded)
+                {
+                    LogError("QuestDataManagerが未初期化 - 戦闘シーンに遷移できません");
+                    return false;
+                }
+                LogDebug("QuestDataManager: OK");
+
+               
+
+                if (!QuestSelectionData.HasValidQuest())
+                {
+                    int currentQuestId = QuestSelectionData.GetSelectedQuestId();
+                    LogError($"有効なクエストが選択されていません - questId={currentQuestId}");
+                    LogError("QuestDetailUIでSetSelectedQuest()が正しく呼ばれているか確認してください");
+                    return false;
+                }
+
+                int questId = QuestSelectionData.GetSelectedQuestId();
+                LogDebug($"戦闘シーン依存関係チェック完了 - 選択クエストID: {questId}");
                 break;
 
-            case SceneNames.GACHA:
-                // ガチャシーンの場合（未実装）
-                LogDebug("ガチャシーン依存関係チェック（未実装のためスキップ）");
-                break;
-
-            case SceneNames.TITLE:
-            case SceneNames.HOME:
-                // タイトル・ホームシーンは依存関係なし
-                LogDebug($"{sceneName}シーンは依存関係チェック不要");
-                break;
-
+            // 他のケース...
             default:
-                LogWarning($"未知のシーン名のため依存関係チェックをスキップ: {sceneName}");
+                LogDebug($"{sceneName}は依存関係チェック対象外");
                 break;
         }
 
+        LogDebug($"シーン依存関係チェック完了: {sceneName}");
         return true;
     }
 

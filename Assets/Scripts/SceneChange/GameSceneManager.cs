@@ -100,33 +100,6 @@ public class GameSceneManager : MonoBehaviour
         LogDebug($"GameSceneManager初期化完了 - 現在のシーン: {CurrentSceneName}");
     }
 
-    /// <summary>
-    /// シーン別初期化ハンドラーを登録
-    /// </summary>
-    private void RegisterSceneInitializers()
-    {
-        // Unity SceneManager.GetActiveScene().name で取得される実際のファイル名で登録
-
-        // タイトルシーン初期化
-        sceneInitializers["TitleScene"] = InitializeTitleScene;
-
-        // ホームシーン初期化
-        sceneInitializers["HomeScene"] = InitializeHomeScene;
-
-        // 装備編集シーン初期化（InventoryScene）
-        sceneInitializers["InventoryScene"] = InitializeEquipmentEditScene;
-
-        // 装備強化シーン初期化（EquipmentScene）
-        sceneInitializers["EquipmentScene"] = InitializeEquipmentEnhanceScene;
-
-        // クエスト戦闘シーン初期化（未実装）
-        sceneInitializers["QuestBattleScene"] = InitializeQuestBattleScene;
-
-        // ガチャシーン初期化（未実装）
-        sceneInitializers["GachaScene"] = InitializeGachaScene;
-    }
-
-    #endregion
 
     #region Scene Transition Tracking
 
@@ -336,20 +309,151 @@ public class GameSceneManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// クエスト戦闘シーン初期化（未実装）
-    /// </summary>
-    private void InitializeQuestBattleScene()
-    {
-        LogDebug("クエスト戦闘シーン初期化実行（未実装）");
+    #region 戦闘シーン遷移
 
-        // TODO: 将来実装予定
-        /*
-        // 実装予定例（コメントアウト）:
-        // - BattleManager.Instance.InitializeBattle();
-        // - EnemyManager.Instance.LoadEnemyData();
-        // - PlayerPartyManager.Instance.SetupBattleParty();
-        */
+    /// <summary>
+    /// クエスト戦闘シーンに遷移
+    /// </summary>
+    public void TransitionToQuestBattle()
+    {
+        LogDebug("クエスト戦闘シーンに遷移します");
+
+        // 修正: より詳細なデバッグログ
+        int selectedQuestId = QuestSelectionData.GetSelectedQuestId();
+        bool hasValidQuest = QuestSelectionData.HasValidQuest();
+
+        LogDebug($"選択されたクエストID: {selectedQuestId}");
+        LogDebug($"有効なクエストが選択されているか: {hasValidQuest}");
+
+        // 選択されたクエストが有効かチェック
+        if (!hasValidQuest)
+        {
+            LogError($"有効なクエストが選択されていません - questId={selectedQuestId}");
+            LogError("QuestDetailUIでSetSelectedQuest()が正しく呼ばれているか確認してください");
+            return;
+        }
+
+        LogDebug($"選択されたクエストID: {selectedQuestId}");
+
+        // 実際のシーン名「BattleScene」に修正
+        SceneTransitionManager.Instance.TransitionToScene("BattleScene");
+    }
+
+    /// <summary>
+    /// 戦闘シーンから直接ホームに戻る
+    /// </summary>
+    public void ReturnToHomeFromBattle()
+    {
+        LogDebug("戦闘シーンからホーム画面に戻ります");
+
+        // クエスト選択データをクリア
+        QuestSelectionData.ClearSelectedQuest();
+
+        GoToHome();
+    }
+
+    #endregion
+
+    // InitializeQuestBattleScene()メソッドを以下のように実装
+
+    // RegisterSceneInitializers()メソッド内の戦闘シーン登録も修正
+
+    /// <summary>
+    /// シーン別初期化ハンドラーを登録
+    /// </summary>
+    private void RegisterSceneInitializers()
+    {
+        // Unity SceneManager.GetActiveScene().name で取得される実際のファイル名で登録
+
+        // タイトルシーン初期化
+        sceneInitializers["TitleScene"] = InitializeTitleScene;
+
+        // ホームシーン初期化
+        sceneInitializers["HomeScene"] = InitializeHomeScene;
+
+        // 装備編集シーン初期化（InventoryScene）
+        sceneInitializers["InventoryScene"] = InitializeEquipmentEditScene;
+
+        // 装備強化シーン初期化（EquipmentScene）
+        sceneInitializers["EquipmentScene"] = InitializeEquipmentEnhanceScene;
+
+        // 戦闘シーン初期化（実際のシーン名「BattleScene」に修正）
+        sceneInitializers["BattleScene"] = InitializeBattleScene;
+
+        // ガチャシーン初期化（未実装）
+        sceneInitializers["GachaScene"] = InitializeGachaScene;
+    }
+
+    /// <summary>
+    /// 戦闘シーン初期化（BattleScene用に名前変更）
+    /// </summary>
+    private void InitializeBattleScene()
+    {
+        LogDebug("戦闘シーン初期化実行");
+
+        try
+        {
+            // 必要なManagerの初期化確認
+            if (!CheckBattleSceneManagers())
+            {
+                LogError("戦闘シーンに必要なManagerが初期化されていません");
+                return;
+            }
+
+            // QuestBattleSceneManagerの確認（新API使用）
+            var questBattleManager = FindFirstObjectByType<QuestBattleSceneManager>();
+            if (questBattleManager != null)
+            {
+                LogDebug("QuestBattleSceneManager発見 - 戦闘初期化を開始します");
+            }
+            else
+            {
+                LogWarning("QuestBattleSceneManagerが見つかりません");
+            }
+
+            LogDebug("戦闘シーン初期化完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"戦闘シーン初期化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 戦闘シーンに必要なManagerの確認
+    /// </summary>
+    private bool CheckBattleSceneManagers()
+    {
+        // SaveDataManager確認
+        if (SaveDataManager.Instance == null || !SaveDataManager.Instance.IsDataLoaded)
+        {
+            LogDebug("SaveDataManager未初期化");
+            return false;
+        }
+
+        // MasterDataManager確認  
+        if (MasterDataManager.Instance == null || !MasterDataManager.Instance.IsDataLoaded)
+        {
+            LogDebug("MasterDataManager未初期化");
+            return false;
+        }
+
+        // QuestDataManager確認
+        if (QuestDataManager.Instance == null || !QuestDataManager.Instance.IsDataLoaded)
+        {
+            LogDebug("QuestDataManager未初期化");
+            return false;
+        }
+
+        // BattleManager確認
+        if (BattleManager.Instance == null)
+        {
+            LogDebug("BattleManager未初期化");
+            return false;
+        }
+
+        LogDebug("戦闘シーン必要Manager確認完了");
+        return true;
     }
 
     /// <summary>
@@ -474,3 +578,4 @@ public class GameSceneManager : MonoBehaviour
 
     #endregion
 }
+#endregion

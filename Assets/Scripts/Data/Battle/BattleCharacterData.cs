@@ -14,6 +14,7 @@ public class BattleCharacterData
     public string characterName;            // キャラクター名
     public bool isPlayer;                   // プレイヤーキャラクターか
     public bool isAlive;                    // 生存フラグ
+    public Sprite characterSprite;          // キャラクター画像（追加）
 
     [Header("現在ステータス")]
     public int currentHp;                   // 現在HP
@@ -73,6 +74,7 @@ public class BattleCharacterData
             isPlayer = true,
             isAlive = true,
             masterDataId = masterData.CharacterId,
+            characterSprite = null, // 必要に応じて設定
 
             // 装備込みステータス設定
             maxHp = masterData.Hp + equipmentStats.hp,
@@ -128,6 +130,7 @@ public class BattleCharacterData
             isPlayer = false,
             isAlive = true,
             masterDataId = masterData.monsterId,
+            characterSprite = null, // 必要に応じて設定
 
             // ステータス設定
             maxHp = masterData.hp,

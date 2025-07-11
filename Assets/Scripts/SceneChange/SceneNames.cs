@@ -1,5 +1,5 @@
 /// <summary>
-/// シーン名の定数管理クラス
+/// シーン名の定数管理クラス（修正版）
 /// Build Settingsのシーン名と一致させること
 /// </summary>
 public static class SceneNames
@@ -27,9 +27,9 @@ public static class SceneNames
     public const string EQUIPMENT_ENHANCE = "EquipmentScene";
 
     /// <summary>
-    /// クエスト戦闘画面（未実装）
+    /// 戦闘画面（修正：実際のシーン名に合わせる）
     /// </summary>
-    public const string QUEST_BATTLE = "QuestBattleScene";
+    public const string QUEST_BATTLE = "BattleScene";
 
     /// <summary>
     /// ガチャ画面（未実装）
@@ -53,21 +53,21 @@ public static class SceneNames
     };
 
     /// <summary>
-    /// 実装済みシーン名のリスト
+    /// 実装済みシーン名のリスト（修正：戦闘シーンを実装済みに変更）
     /// </summary>
     public static readonly string[] IMPLEMENTED_SCENES = {
         TITLE,
         HOME,
         EQUIPMENT_EDIT,
-        EQUIPMENT_ENHANCE
+        EQUIPMENT_ENHANCE,
+        QUEST_BATTLE  // ← 実装済みに追加
     };
 
     /// <summary>
-    /// 未実装シーン名のリスト
+    /// 未実装シーン名のリスト（修正：戦闘シーンを除外）
     /// </summary>
     public static readonly string[] NOT_IMPLEMENTED_SCENES = {
-        QUEST_BATTLE,
-        GACHA
+        GACHA  // ← 戦闘シーンを除外
     };
 
     /// <summary>
@@ -107,7 +107,7 @@ public static class SceneNames
             HOME => "ホーム",
             EQUIPMENT_EDIT => "装備編集",
             EQUIPMENT_ENHANCE => "装備強化",
-            QUEST_BATTLE => "クエスト・戦闘",
+            QUEST_BATTLE => "戦闘", // ← 表示名を簡潔に変更
             GACHA => "ガチャ",
             _ => "不明なシーン"
         };
@@ -154,7 +154,7 @@ public static class SceneNames
             "HomeScene" => HOME,
             "InventoryScene" => EQUIPMENT_EDIT,
             "EquipmentScene" => EQUIPMENT_ENHANCE,
-            "QuestBattleScene" => QUEST_BATTLE,
+            "BattleScene" => QUEST_BATTLE,  // ← 修正：BattleSceneに対応
             "GachaScene" => GACHA,
             _ => actualSceneName // 不明な場合はそのまま返す
         };
@@ -172,7 +172,7 @@ public static class SceneNames
             HOME,            // HomeScene  
             EQUIPMENT_EDIT,  // InventoryScene
             EQUIPMENT_ENHANCE, // EquipmentScene
-            QUEST_BATTLE,    // QuestBattleScene (未実装)
+            QUEST_BATTLE,    // BattleScene（修正：実装済み）
             GACHA           // GachaScene (未実装)
         };
     }

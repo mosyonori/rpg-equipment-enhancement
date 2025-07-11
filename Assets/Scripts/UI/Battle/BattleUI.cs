@@ -27,7 +27,7 @@ public class BattleUI : MonoBehaviour
 
     [Header("UIコンポーネント参照")]
     [SerializeField] private PlayerBattleUI playerBattleUI;
-    [SerializeField] private MonsterBattleUI monsterBattleUI;
+    [SerializeField] private MonsterAreaManager monsterAreaManager; // 変更: MonsterBattleUI → MonsterAreaManager
     [SerializeField] private BattleInfoUI battleInfoUI;
     [SerializeField] private SkillInfoUI skillInfoUI;
     [SerializeField] private BattleLogUI battleLogUI;
@@ -82,6 +82,12 @@ public class BattleUI : MonoBehaviour
     /// </summary>
     private void InitializeUI()
     {
+        if (!Application.isPlaying)
+        {
+            DebugLog("エディタモードのため初期化をスキップ");
+            return;
+        }
+
         try
         {
             // 初期状態設定
@@ -115,8 +121,8 @@ public class BattleUI : MonoBehaviour
         if (playerBattleUI != null)
             playerBattleUI.Initialize();
 
-        if (monsterBattleUI != null)
-            monsterBattleUI.Initialize();
+        if (monsterAreaManager != null) // 変更: MonsterAreaManager
+            monsterAreaManager.Initialize();
 
         if (battleInfoUI != null)
             battleInfoUI.Initialize();
@@ -367,7 +373,7 @@ public class BattleUI : MonoBehaviour
     private void NotifyBattleStartToComponents(BattleSetupData setupData)
     {
         playerBattleUI?.OnBattleStart(setupData);
-        monsterBattleUI?.OnBattleStart(setupData);
+        monsterAreaManager?.OnBattleStart(setupData); // 変更: MonsterAreaManager
         battleInfoUI?.OnBattleStart(setupData);
         skillInfoUI?.OnBattleStart(setupData);
         battleLogUI?.OnBattleStart(setupData);
@@ -379,7 +385,7 @@ public class BattleUI : MonoBehaviour
     private void NotifyTurnStartToComponents(BattleCharacterData character)
     {
         playerBattleUI?.OnTurnStart(character);
-        monsterBattleUI?.OnTurnStart(character);
+        monsterAreaManager?.OnTurnStart(character); // 変更: MonsterAreaManager
         battleInfoUI?.OnTurnStart(character);
         skillInfoUI?.OnTurnStart(character);
     }
@@ -390,7 +396,7 @@ public class BattleUI : MonoBehaviour
     private void NotifyActionExecutedToComponents(ActionData action)
     {
         playerBattleUI?.OnActionExecuted(action);
-        monsterBattleUI?.OnActionExecuted(action);
+        monsterAreaManager?.OnActionExecuted(action); // 変更: MonsterAreaManager
         battleLogUI?.OnActionExecuted(action);
     }
 
@@ -505,6 +511,22 @@ public class BattleUI : MonoBehaviour
     public BattleState GetCurrentBattleState()
     {
         return currentBattleState;
+    }
+
+    /// <summary>
+    /// MonsterAreaManager取得
+    /// </summary>
+    public MonsterAreaManager GetMonsterAreaManager()
+    {
+        return monsterAreaManager;
+    }
+
+    /// <summary>
+    /// PlayerBattleUI取得
+    /// </summary>
+    public PlayerBattleUI GetPlayerBattleUI()
+    {
+        return playerBattleUI;
     }
 
     #endregion

@@ -1,42 +1,56 @@
 using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// モンスター群の戦闘UI制御
+/// 単体モンスターの戦闘UI制御
 /// 役割：モンスター画像・名前表示、HPバー・状態表示、撃破時のアニメーション
 /// データアクセス統一ルール: UI層 → Manager層 → データ層
 /// </summary>
 public class MonsterBattleUI : MonoBehaviour
 {
-    [Header("モンスター表示エリア")]
-    [SerializeField] private Transform monsterGridParent;
-    [SerializeField] private GridLayoutGroup monsterGridLayout;
-    [SerializeField] private GameObject monsterSlotPrefab;
+    [Header("モンスター基本情報")]
+    [SerializeField] private Image monsterImage;
+    [SerializeField] private TextMeshProUGUI monsterNameText;
+    [SerializeField] private Button monsterButton;
 
-    [Header("モンスター共通UI設定")]
-    [SerializeField] private Vector2 monsterSlotSize = new Vector2(150f, 200f);
-    [SerializeField] private Vector2 monsterSpacing = new Vector2(10f, 10f);
-    [SerializeField] private int maxMonstersPerRow = 3;
+    [Header("HPバー")]
+    [SerializeField] private Slider hpSlider;
+    [SerializeField] private Image hpFillImage;
+    [SerializeField] private TextMeshProUGUI hpText;
+    [SerializeField] private Color hpNormalColor = Color.green;
+    [SerializeField] private Color hpWarningColor = Color.yellow;
+    [SerializeField] private Color hpDangerColor = Color.red;
 
-    [Header("撃破エフェクト")]
+    [Header("行動順位表示")]
+    [SerializeField] private GameObject turnOrderIndicator;
+    [SerializeField] private TextMeshProUGUI turnOrderText;
+    [SerializeField] private Image turnOrderBackground;
+    [SerializeField] private Color activeTurnColor = Color.yellow;
+    [SerializeField] private Color inactiveTurnColor = Color.gray;
+
+    [Header("状態効果表示")]
+    [SerializeField] private Transform statusEffectParent;
+    [SerializeField] private GameObject statusEffectIconPrefab;
+
+    [Header("撃破演出")]
+    [SerializeField] private CanvasGroup monsterCanvasGroup;
     [SerializeField] private GameObject defeatEffectPrefab;
     [SerializeField] private float defeatAnimationDuration = 1.0f;
     [SerializeField] private AnimationCurve defeatFadeCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
 
-    [Header("行動順位表示")]
-    [SerializeField] private Color activeTurnColor = Color.yellow;
-    [SerializeField] private Color inactiveTurnColor = Color.gray;
-    [SerializeField] private float turnIndicatorScale = 1.2f;
-
     [Header("ダメージエフェクト")]
     [SerializeField] private float damageShakeStrength = 5f;
     [SerializeField] private float damageShakeDuration = 0.3f;
-    [SerializeField] private Color damageFlashColor = Color.red;
     [SerializeField] private float damageFlashDuration = 0.2f;
+    [SerializeField] private Color damageFlashColor = Color.red;
+
+    [Header("アニメーション設定")]
+    [SerializeField] private float hpAnimationDuration = 0.3f;
+    [SerializeField] private float turnIndicatorScale = 1.2f;
 
     // イベント
     public static event Action<string> OnMonsterSelected;
@@ -44,21 +58,33 @@ public class MonsterBattleUI : MonoBehaviour
 
     // 内部状態
     private bool isInitialized = false;
-    private Dictionary<string, MonsterSlotUIComponent> monsterSlots;
-    private List<BattleCharacterData> currentMonsters;
-    private string currentActiveMonster = "";
+    private BattleCharacterData currentMonsterData;
+    private float targetHpRatio = 1f;
+    private Coroutine hpAnimationCoroutine;
+    private bool isDefeated = false;
+
+    // インスタンス管理用リスト（プレハブエラー対策）
+    private List<GameObject> statusEffectInstances = new List<GameObject>();
+
+    // HPバー危険度しきい値
+    private const float HP_WARNING_THRESHOLD = 0.5f;
+    private const float HP_DANGER_THRESHOLD = 0.25f;
 
     #region Unity Lifecycle
 
     private void Awake()
     {
-        InitializeCollections();
         ValidateComponents();
+        SetupEventListeners();
     }
 
-    private void Start()
+    private void OnDestroy()
     {
-        SetupGridLayout();
+        CleanupEventListeners();
+        if (hpAnimationCoroutine != null)
+        {
+            StopCoroutine(hpAnimationCoroutine);
+        }
     }
 
     #endregion
@@ -70,18 +96,42 @@ public class MonsterBattleUI : MonoBehaviour
     /// </summary>
     public void Initialize()
     {
+        if (!Application.isPlaying)
+        {
+            Log("エディタモードのため初期化をスキップ");
+            return;
+        }
+
         try
         {
             Log("MonsterBattleUI初期化開始");
 
-            // コレクション初期化
-            InitializeCollections();
+            // 初期状態設定
+            if (hpSlider != null)
+            {
+                hpSlider.value = 1f;
+                hpSlider.maxValue = 1f;
+                hpSlider.minValue = 0f;
+            }
 
-            // グリッドレイアウト設定
-            SetupGridLayout();
+            // 行動順位表示初期化
+            SetTurnOrderActive(false);
 
-            // 既存のモンスタースロットをクリア
-            ClearMonsterSlots();
+            // 状態効果エリアクリア
+            ClearStatusEffects();
+
+            // 撃破状態リセット
+            isDefeated = false;
+            if (monsterCanvasGroup != null)
+            {
+                monsterCanvasGroup.alpha = 1f;
+            }
+
+            // ボタン有効化
+            if (monsterButton != null)
+            {
+                monsterButton.interactable = true;
+            }
 
             isInitialized = true;
             Log("MonsterBattleUI初期化完了");
@@ -93,49 +143,42 @@ public class MonsterBattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// コレクション初期化
-    /// </summary>
-    private void InitializeCollections()
-    {
-        monsterSlots = new Dictionary<string, MonsterSlotUIComponent>();
-        currentMonsters = new List<BattleCharacterData>();
-    }
-
-    /// <summary>
     /// コンポーネント検証
     /// </summary>
     private void ValidateComponents()
     {
-        if (monsterGridParent == null)
-            LogWarning("monsterGridParentが設定されていません");
+        if (monsterNameText == null)
+            LogWarning("monsterNameTextが設定されていません");
 
-        if (monsterSlotPrefab == null)
-            LogWarning("monsterSlotPrefabが設定されていません");
+        if (hpSlider == null)
+            LogWarning("hpSliderが設定されていません");
 
-        if (monsterGridLayout == null)
-            LogWarning("monsterGridLayoutが設定されていません");
+        if (hpText == null)
+            LogWarning("hpTextが設定されていません");
+
+        if (monsterButton == null)
+            LogWarning("monsterButtonが設定されていません");
     }
 
     /// <summary>
-    /// グリッドレイアウト設定
+    /// イベントリスナー設定
     /// </summary>
-    private void SetupGridLayout()
+    private void SetupEventListeners()
     {
-        if (monsterGridLayout == null) return;
-
-        try
+        if (monsterButton != null)
         {
-            monsterGridLayout.cellSize = monsterSlotSize;
-            monsterGridLayout.spacing = monsterSpacing;
-            monsterGridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            monsterGridLayout.constraintCount = maxMonstersPerRow;
-            monsterGridLayout.childAlignment = TextAnchor.MiddleCenter;
-
-            Log("グリッドレイアウト設定完了");
+            monsterButton.onClick.AddListener(OnMonsterButtonClicked);
         }
-        catch (Exception e)
+    }
+
+    /// <summary>
+    /// イベントリスナークリーンアップ
+    /// </summary>
+    private void CleanupEventListeners()
+    {
+        if (monsterButton != null)
         {
-            LogError($"グリッドレイアウト設定エラー: {e.Message}");
+            monsterButton.onClick.RemoveListener(OnMonsterButtonClicked);
         }
     }
 
@@ -144,29 +187,21 @@ public class MonsterBattleUI : MonoBehaviour
     #region 公開メソッド - イベントハンドラ
 
     /// <summary>
-    /// 戦闘開始時の処理
+    /// モンスターデータ設定
     /// </summary>
-    public void OnBattleStart(BattleSetupData setupData)
+    public void SetMonsterData(BattleCharacterData monsterData)
     {
-        if (!isInitialized) Initialize();
+        if (monsterData == null || monsterData.isPlayer) return;
 
         try
         {
-            Log("戦闘開始 - モンスターUI初期化");
-
-            // BattleManager経由でモンスターデータを取得
-            if (BattleManager.Instance != null)
-            {
-                var allCharacters = BattleManager.Instance.GetAllCharacters();
-                var enemies = allCharacters.FindAll(c => !c.isPlayer);
-
-                CreateMonsterSlots(enemies);
-                Log($"モンスタースロット作成完了: {enemies.Count}体");
-            }
+            currentMonsterData = monsterData;
+            UpdateAllMonsterInfo();
+            Log($"モンスターデータ設定: {monsterData.characterName}");
         }
         catch (Exception e)
         {
-            LogError($"戦闘開始処理エラー: {e.Message}");
+            LogError($"モンスターデータ設定エラー: {e.Message}");
         }
     }
 
@@ -175,22 +210,17 @@ public class MonsterBattleUI : MonoBehaviour
     /// </summary>
     public void OnTurnStart(BattleCharacterData character)
     {
+        if (currentMonsterData == null) return;
+
         try
         {
-            // 前回のアクティブ状態をリセット
-            SetMonsterActive(currentActiveMonster, false);
+            bool isMyTurn = character.characterId == currentMonsterData.characterId;
+            SetTurnOrderActive(isMyTurn);
 
-            if (!character.isPlayer)
+            if (isMyTurn)
             {
-                // モンスターのターン開始
-                currentActiveMonster = character.characterId;
-                SetMonsterActive(currentActiveMonster, true);
                 Log($"モンスターターン開始: {character.characterName}");
-            }
-            else
-            {
-                // プレイヤーのターン
-                currentActiveMonster = "";
+                StartCoroutine(ActiveMonsterEffect());
             }
         }
         catch (Exception e)
@@ -204,31 +234,31 @@ public class MonsterBattleUI : MonoBehaviour
     /// </summary>
     public void OnActionExecuted(ActionData action)
     {
+        if (currentMonsterData == null) return;
+
         try
         {
-            // ダメージを受けたモンスターの処理
+            // ダメージを受けた場合の処理
             foreach (var damage in action.damageResults)
             {
-                if (monsterSlots.ContainsKey(damage.targetId))
+                if (damage.targetId == currentMonsterData.characterId)
                 {
-                    var monsterSlot = monsterSlots[damage.targetId];
-
-                    // HP更新
-                    monsterSlot.UpdateMonsterData();
+                    // HPバー更新
+                    UpdateHPDisplay();
 
                     // ダメージエフェクト表示
                     if (damage.finalDamage > 0)
                     {
-                        StartCoroutine(PlayDamageEffect(monsterSlot));
+                        StartCoroutine(PlayDamageEffect());
                     }
 
                     // 撃破チェック
                     if (damage.targetDefeated)
                     {
-                        StartCoroutine(PlayDefeatAnimation(damage.targetId));
+                        StartCoroutine(PlayDefeatAnimation());
                     }
 
-                    Log($"モンスターダメージ処理: {damage.targetName} - {damage.finalDamage}");
+                    Log($"モンスターダメージ: {damage.finalDamage}");
                 }
             }
         }
@@ -245,22 +275,14 @@ public class MonsterBattleUI : MonoBehaviour
     /// <summary>
     /// モンスターデータ更新
     /// </summary>
-    public void UpdateMonstersData(List<BattleCharacterData> monsters)
+    public void UpdateMonsterData()
     {
+        if (currentMonsterData == null) return;
+
         try
         {
-            currentMonsters = new List<BattleCharacterData>(monsters);
-
-            // 各モンスタースロットのデータ更新
-            foreach (var monster in monsters)
-            {
-                if (monsterSlots.ContainsKey(monster.characterId))
-                {
-                    monsterSlots[monster.characterId].UpdateMonsterData();
-                }
-            }
-
-            Log($"モンスターデータ更新: {monsters.Count}体");
+            UpdateAllMonsterInfo();
+            Log($"モンスターデータ更新: {currentMonsterData.characterName}");
         }
         catch (Exception e)
         {
@@ -269,176 +291,159 @@ public class MonsterBattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// モンスター撃破処理
+    /// 撃破状態設定
     /// </summary>
-    public void OnMonsterDefeatedExternal(string monsterId)
+    public void SetDefeated(bool defeated)
     {
-        try
+        isDefeated = defeated;
+        if (monsterButton != null)
         {
-            if (monsterSlots.ContainsKey(monsterId))
-            {
-                StartCoroutine(PlayDefeatAnimation(monsterId));
-                Log($"モンスター撃破: {monsterId}");
-            }
-        }
-        catch (Exception e)
-        {
-            LogError($"モンスター撃破処理エラー: {e.Message}");
+            monsterButton.interactable = !defeated;
         }
     }
 
     #endregion
 
-    #region 内部メソッド - モンスタースロット管理
+    #region 内部メソッド - 表示更新
 
     /// <summary>
-    /// モンスタースロット作成
+    /// モンスター情報全体更新
     /// </summary>
-    private void CreateMonsterSlots(List<BattleCharacterData> monsters)
+    private void UpdateAllMonsterInfo()
     {
-        if (monsterSlotPrefab == null || monsterGridParent == null) return;
+        if (currentMonsterData == null) return;
+
+        UpdateBasicInfo();
+        UpdateHPDisplay();
+        UpdateStatusEffectDisplay();
+    }
+
+    /// <summary>
+    /// 基本情報更新
+    /// </summary>
+    private void UpdateBasicInfo()
+    {
+        if (currentMonsterData == null) return;
 
         try
         {
-            // 既存スロットクリア
-            ClearMonsterSlots();
+            if (monsterNameText != null)
+                monsterNameText.text = currentMonsterData.characterName;
 
-            // 新しいスロット作成
-            foreach (var monster in monsters)
-            {
-                CreateSingleMonsterSlot(monster);
-            }
-
-            currentMonsters = new List<BattleCharacterData>(monsters);
-            Log($"モンスタースロット作成完了: {monsters.Count}体");
+            // モンスター画像設定（スプライトがあれば）
+            if (monsterImage != null && currentMonsterData.characterSprite != null)
+                monsterImage.sprite = currentMonsterData.characterSprite;
         }
         catch (Exception e)
         {
-            LogError($"モンスタースロット作成エラー: {e.Message}");
+            LogError($"基本情報更新エラー: {e.Message}");
         }
     }
 
     /// <summary>
-    /// 単体モンスタースロット作成
+    /// HP表示更新
     /// </summary>
-    private void CreateSingleMonsterSlot(BattleCharacterData monster)
+    private void UpdateHPDisplay()
     {
+        if (currentMonsterData == null) return;
+
         try
         {
-            GameObject slotObj = Instantiate(monsterSlotPrefab, monsterGridParent);
-            var slotUI = slotObj.GetComponent<MonsterSlotUIComponent>();
+            float newHpRatio = currentMonsterData.GetHpRatio();
 
-            if (slotUI != null)
-            {
-                slotUI.SetMonster(monster);
-                slotUI.OnMonsterClicked += OnMonsterSlotClicked;
-                monsterSlots[monster.characterId] = slotUI;
-            }
-            else
-            {
-                // MonsterSlotUIComponentがない場合の基本表示
-                SetupBasicMonsterSlot(slotObj, monster);
-                LogWarning($"MonsterSlotUIComponentが見つかりません: {monster.characterName}");
-            }
+            // HPテキスト更新
+            if (hpText != null)
+                hpText.text = $"{currentMonsterData.currentHp}/{currentMonsterData.maxHp}";
+
+            // HPバー色更新
+            UpdateHPBarColor(newHpRatio);
+
+            // HPバーアニメーション
+            AnimateHPBar(newHpRatio);
         }
         catch (Exception e)
         {
-            LogError($"単体モンスタースロット作成エラー: {e.Message}");
+            LogError($"HP表示更新エラー: {e.Message}");
         }
     }
 
     /// <summary>
-    /// 基本モンスタースロット設定
+    /// HPバー色更新
     /// </summary>
-    private void SetupBasicMonsterSlot(GameObject slotObj, BattleCharacterData monster)
+    private void UpdateHPBarColor(float hpRatio)
     {
-        try
-        {
-            // 基本的なテキスト表示
-            var textComponents = slotObj.GetComponentsInChildren<TextMeshProUGUI>();
-            if (textComponents.Length > 0)
-            {
-                textComponents[0].text = monster.characterName;
-            }
-            if (textComponents.Length > 1)
-            {
-                textComponents[1].text = $"HP: {monster.currentHp}/{monster.maxHp}";
-            }
+        if (hpFillImage == null) return;
 
-            // クリックイベント設定
-            var button = slotObj.GetComponent<Button>();
-            if (button != null)
-            {
-                button.onClick.AddListener(() => OnMonsterSlotClicked(monster.characterId));
-            }
-        }
-        catch (Exception e)
-        {
-            LogError($"基本モンスタースロット設定エラー: {e.Message}");
-        }
+        Color targetColor;
+        if (hpRatio <= HP_DANGER_THRESHOLD)
+            targetColor = hpDangerColor;
+        else if (hpRatio <= HP_WARNING_THRESHOLD)
+            targetColor = hpWarningColor;
+        else
+            targetColor = hpNormalColor;
+
+        hpFillImage.color = targetColor;
     }
 
     /// <summary>
-    /// モンスタースロットクリア
+    /// HPバーアニメーション
     /// </summary>
-    private void ClearMonsterSlots()
+    private void AnimateHPBar(float targetRatio)
     {
-        if (monsterGridParent == null) return;
+        if (hpSlider == null) return;
+
+        targetHpRatio = targetRatio;
+
+        if (hpAnimationCoroutine != null)
+            StopCoroutine(hpAnimationCoroutine);
+
+        hpAnimationCoroutine = StartCoroutine(HPAnimationCoroutine());
+    }
+
+    /// <summary>
+    /// HPアニメーションコルーチン
+    /// </summary>
+    private IEnumerator HPAnimationCoroutine()
+    {
+        float startValue = hpSlider.value;
+        float elapsed = 0f;
+
+        while (elapsed < hpAnimationDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / hpAnimationDuration;
+            hpSlider.value = Mathf.Lerp(startValue, targetHpRatio, t);
+            yield return null;
+        }
+
+        hpSlider.value = targetHpRatio;
+        hpAnimationCoroutine = null;
+    }
+
+    /// <summary>
+    /// 状態効果表示更新
+    /// </summary>
+    private void UpdateStatusEffectDisplay()
+    {
+        if (currentMonsterData == null || statusEffectParent == null) return;
 
         try
         {
-            // イベント登録解除
-            foreach (var slot in monsterSlots.Values)
+            // 既存の状態効果アイコンをクリア
+            ClearStatusEffects();
+
+            // 現在の状態効果を表示
+            foreach (var effect in currentMonsterData.statusEffects)
             {
-                if (slot != null)
+                if (effect.IsActive())
                 {
-                    slot.OnMonsterClicked -= OnMonsterSlotClicked;
+                    CreateStatusEffectIcon(effect);
                 }
             }
-
-            // スロット削除
-            for (int i = monsterGridParent.childCount - 1; i >= 0; i--)
-            {
-                DestroyImmediate(monsterGridParent.GetChild(i).gameObject);
-            }
-
-            monsterSlots.Clear();
-            currentMonsters.Clear();
-            currentActiveMonster = "";
-
-            Log("モンスタースロットクリア完了");
         }
         catch (Exception e)
         {
-            LogError($"モンスタースロットクリアエラー: {e.Message}");
-        }
-    }
-
-    #endregion
-
-    #region 内部メソッド - 状態更新
-
-    /// <summary>
-    /// モンスターアクティブ状態設定
-    /// </summary>
-    private void SetMonsterActive(string monsterId, bool isActive)
-    {
-        if (string.IsNullOrEmpty(monsterId) || !monsterSlots.ContainsKey(monsterId))
-            return;
-
-        try
-        {
-            var monsterSlot = monsterSlots[monsterId];
-            monsterSlot.SetActive(isActive);
-
-            if (isActive)
-            {
-                StartCoroutine(ActiveMonsterEffect(monsterSlot));
-            }
-        }
-        catch (Exception e)
-        {
-            LogError($"モンスターアクティブ状態設定エラー: {e.Message}");
+            LogError($"状態効果表示更新エラー: {e.Message}");
         }
     }
 
@@ -449,23 +454,21 @@ public class MonsterBattleUI : MonoBehaviour
     /// <summary>
     /// ダメージエフェクト再生
     /// </summary>
-    private IEnumerator PlayDamageEffect(MonsterSlotUIComponent monsterSlot)
+    private IEnumerator PlayDamageEffect()
     {
-        if (monsterSlot == null) yield break;
-
         // 振動エフェクト
-        yield return StartCoroutine(DamageShakeEffect(monsterSlot.transform));
+        yield return StartCoroutine(DamageShakeEffect());
 
         // フラッシュエフェクト
-        yield return StartCoroutine(DamageFlashEffect(monsterSlot));
+        yield return StartCoroutine(DamageFlashEffect());
     }
 
     /// <summary>
     /// ダメージ振動エフェクト
     /// </summary>
-    private IEnumerator DamageShakeEffect(Transform target)
+    private IEnumerator DamageShakeEffect()
     {
-        Vector3 originalPosition = target.localPosition;
+        Vector3 originalPosition = transform.localPosition;
         float elapsed = 0f;
 
         while (elapsed < damageShakeDuration)
@@ -479,42 +482,40 @@ public class MonsterBattleUI : MonoBehaviour
                 0f
             );
 
-            target.localPosition = originalPosition + randomOffset;
+            transform.localPosition = originalPosition + randomOffset;
             yield return null;
         }
 
-        target.localPosition = originalPosition;
+        transform.localPosition = originalPosition;
     }
 
     /// <summary>
     /// ダメージフラッシュエフェクト
     /// </summary>
-    private IEnumerator DamageFlashEffect(MonsterSlotUIComponent monsterSlot)
+    private IEnumerator DamageFlashEffect()
     {
-        var imageComponent = monsterSlot.GetComponent<Image>();
-        if (imageComponent == null) yield break;
+        if (monsterImage == null) yield break;
 
-        Color originalColor = imageComponent.color;
+        Color originalColor = monsterImage.color;
         float elapsed = 0f;
 
         while (elapsed < damageFlashDuration)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / damageFlashDuration;
-            imageComponent.color = Color.Lerp(damageFlashColor, originalColor, t);
+            monsterImage.color = Color.Lerp(damageFlashColor, originalColor, t);
             yield return null;
         }
 
-        imageComponent.color = originalColor;
+        monsterImage.color = originalColor;
     }
 
     /// <summary>
     /// アクティブモンスターエフェクト
     /// </summary>
-    private IEnumerator ActiveMonsterEffect(MonsterSlotUIComponent monsterSlot)
+    private IEnumerator ActiveMonsterEffect()
     {
-        Transform target = monsterSlot.transform;
-        Vector3 originalScale = target.localScale;
+        Vector3 originalScale = transform.localScale;
         Vector3 targetScale = originalScale * turnIndicatorScale;
 
         float duration = 0.3f;
@@ -525,11 +526,11 @@ public class MonsterBattleUI : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
-            target.localScale = Vector3.Lerp(originalScale, targetScale, t);
+            transform.localScale = Vector3.Lerp(originalScale, targetScale, t);
             yield return null;
         }
 
-        target.localScale = targetScale;
+        transform.localScale = targetScale;
 
         // 少し待つ
         yield return new WaitForSeconds(0.2f);
@@ -540,65 +541,184 @@ public class MonsterBattleUI : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
-            target.localScale = Vector3.Lerp(targetScale, originalScale, t);
+            transform.localScale = Vector3.Lerp(targetScale, originalScale, t);
             yield return null;
         }
 
-        target.localScale = originalScale;
+        transform.localScale = originalScale;
     }
 
     /// <summary>
     /// 撃破アニメーション再生
     /// </summary>
-    private IEnumerator PlayDefeatAnimation(string monsterId)
+    private IEnumerator PlayDefeatAnimation()
     {
-        if (!monsterSlots.ContainsKey(monsterId)) yield break;
-
-        var monsterSlot = monsterSlots[monsterId];
-
         // 撃破エフェクト生成
         if (defeatEffectPrefab != null)
         {
-            GameObject effectObj = Instantiate(defeatEffectPrefab, monsterSlot.transform.position, Quaternion.identity);
+            GameObject effectObj = Instantiate(defeatEffectPrefab, transform.position, Quaternion.identity);
             Destroy(effectObj, defeatAnimationDuration);
         }
 
         // フェードアウトアニメーション
-        yield return StartCoroutine(DefeatFadeOutAnimation(monsterSlot));
+        yield return StartCoroutine(DefeatFadeOutAnimation());
 
-        // モンスタースロット無効化
-        monsterSlot.SetDefeated(true);
+        // 撃破状態設定
+        SetDefeated(true);
 
         // イベント発行
-        OnMonsterDefeated?.Invoke(monsterId);
+        if (currentMonsterData != null)
+        {
+            OnMonsterDefeated?.Invoke(currentMonsterData.characterId);
+        }
 
-        Log($"撃破アニメーション完了: {monsterId}");
+        Log($"撃破アニメーション完了: {currentMonsterData?.characterName}");
     }
 
     /// <summary>
     /// 撃破フェードアウトアニメーション
     /// </summary>
-    private IEnumerator DefeatFadeOutAnimation(MonsterSlotUIComponent monsterSlot)
+    private IEnumerator DefeatFadeOutAnimation()
     {
-        CanvasGroup canvasGroup = monsterSlot.GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
+        if (monsterCanvasGroup == null)
         {
-            canvasGroup = monsterSlot.gameObject.AddComponent<CanvasGroup>();
+            monsterCanvasGroup = gameObject.AddComponent<CanvasGroup>();
         }
 
         float elapsed = 0f;
-        float startAlpha = canvasGroup.alpha;
+        float startAlpha = monsterCanvasGroup.alpha;
 
         while (elapsed < defeatAnimationDuration)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / defeatAnimationDuration;
             float curveValue = defeatFadeCurve.Evaluate(t);
-            canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, curveValue);
+            monsterCanvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, curveValue);
             yield return null;
         }
 
-        canvasGroup.alpha = 0f;
+        monsterCanvasGroup.alpha = 0f;
+    }
+
+    #endregion
+
+    #region 内部メソッド - 行動順位
+
+    /// <summary>
+    /// 行動順位表示設定
+    /// </summary>
+    private void SetTurnOrderActive(bool isActive)
+    {
+        try
+        {
+            if (turnOrderIndicator != null)
+                turnOrderIndicator.SetActive(isActive);
+
+            if (turnOrderBackground != null)
+                turnOrderBackground.color = isActive ? activeTurnColor : inactiveTurnColor;
+
+            if (turnOrderText != null)
+                turnOrderText.text = isActive ? "行動中" : "";
+        }
+        catch (Exception e)
+        {
+            LogError($"行動順位表示設定エラー: {e.Message}");
+        }
+    }
+
+    #endregion
+
+    #region 内部メソッド - UI要素生成
+
+    /// <summary>
+    /// 状態効果アイコン生成
+    /// </summary>
+    private void CreateStatusEffectIcon(StatusEffectData effect)
+    {
+        if (statusEffectIconPrefab == null || statusEffectParent == null) return;
+
+        try
+        {
+            GameObject iconObj = Instantiate(statusEffectIconPrefab, statusEffectParent);
+            statusEffectInstances.Add(iconObj);
+
+            // 基本的なテキスト表示のみ実装
+            var textComponent = iconObj.GetComponentInChildren<TextMeshProUGUI>();
+            if (textComponent != null)
+            {
+                textComponent.text = effect.remainingTurns.ToString();
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"状態効果アイコン生成エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 状態効果クリア（プレハブエラー対策版）
+    /// </summary>
+    private void ClearStatusEffects()
+    {
+        if (statusEffectParent == null) return;
+
+        try
+        {
+            // プレハブモード判定
+            bool isPrefabMode = !Application.isPlaying &&
+#if UNITY_EDITOR
+                UnityEditor.PrefabUtility.IsPartOfPrefabAsset(gameObject);
+#else
+                false;
+#endif
+
+            // インスタンス管理リストからクリア
+            foreach (var instance in statusEffectInstances)
+            {
+                if (instance != null)
+                {
+                    if (Application.isPlaying && !isPrefabMode)
+                    {
+                        Destroy(instance);
+                    }
+                    else
+                    {
+                        instance.SetActive(false);
+                    }
+                }
+            }
+            statusEffectInstances.Clear();
+
+            // 直接の子オブジェクトの処理
+            if (Application.isPlaying && !isPrefabMode)
+            {
+                for (int i = statusEffectParent.childCount - 1; i >= 0; i--)
+                {
+                    var child = statusEffectParent.GetChild(i);
+                    if (child != null && child.gameObject != null)
+                    {
+                        Destroy(child.gameObject);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < statusEffectParent.childCount; i++)
+                {
+                    var child = statusEffectParent.GetChild(i);
+                    if (child != null && child.gameObject != null)
+                    {
+                        child.gameObject.SetActive(false);
+                    }
+                }
+            }
+
+            Log($"状態効果クリア完了 (プレハブモード: {isPrefabMode}, プレイ中: {Application.isPlaying})");
+        }
+        catch (Exception e)
+        {
+            LogError($"状態効果クリアエラー: {e.Message}");
+        }
     }
 
     #endregion
@@ -606,18 +726,20 @@ public class MonsterBattleUI : MonoBehaviour
     #region イベントハンドラ
 
     /// <summary>
-    /// モンスタースロットクリックハンドラ
+    /// モンスターボタンクリック処理
     /// </summary>
-    private void OnMonsterSlotClicked(string monsterId)
+    private void OnMonsterButtonClicked()
     {
+        if (currentMonsterData == null || isDefeated) return;
+
         try
         {
-            OnMonsterSelected?.Invoke(monsterId);
-            Log($"モンスター選択: {monsterId}");
+            OnMonsterSelected?.Invoke(currentMonsterData.characterId);
+            Log($"モンスター選択: {currentMonsterData.characterName}");
         }
         catch (Exception e)
         {
-            LogError($"モンスタースロットクリックエラー: {e.Message}");
+            LogError($"モンスターボタンクリックエラー: {e.Message}");
         }
     }
 
@@ -645,116 +767,28 @@ public class MonsterBattleUI : MonoBehaviour
     #region エディタ用ツール
 
 #if UNITY_EDITOR
-    [ContextMenu("モンスター表示テスト")]
-    private void TestMonsterDisplay()
+    [ContextMenu("モンスター情報テスト更新")]
+    private void TestUpdateMonsterInfo()
     {
-        Log("モンスター表示テスト実行");
+        Log("テスト用モンスター情報更新");
 
-        if (BattleManager.Instance != null)
+        if (currentMonsterData != null)
         {
-            var enemies = BattleManager.Instance.GetEnemyCharacters();
-            CreateMonsterSlots(enemies);
+            UpdateAllMonsterInfo();
         }
         else
         {
-            LogWarning("BattleManagerが見つかりません");
+            LogWarning("currentMonsterDataがnullです");
         }
     }
 
     [ContextMenu("撃破アニメーションテスト")]
     private void TestDefeatAnimation()
     {
-        if (monsterSlots.Count > 0)
-        {
-            var firstMonster = new List<string>(monsterSlots.Keys)[0];
-            StartCoroutine(PlayDefeatAnimation(firstMonster));
-            Log($"撃破アニメーションテスト: {firstMonster}");
-        }
-        else
-        {
-            LogWarning("テスト用のモンスタースロットがありません");
-        }
+        Log("撃破アニメーションテスト");
+        StartCoroutine(PlayDefeatAnimation());
     }
 #endif
 
     #endregion
-}
-
-/// <summary>
-/// モンスタースロット基本コンポーネント（簡易実装）
-/// 将来的に専用クラスファイルで詳細実装予定
-/// </summary>
-public class MonsterSlotUIComponent : MonoBehaviour
-{
-    public event Action<string> OnMonsterClicked;
-
-    private BattleCharacterData monsterData;
-    private Button slotButton;
-
-    private void Awake()
-    {
-        slotButton = GetComponent<Button>();
-        if (slotButton != null)
-        {
-            slotButton.onClick.AddListener(OnSlotClicked);
-        }
-    }
-
-    public void SetMonster(BattleCharacterData monster)
-    {
-        monsterData = monster;
-        UpdateDisplay();
-    }
-
-    public void UpdateMonsterData()
-    {
-        if (monsterData != null)
-        {
-            UpdateDisplay();
-        }
-    }
-
-    public void SetActive(bool isActive)
-    {
-        // 基本実装：後で拡張予定
-    }
-
-    public void SetDefeated(bool isDefeated)
-    {
-        if (slotButton != null)
-        {
-            slotButton.interactable = !isDefeated;
-        }
-    }
-
-    private void UpdateDisplay()
-    {
-        if (monsterData == null) return;
-
-        // 基本的なテキスト表示（TextMeshProUGUIコンポーネントを検索）
-        var textComponents = GetComponentsInChildren<TextMeshProUGUI>();
-        if (textComponents.Length > 0)
-        {
-            textComponents[0].text = monsterData.characterName;
-        }
-        if (textComponents.Length > 1)
-        {
-            textComponents[1].text = $"HP: {monsterData.currentHp}/{monsterData.maxHp}";
-        }
-
-        // HPバー更新
-        var hpBar = GetComponentInChildren<Slider>();
-        if (hpBar != null)
-        {
-            hpBar.value = monsterData.GetHpRatio();
-        }
-    }
-
-    private void OnSlotClicked()
-    {
-        if (monsterData != null)
-        {
-            OnMonsterClicked?.Invoke(monsterData.characterId);
-        }
-    }
 }

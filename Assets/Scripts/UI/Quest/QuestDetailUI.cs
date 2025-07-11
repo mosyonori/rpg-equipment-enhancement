@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,79 +6,79 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// ƒNƒGƒXƒgÚ×ƒpƒlƒ‹§ŒäƒNƒ‰ƒXiŠ®‘SC³”Åj
-/// Ó”C”ÍˆÍF
-/// - ‘I‘ğ‚³‚ê‚½ƒNƒGƒXƒg‚ÌÚ×î•ñ•\¦
-/// - oŒ»ƒ‚ƒ“ƒXƒ^[ƒŠƒXƒg‚Ì“®“I¶¬E•\¦
-/// - ƒhƒƒbƒvƒAƒCƒeƒ€ƒŠƒXƒg‚Ì“®“I¶¬E•\¦
-/// - ‰‰ñƒNƒŠƒA•ñV‚Ì•\¦
-/// - oŒ‚ƒ{ƒ^ƒ“‚Ìó‘ÔŠÇ—
+/// ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°ãƒ‘ãƒãƒ«åˆ¶å¾¡ã‚¯ãƒ©ã‚¹ï¼ˆå®Œå…¨ä¿®æ­£ç‰ˆï¼‰
+/// è²¬ä»»ç¯„å›²ï¼š
+/// - é¸æŠã•ã‚ŒãŸã‚¯ã‚¨ã‚¹ãƒˆã®è©³ç´°æƒ…å ±è¡¨ç¤º
+/// - å‡ºç¾ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒªã‚¹ãƒˆã®å‹•çš„ç”Ÿæˆãƒ»è¡¨ç¤º
+/// - ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ ãƒªã‚¹ãƒˆã®å‹•çš„ç”Ÿæˆãƒ»è¡¨ç¤º
+/// - åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã®è¡¨ç¤º
+/// - å‡ºæ’ƒãƒœã‚¿ãƒ³ã®çŠ¶æ…‹ç®¡ç†
 /// </summary>
 public class QuestDetailUI : MonoBehaviour
 {
-    [Header("Šî–{î•ñ")]
+    [Header("åŸºæœ¬æƒ…å ±")]
     [SerializeField] private TextMeshProUGUI questTitleText;
     [SerializeField] private TextMeshProUGUI questDescriptionText;
     [SerializeField] private TextMeshProUGUI questTypeText;
     [SerializeField] private Image questTypeIcon;
 
-    [Header("ƒNƒGƒXƒgğŒ")]
+    [Header("ã‚¯ã‚¨ã‚¹ãƒˆæ¡ä»¶")]
     [SerializeField] private TextMeshProUGUI needLevelText;
     [SerializeField] private TextMeshProUGUI requiredStaminaText;
     [SerializeField] private TextMeshProUGUI recommendedPowerText;
     [SerializeField] private TextMeshProUGUI turnLimitText;
 
-    [Header("isó‹µ")]
+    [Header("é€²è¡ŒçŠ¶æ³")]
     [SerializeField] private TextMeshProUGUI clearCountText;
     [SerializeField] private TextMeshProUGUI maxClearCountText;
     [SerializeField] private Slider clearProgressSlider;
 
-    [Header("oŒ»ƒ‚ƒ“ƒXƒ^[")]
+    [Header("å‡ºç¾ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼")]
     [SerializeField] private Transform monsterListParent;
     [SerializeField] private GameObject monsterSlotPrefab;
     [SerializeField] private TextMeshProUGUI monsterSectionTitle;
 
-    [Header("ƒhƒƒbƒvƒAƒCƒeƒ€")]
+    [Header("ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ ")]
     [SerializeField] private Transform dropItemListParent;
     [SerializeField] private GameObject dropItemSlotPrefab;
     [SerializeField] private TextMeshProUGUI dropItemSectionTitle;
 
-    [Header("‰‰ñƒNƒŠƒA•ñV")]
+    [Header("åˆå›ã‚¯ãƒªã‚¢å ±é…¬")]
     [SerializeField] private Transform firstClearRewardParent;
     [SerializeField] private GameObject firstClearRewardSlotPrefab;
     [SerializeField] private GameObject firstClearRewardSection;
     [SerializeField] private TextMeshProUGUI firstClearRewardTitle;
 
-    [Header("Šî–{•ñV")]
+    [Header("åŸºæœ¬å ±é…¬")]
     [SerializeField] private TextMeshProUGUI expRewardText;
     [SerializeField] private TextMeshProUGUI goldRewardText;
 
-    [Header("§Œäƒ{ƒ^ƒ“")]
+    [Header("åˆ¶å¾¡ãƒœã‚¿ãƒ³")]
     [SerializeField] private Button startBattleButton;
     [SerializeField] private TextMeshProUGUI startBattleButtonText;
-    [SerializeField] private Button closeButton;  // •Â‚¶‚éƒ{ƒ^ƒ“i~ƒ{ƒ^ƒ“j
+    [SerializeField] private Button closeButton;  // é–‰ã˜ã‚‹ãƒœã‚¿ãƒ³ï¼ˆÃ—ãƒœã‚¿ãƒ³ï¼‰
 
-    [Header("ó‘Ô•\¦")]
+    [Header("çŠ¶æ…‹è¡¨ç¤º")]
     [SerializeField] private GameObject availabilityPanel;
     [SerializeField] private TextMeshProUGUI availabilityReasonText;
     [SerializeField] private Image availabilityIcon;
 
-    [Header("İ’è")]
+    [Header("è¨­å®š")]
     [SerializeField] private bool enableDebugLog = true;
     [SerializeField] private int maxDisplayMonsters = 6;
     [SerializeField] private int maxDisplayDropItems = 8;
 
-    // ƒCƒxƒ“ƒg
+    // ã‚¤ãƒ™ãƒ³ãƒˆ
     public event Action<int> OnStartBattleClicked;
-    public event Action OnCloseClicked;  // •Â‚¶‚éƒ{ƒ^ƒ“ƒNƒŠƒbƒNƒCƒxƒ“ƒg
+    public event Action OnCloseClicked;  // é–‰ã˜ã‚‹ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯ã‚¤ãƒ™ãƒ³ãƒˆ
 
-    // “à•”ó‘Ô
+    // å†…éƒ¨çŠ¶æ…‹
     private QuestDetailData currentQuestDetail;
     private List<MonsterSlotUI> monsterSlots;
     private List<DropItemSlotUI> dropItemSlots;
     private List<FirstClearRewardSlotUI> firstClearRewardSlots;
 
-    // ƒtƒŒ[ƒ€’x‰„—pƒtƒ‰ƒO
+    // ãƒ•ãƒ¬ãƒ¼ãƒ é…å»¶ç”¨ãƒ•ãƒ©ã‚°
     private bool isDisplaying = false;
 
     #region Unity Lifecycle
@@ -90,14 +90,14 @@ public class QuestDetailUI : MonoBehaviour
 
     #endregion
 
-    #region ‰Šú‰»
+    #region åˆæœŸåŒ–
 
     /// <summary>
-    /// ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì‰Šú‰»
+    /// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®åˆæœŸåŒ–
     /// </summary>
     private void InitializeComponents()
     {
-        // ƒŠƒXƒg‚ÌˆÀ‘S‚È‰Šú‰»
+        // ãƒªã‚¹ãƒˆã®å®‰å…¨ãªåˆæœŸåŒ–
         if (monsterSlots == null)
             monsterSlots = new List<MonsterSlotUI>();
         else
@@ -113,7 +113,7 @@ public class QuestDetailUI : MonoBehaviour
         else
             firstClearRewardSlots.Clear();
 
-        // ƒ{ƒ^ƒ“ƒCƒxƒ“ƒgİ’è
+        // ãƒœã‚¿ãƒ³ã‚¤ãƒ™ãƒ³ãƒˆè¨­å®š
         if (startBattleButton != null)
         {
             startBattleButton.onClick.RemoveAllListeners();
@@ -126,33 +126,48 @@ public class QuestDetailUI : MonoBehaviour
             closeButton.onClick.AddListener(OnCloseButtonClicked);
         }
 
-        // ‰Šúó‘Ôİ’è
+        // åˆæœŸçŠ¶æ…‹è¨­å®š
         SafeSetActive(firstClearRewardSection, false);
         SafeSetActive(availabilityPanel, false);
 
-        Log("QuestDetailUI‰Šú‰»Š®—¹");
+        Log("QuestDetailUIåˆæœŸåŒ–å®Œäº†");
     }
 
     #endregion
 
-    #region ŒöŠJƒƒ\ƒbƒh
+    #region å…¬é–‹ãƒ¡ã‚½ãƒƒãƒ‰
 
     /// <summary>
-    /// ƒNƒGƒXƒgÚ×‚ğ•\¦iC³”Å: GameObjectó‘Ô‘Î‰j
+    /// ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°ã‚’è¡¨ç¤ºï¼ˆä¿®æ­£ç‰ˆï¼šã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚‚åŒæ™‚ã«è¨­å®šï¼‰
     /// </summary>
-    /// <param name="questDetail">ƒNƒGƒXƒgÚ×ƒf[ƒ^</param>
+    /// <param name="questDetail">ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°ãƒ‡ãƒ¼ã‚¿</param>
     public void DisplayQuestDetail(QuestDetailData questDetail)
     {
         if (isDisplaying)
         {
-            Log("•\¦ˆ—’†‚Ì‚½‚ßA‘O‚Ìˆ—Š®—¹‚ğ‘Ò‹@‚µ‚Ü‚·");
+            Log("è¡¨ç¤ºå‡¦ç†ä¸­ã®ãŸã‚ã€å‰ã®å‡¦ç†å®Œäº†ã‚’å¾…æ©Ÿã—ã¾ã™");
             return;
         }
 
-        // C³: GameObject‚ª”ñƒAƒNƒeƒBƒu‚Èê‡‚ÍƒAƒNƒeƒBƒu‚É‚µ‚Ä‚©‚çƒRƒ‹[ƒ`ƒ“ŠJn
+        // ä¿®æ­£: ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°ã‚’è¡¨ç¤ºã™ã‚‹éš›ã«ã€ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚‚è¨­å®š
+        if (questDetail?.questMaster != null)
+        {
+            Log($"ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°è¡¨ç¤ºé–‹å§‹: {questDetail.questMaster.questName}");
+            Log($"åŒæ™‚ã«ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š: questId={questDetail.questMaster.questId}");
+
+            // â˜…é‡è¦: ã“ã“ã§ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
+            QuestSelectionData.SetSelectedQuest(questDetail.questMaster.questId);
+
+            // è¨­å®šç¢ºèª
+            int setQuestId = QuestSelectionData.GetSelectedQuestId();
+            bool hasValidQuest = QuestSelectionData.HasValidQuest();
+            Log($"ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿è¨­å®šç¢ºèª: questId={setQuestId}, hasValid={hasValidQuest}");
+        }
+
+        // GameObject ãŒéã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªå ´åˆã¯ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã—ã¦ã‹ã‚‰ã‚³ãƒ«ãƒ¼ãƒãƒ³é–‹å§‹
         if (!gameObject.activeInHierarchy)
         {
-            Log("QuestDetailPanel‚ª”ñƒAƒNƒeƒBƒu‚Ì‚½‚ßAƒAƒNƒeƒBƒu‚É‚µ‚Ü‚·");
+            Log("QuestDetailPanel ãŒéã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã®ãŸã‚ã€ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã—ã¾ã™");
             gameObject.SetActive(true);
         }
 
@@ -160,130 +175,141 @@ public class QuestDetailUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒNƒGƒXƒgÚ×‚ğ‘¦À‚É•\¦i”ñƒRƒ‹[ƒ`ƒ“”Åj
+    /// ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°ã‚’å³åº§ã«è¡¨ç¤ºï¼ˆéã‚³ãƒ«ãƒ¼ãƒãƒ³ç‰ˆï¼‰
     /// </summary>
-    /// <param name="questDetail">ƒNƒGƒXƒgÚ×ƒf[ƒ^</param>
+    /// <param name="questDetail">ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°ãƒ‡ãƒ¼ã‚¿</param>
     public void DisplayQuestDetailImmediate(QuestDetailData questDetail)
     {
         try
         {
             if (questDetail == null)
             {
-                LogError("QuestDetailData‚ªnull‚Å‚·");
+                LogError("QuestDetailData ãŒnullã§ã™");
                 return;
             }
 
             if (questDetail.questMaster == null)
             {
-                LogError("QuestDetailData.questMaster‚ªnull‚Å‚·");
+                LogError("QuestDetailData.questMaster ãŒnullã§ã™");
                 return;
             }
 
-            // GameObject‚ğƒAƒNƒeƒBƒu‚É‚·‚é
+            // â˜…é‡è¦: ã“ã“ã§ã‚‚ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
+            Log($"ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°è¡¨ç¤ºé–‹å§‹ï¼ˆå³åº§ç‰ˆï¼‰: {questDetail.questMaster.questName}");
+            Log($"åŒæ™‚ã«ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š: questId={questDetail.questMaster.questId}");
+
+            QuestSelectionData.SetSelectedQuest(questDetail.questMaster.questId);
+
+            // è¨­å®šç¢ºèª
+            int setQuestId = QuestSelectionData.GetSelectedQuestId();
+            bool hasValidQuest = QuestSelectionData.HasValidQuest();
+            Log($"ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿è¨­å®šç¢ºèª: questId={setQuestId}, hasValid={hasValidQuest}");
+
+            // GameObject ã‚’ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã™ã‚‹
             if (!gameObject.activeInHierarchy)
             {
-                Log("QuestDetailPanel‚ª”ñƒAƒNƒeƒBƒu‚Ì‚½‚ßAƒAƒNƒeƒBƒu‚É‚µ‚Ü‚·");
+                Log("QuestDetailPanel ãŒéã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã®ãŸã‚ã€ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã—ã¾ã™");
                 gameObject.SetActive(true);
             }
 
-            Log($"ƒNƒGƒXƒgÚ×•\¦ŠJni‘¦À”Åj: {questDetail.questMaster.questName}");
+            Log($"ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°è¡¨ç¤ºé–‹å§‹ï¼ˆå³åº§ç‰ˆï¼‰: {questDetail.questMaster.questName}");
 
-            // Šù‘¶‚ÌƒXƒƒbƒg‚ğƒNƒŠƒA
+            // æ—¢å­˜ã®ã‚¹ãƒ­ãƒƒãƒˆã‚’ã‚¯ãƒªã‚¢
             ClearAllSlots();
 
             currentQuestDetail = questDetail;
 
-            // Šî–{î•ñ•\¦
+            // åŸºæœ¬æƒ…å ±è¡¨ç¤º
             DisplayBasicInfo();
 
-            // ğŒEisó‹µ•\¦
+            // æ¡ä»¶ãƒ»é€²æ—çŠ¶æ³è¡¨ç¤º
             DisplayQuestConditions();
             DisplayQuestProgress();
 
-            // •ñV•\¦
+            // å ±é…¬è¡¨ç¤º
             DisplayBasicRewards();
 
-            // ƒ‚ƒ“ƒXƒ^[EƒhƒƒbƒvƒAƒCƒeƒ€•\¦
+            // ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒ»ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ è¡¨ç¤º
             DisplaySpawnMonsters();
             DisplayDropItems();
 
-            // ‰‰ñƒNƒŠƒA•ñV•\¦
+            // åˆå›ã‚¯ãƒªã‚¢å ±é…¬è¡¨ç¤º
             DisplayFirstClearReward();
 
-            // ƒ{ƒ^ƒ“ó‘ÔXV
+            // ãƒœã‚¿ãƒ³çŠ¶æ…‹æ›´æ–°
             UpdateStartBattleButton();
 
-            // —˜—p‰Â”\«•\¦
+            // åˆ©ç”¨å¯èƒ½æ€§è¡¨ç¤º
             DisplayAvailability();
 
-            Log("ƒNƒGƒXƒgÚ×•\¦Š®—¹i‘¦À”Åj");
+            Log("ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°è¡¨ç¤ºå®Œäº†ï¼ˆå³åº§ç‰ˆï¼‰");
         }
         catch (Exception e)
         {
-            LogError($"ƒNƒGƒXƒgÚ×•\¦ƒGƒ‰[: {e.Message}");
-            LogError($"ƒXƒ^ƒbƒNƒgƒŒ[ƒX: {e.StackTrace}");
+            LogError($"ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°è¡¨ç¤ºã‚¨ãƒ©ãƒ¼: {e.Message}");
+            LogError($"ã‚¹ã‚¿ãƒƒã‚¯ãƒˆãƒ¬ãƒ¼ã‚¹: {e.StackTrace}");
         }
     }
 
     /// <summary>
-    /// ƒNƒGƒXƒgÚ×•\¦‚ÌƒRƒ‹[ƒ`ƒ“iC³”Å: try-catch§–ñ‘Î‰j
+    /// ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°è¡¨ç¤ºã®ã‚³ãƒ«ãƒ¼ãƒãƒ³ï¼ˆä¿®æ­£ç‰ˆ: try-catchåˆ¶ç´„å¯¾å¿œï¼‰
     /// </summary>
     private IEnumerator DisplayQuestDetailCoroutine(QuestDetailData questDetail)
     {
         isDisplaying = true;
 
-        // C³: try-catch‚ğƒRƒ‹[ƒ`ƒ“ŠO‚ÅÀs‚·‚é‚½‚ßA–‘Oƒ`ƒFƒbƒN‚ğs‚¤
+        // ä¿®æ­£: try-catchã‚’ã‚³ãƒ«ãƒ¼ãƒãƒ³å¤–ã§å®Ÿè¡Œã™ã‚‹ãŸã‚ã€äº‹å‰ãƒã‚§ãƒƒã‚¯ã‚’è¡Œã†
         if (questDetail == null)
         {
-            LogError("QuestDetailData‚ªnull‚Å‚·");
+            LogError("QuestDetailDataãŒnullã§ã™");
             isDisplaying = false;
             yield break;
         }
 
         if (questDetail.questMaster == null)
         {
-            LogError("QuestDetailData.questMaster‚ªnull‚Å‚·");
+            LogError("QuestDetailData.questMasterãŒnullã§ã™");
             isDisplaying = false;
             yield break;
         }
 
-        Log($"ƒNƒGƒXƒgÚ×•\¦ŠJn: {questDetail.questMaster.questName}");
+        Log($"ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°è¡¨ç¤ºé–‹å§‹: {questDetail.questMaster.questName}");
 
-        // C³: ŠmÀ‚ÈƒNƒŠƒAˆ—iƒtƒŒ[ƒ€‘Ò‹@j
+        // ä¿®æ­£: ç¢ºå®Ÿãªã‚¯ãƒªã‚¢å‡¦ç†ï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ å¾…æ©Ÿï¼‰
         ClearAllSlots();
-        yield return null; // 1ƒtƒŒ[ƒ€‘Ò‹@‚µ‚ÄDestroyˆ—‚ğŠmÀ‚ÉÀs
+        yield return null; // 1ãƒ•ãƒ¬ãƒ¼ãƒ å¾…æ©Ÿã—ã¦Destroyå‡¦ç†ã‚’ç¢ºå®Ÿã«å®Ÿè¡Œ
 
         currentQuestDetail = questDetail;
 
-        // Šî–{î•ñ•\¦
+        // åŸºæœ¬æƒ…å ±è¡¨ç¤º
         yield return StartCoroutine(SafeDisplayBasicInfo());
 
-        // ğŒEisó‹µ•\¦
+        // æ¡ä»¶ãƒ»é€²è¡ŒçŠ¶æ³è¡¨ç¤º
         yield return StartCoroutine(SafeDisplayConditionsAndProgress());
 
-        // •ñV•\¦
+        // å ±é…¬è¡¨ç¤º
         yield return StartCoroutine(SafeDisplayRewards());
 
-        // ƒ‚ƒ“ƒXƒ^[EƒhƒƒbƒvƒAƒCƒeƒ€•\¦
+        // ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒ»ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ è¡¨ç¤º
         yield return StartCoroutine(SafeDisplaySpawnMonsters());
 
         yield return StartCoroutine(SafeDisplayDropItems());
 
-        // C³: ‰‰ñƒNƒŠƒA•ñV‚ÍÅŒã‚É•\¦iÚ×‚ÈƒƒO•t‚«j
+        // ä¿®æ­£: åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã¯æœ€å¾Œã«è¡¨ç¤ºï¼ˆè©³ç´°ãªãƒ­ã‚°ä»˜ãï¼‰
         yield return StartCoroutine(SafeDisplayFirstClearReward());
 
-        // ƒ{ƒ^ƒ“ó‘ÔXV
+        // ãƒœã‚¿ãƒ³çŠ¶æ…‹æ›´æ–°
         UpdateStartBattleButton();
 
-        // —˜—p‰Â”\«•\¦
+        // åˆ©ç”¨å¯èƒ½æ€§è¡¨ç¤º
         DisplayAvailability();
 
-        Log("ƒNƒGƒXƒgÚ×•\¦Š®—¹");
+        Log("ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°è¡¨ç¤ºå®Œäº†");
         isDisplaying = false;
     }
 
     /// <summary>
-    /// ˆÀ‘S‚ÈŠî–{î•ñ•\¦
+    /// å®‰å…¨ãªåŸºæœ¬æƒ…å ±è¡¨ç¤º
     /// </summary>
     private IEnumerator SafeDisplayBasicInfo()
     {
@@ -293,13 +319,13 @@ public class QuestDetailUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"Šî–{î•ñ•\¦ƒGƒ‰[: {e.Message}");
+            LogError($"åŸºæœ¬æƒ…å ±è¡¨ç¤ºã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
         yield return null;
     }
 
     /// <summary>
-    /// ˆÀ‘S‚ÈğŒEisó‹µ•\¦
+    /// å®‰å…¨ãªæ¡ä»¶ãƒ»é€²è¡ŒçŠ¶æ³è¡¨ç¤º
     /// </summary>
     private IEnumerator SafeDisplayConditionsAndProgress()
     {
@@ -310,13 +336,13 @@ public class QuestDetailUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"ğŒEisó‹µ•\¦ƒGƒ‰[: {e.Message}");
+            LogError($"æ¡ä»¶ãƒ»é€²è¡ŒçŠ¶æ³è¡¨ç¤ºã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
         yield return null;
     }
 
     /// <summary>
-    /// ˆÀ‘S‚È•ñV•\¦
+    /// å®‰å…¨ãªå ±é…¬è¡¨ç¤º
     /// </summary>
     private IEnumerator SafeDisplayRewards()
     {
@@ -326,13 +352,13 @@ public class QuestDetailUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"Šî–{•ñV•\¦ƒGƒ‰[: {e.Message}");
+            LogError($"åŸºæœ¬å ±é…¬è¡¨ç¤ºã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
         yield return null;
     }
 
     /// <summary>
-    /// ˆÀ‘S‚Èƒ‚ƒ“ƒXƒ^[•\¦
+    /// å®‰å…¨ãªãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼è¡¨ç¤º
     /// </summary>
     private IEnumerator SafeDisplaySpawnMonsters()
     {
@@ -342,13 +368,13 @@ public class QuestDetailUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"oŒ»ƒ‚ƒ“ƒXƒ^[•\¦ƒGƒ‰[: {e.Message}");
+            LogError($"å‡ºç¾ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼è¡¨ç¤ºã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
         yield return null;
     }
 
     /// <summary>
-    /// ˆÀ‘S‚ÈƒhƒƒbƒvƒAƒCƒeƒ€•\¦
+    /// å®‰å…¨ãªãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ è¡¨ç¤º
     /// </summary>
     private IEnumerator SafeDisplayDropItems()
     {
@@ -358,13 +384,13 @@ public class QuestDetailUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"ƒhƒƒbƒvƒAƒCƒeƒ€•\¦ƒGƒ‰[: {e.Message}");
+            LogError($"ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ è¡¨ç¤ºã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
         yield return null;
     }
 
     /// <summary>
-    /// ˆÀ‘S‚È‰‰ñƒNƒŠƒA•ñV•\¦
+    /// å®‰å…¨ãªåˆå›ã‚¯ãƒªã‚¢å ±é…¬è¡¨ç¤º
     /// </summary>
     private IEnumerator SafeDisplayFirstClearReward()
     {
@@ -374,41 +400,41 @@ public class QuestDetailUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"‰‰ñƒNƒŠƒA•ñV•\¦ƒGƒ‰[: {e.Message}");
+            LogError($"åˆå›ã‚¯ãƒªã‚¢å ±é…¬è¡¨ç¤ºã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
         yield return null;
     }
 
     /// <summary>
-    /// Ú×ƒpƒlƒ‹‚ğƒNƒŠƒA
+    /// è©³ç´°ãƒ‘ãƒãƒ«ã‚’ã‚¯ãƒªã‚¢
     /// </summary>
     public void ClearDetail()
     {
         currentQuestDetail = null;
         ClearAllSlots();
-        Log("ƒNƒGƒXƒgÚ×ƒNƒŠƒA");
+        Log("ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°ã‚¯ãƒªã‚¢");
     }
 
     /// <summary>
-    /// Ú×ƒpƒlƒ‹‚ğ”ñ•\¦‚É‚·‚éiC³: •K‚¸ƒNƒŠƒA‚ğÀsj
+    /// è©³ç´°ãƒ‘ãƒãƒ«ã‚’éè¡¨ç¤ºã«ã™ã‚‹ï¼ˆä¿®æ­£: å¿…ãšã‚¯ãƒªã‚¢ã‚’å®Ÿè¡Œï¼‰
     /// </summary>
     public void HideDetailPanel()
     {
-        // C³: ƒpƒlƒ‹‚ğ”ñ•\¦‚É‚·‚éÛ‚Í•K‚¸ƒXƒƒbƒg“à—e‚ğƒNƒŠƒA
+        // ä¿®æ­£: ãƒ‘ãƒãƒ«ã‚’éè¡¨ç¤ºã«ã™ã‚‹éš›ã¯å¿…ãšã‚¹ãƒ­ãƒƒãƒˆå†…å®¹ã‚’ã‚¯ãƒªã‚¢
         ClearDetail();
 
-        // ƒpƒlƒ‹©‘Ì‚ğ”ñ•\¦‚É‚·‚éê‡
+        // ãƒ‘ãƒãƒ«è‡ªä½“ã‚’éè¡¨ç¤ºã«ã™ã‚‹å ´åˆ
         gameObject.SetActive(false);
 
-        Log("ƒNƒGƒXƒgÚ×ƒpƒlƒ‹‚ğ”ñ•\¦‚É‚µ‚Ü‚µ‚½");
+        Log("ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°ãƒ‘ãƒãƒ«ã‚’éè¡¨ç¤ºã«ã—ã¾ã—ãŸ");
     }
 
     #endregion
 
-    #region Šî–{î•ñ•\¦
+    #region åŸºæœ¬æƒ…å ±è¡¨ç¤º
 
     /// <summary>
-    /// Šî–{î•ñ‚ğ•\¦
+    /// åŸºæœ¬æƒ…å ±ã‚’è¡¨ç¤º
     /// </summary>
     private void DisplayBasicInfo()
     {
@@ -416,42 +442,42 @@ public class QuestDetailUI : MonoBehaviour
 
         var questMaster = currentQuestDetail.questMaster;
 
-        // ƒ^ƒCƒgƒ‹
+        // ã‚¿ã‚¤ãƒˆãƒ«
         SafeSetText(questTitleText, questMaster.questName);
 
-        // à–¾
+        // èª¬æ˜
         SafeSetText(questDescriptionText, questMaster.description);
 
-        // ƒNƒGƒXƒgƒ^ƒCƒv
+        // ã‚¯ã‚¨ã‚¹ãƒˆã‚¿ã‚¤ãƒ—
         SafeSetText(questTypeText, GetQuestTypeDisplayName(questMaster.questType));
 
-        // ƒ^ƒCƒvƒAƒCƒRƒ“
+        // ã‚¿ã‚¤ãƒ—ã‚¢ã‚¤ã‚³ãƒ³
         LoadQuestTypeIcon(questMaster.questType);
 
-        Log("Šî–{î•ñ•\¦Š®—¹");
+        Log("åŸºæœ¬æƒ…å ±è¡¨ç¤ºå®Œäº†");
     }
 
     /// <summary>
-    /// ƒNƒGƒXƒgƒ^ƒCƒv‚Ì•\¦–¼‚ğæ“¾
+    /// ã‚¯ã‚¨ã‚¹ãƒˆã‚¿ã‚¤ãƒ—ã®è¡¨ç¤ºåã‚’å–å¾—
     /// </summary>
-    /// <param name="questType">ƒNƒGƒXƒgƒ^ƒCƒv</param>
-    /// <returns>•\¦–¼</returns>
+    /// <param name="questType">ã‚¯ã‚¨ã‚¹ãƒˆã‚¿ã‚¤ãƒ—</param>
+    /// <returns>è¡¨ç¤ºå</returns>
     private string GetQuestTypeDisplayName(QuestType questType)
     {
         return questType switch
         {
-            QuestType.Story => "ƒXƒg[ƒŠ[",
-            QuestType.Daily => "ƒfƒCƒŠ[",
-            QuestType.Weekly => "ƒEƒB[ƒNƒŠ[",
-            QuestType.Event => "ƒCƒxƒ“ƒg",
-            _ => "•s–¾"
+            QuestType.Story => "ã‚¹ãƒˆãƒ¼ãƒªãƒ¼",
+            QuestType.Daily => "ãƒ‡ã‚¤ãƒªãƒ¼",
+            QuestType.Weekly => "ã‚¦ã‚£ãƒ¼ã‚¯ãƒªãƒ¼",
+            QuestType.Event => "ã‚¤ãƒ™ãƒ³ãƒˆ",
+            _ => "ä¸æ˜"
         };
     }
 
     /// <summary>
-    /// ƒNƒGƒXƒgƒ^ƒCƒvƒAƒCƒRƒ“‚ğ“Ç‚İ‚İ
+    /// ã‚¯ã‚¨ã‚¹ãƒˆã‚¿ã‚¤ãƒ—ã‚¢ã‚¤ã‚³ãƒ³ã‚’èª­ã¿è¾¼ã¿
     /// </summary>
-    /// <param name="questType">ƒNƒGƒXƒgƒ^ƒCƒv</param>
+    /// <param name="questType">ã‚¯ã‚¨ã‚¹ãƒˆã‚¿ã‚¤ãƒ—</param>
     private void LoadQuestTypeIcon(QuestType questType)
     {
         if (questTypeIcon == null) return;
@@ -473,17 +499,17 @@ public class QuestDetailUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"ƒNƒGƒXƒgƒ^ƒCƒvƒAƒCƒRƒ““Ç‚İ‚İƒGƒ‰[: {e.Message}");
+            LogError($"ã‚¯ã‚¨ã‚¹ãƒˆã‚¿ã‚¤ãƒ—ã‚¢ã‚¤ã‚³ãƒ³èª­ã¿è¾¼ã¿ã‚¨ãƒ©ãƒ¼: {e.Message}");
             SafeSetActive(questTypeIcon, false);
         }
     }
 
     #endregion
 
-    #region ğŒEisó‹µ•\¦
+    #region æ¡ä»¶ãƒ»é€²è¡ŒçŠ¶æ³è¡¨ç¤º
 
     /// <summary>
-    /// ƒNƒGƒXƒgğŒ‚ğ•\¦
+    /// ã‚¯ã‚¨ã‚¹ãƒˆæ¡ä»¶ã‚’è¡¨ç¤º
     /// </summary>
     private void DisplayQuestConditions()
     {
@@ -491,19 +517,19 @@ public class QuestDetailUI : MonoBehaviour
 
         var questMaster = currentQuestDetail.questMaster;
 
-        // •K—vƒŒƒxƒ‹
-        SafeSetText(needLevelText, $"•K—vƒŒƒxƒ‹: Lv.{questMaster.needLevel}");
+        // å¿…è¦ãƒ¬ãƒ™ãƒ«
+        SafeSetText(needLevelText, $"å¿…è¦ãƒ¬ãƒ™ãƒ«: Lv.{questMaster.needLevel}");
 
-        // •K—vƒXƒ^ƒ~ƒi
-        SafeSetText(requiredStaminaText, $"Á”ïƒXƒ^ƒ~ƒi: {questMaster.requiredStamina}");
+        // å¿…è¦ã‚¹ã‚¿ãƒŸãƒŠ
+        SafeSetText(requiredStaminaText, $"æ¶ˆè²»ã‚¹ã‚¿ãƒŸãƒŠ: {questMaster.requiredStamina}");
 
-        // „§í“¬—Í
-        SafeSetText(recommendedPowerText, $"„§í“¬—Í: {questMaster.recommendedPower:N0}");
+        // æ¨å¥¨æˆ¦é—˜åŠ›
+        SafeSetText(recommendedPowerText, $"æ¨å¥¨æˆ¦é—˜åŠ›: {questMaster.recommendedPower:N0}");
 
-        // ƒ^[ƒ“§ŒÀ
+        // ã‚¿ãƒ¼ãƒ³åˆ¶é™
         if (questMaster.HasTurnLimit())
         {
-            SafeSetText(turnLimitText, $"ƒ^[ƒ“§ŒÀ: {questMaster.turnLimit}ƒ^[ƒ“");
+            SafeSetText(turnLimitText, $"ã‚¿ãƒ¼ãƒ³åˆ¶é™: {questMaster.turnLimit}ã‚¿ãƒ¼ãƒ³");
             SafeSetActive(turnLimitText, true);
         }
         else
@@ -511,34 +537,34 @@ public class QuestDetailUI : MonoBehaviour
             SafeSetActive(turnLimitText, false);
         }
 
-        Log("ƒNƒGƒXƒgğŒ•\¦Š®—¹");
+        Log("ã‚¯ã‚¨ã‚¹ãƒˆæ¡ä»¶è¡¨ç¤ºå®Œäº†");
     }
 
     /// <summary>
-    /// ƒNƒGƒXƒgisó‹µ‚ğ•\¦
+    /// ã‚¯ã‚¨ã‚¹ãƒˆé€²è¡ŒçŠ¶æ³ã‚’è¡¨ç¤º
     /// </summary>
     private void DisplayQuestProgress()
     {
         if (currentQuestDetail?.questMaster == null) return;
 
         var questMaster = currentQuestDetail.questMaster;
-        var userQuest = currentQuestDetail.userQuestData; // null‚Ì‰Â”\«‚ ‚è
+        var userQuest = currentQuestDetail.userQuestData; // nullã®å¯èƒ½æ€§ã‚ã‚Š
 
-        // ƒNƒŠƒA‰ñ”iuserQuestData‚ªnull‚Ìê‡‚Í0j
+        // ã‚¯ãƒªã‚¢å›æ•°ï¼ˆuserQuestDataãŒnullã®å ´åˆã¯0ï¼‰
         int clearCount = userQuest?.clearCount ?? 0;
-        SafeSetText(clearCountText, $"ƒNƒŠƒA‰ñ”: {clearCount}");
+        SafeSetText(clearCountText, $"ã‚¯ãƒªã‚¢å›æ•°: {clearCount}");
 
-        // Å‘åƒNƒŠƒA‰ñ”
+        // æœ€å¤§ã‚¯ãƒªã‚¢å›æ•°
         if (questMaster.IsUnlimitedClear())
         {
-            SafeSetText(maxClearCountText, "§ŒÀ‚È‚µ");
+            SafeSetText(maxClearCountText, "åˆ¶é™ãªã—");
         }
         else
         {
-            SafeSetText(maxClearCountText, $"{questMaster.dailyClearLimit} ‰ñ");
+            SafeSetText(maxClearCountText, $"{questMaster.dailyClearLimit} å›");
         }
 
-        // i’»ƒXƒ‰ƒCƒ_[
+        // é€²æ—ã‚¹ãƒ©ã‚¤ãƒ€ãƒ¼
         if (clearProgressSlider != null)
         {
             if (questMaster.IsUnlimitedClear())
@@ -553,15 +579,15 @@ public class QuestDetailUI : MonoBehaviour
             }
         }
 
-        Log($"isó‹µ•\¦Š®—¹: ƒNƒŠƒA‰ñ” {clearCount}");
+        Log($"é€²è¡ŒçŠ¶æ³è¡¨ç¤ºå®Œäº†: ã‚¯ãƒªã‚¢å›æ•° {clearCount}");
     }
 
     #endregion
 
-    #region •ñV•\¦
+    #region å ±é…¬è¡¨ç¤º
 
     /// <summary>
-    /// Šî–{•ñV‚ğ•\¦
+    /// åŸºæœ¬å ±é…¬ã‚’è¡¨ç¤º
     /// </summary>
     private void DisplayBasicRewards()
     {
@@ -569,35 +595,35 @@ public class QuestDetailUI : MonoBehaviour
 
         var questMaster = currentQuestDetail.questMaster;
 
-        // ŒoŒ±’l•ñV
+        // çµŒé¨“å€¤å ±é…¬
         SafeSetText(expRewardText, $"EXP: {questMaster.rewardExp:N0}");
 
-        // ƒS[ƒ‹ƒh•ñV
-        SafeSetText(goldRewardText, $"ƒS[ƒ‹ƒh: {questMaster.rewardGold:N0}");
+        // ã‚´ãƒ¼ãƒ«ãƒ‰å ±é…¬
+        SafeSetText(goldRewardText, $"ã‚´ãƒ¼ãƒ«ãƒ‰: {questMaster.rewardGold:N0}");
 
-        Log("Šî–{•ñV•\¦Š®—¹");
+        Log("åŸºæœ¬å ±é…¬è¡¨ç¤ºå®Œäº†");
     }
 
     /// <summary>
-    /// ‰‰ñƒNƒŠƒA•ñV‚ğ•\¦iC³”Å: Ú×‚ÈƒƒO•t‚«j
+    /// åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚’è¡¨ç¤ºï¼ˆä¿®æ­£ç‰ˆ: è©³ç´°ãªãƒ­ã‚°ä»˜ãï¼‰
     /// </summary>
     private void DisplayFirstClearReward()
     {
         if (currentQuestDetail?.questMaster == null)
         {
-            Log("questMaster ‚ª null ‚Ì‚½‚ß‰‰ñƒNƒŠƒA•ñV•\¦‚ğƒXƒLƒbƒv");
+            Log("questMaster ãŒ null ã®ãŸã‚åˆå›ã‚¯ãƒªã‚¢å ±é…¬è¡¨ç¤ºã‚’ã‚¹ã‚­ãƒƒãƒ—");
             return;
         }
 
         var questMaster = currentQuestDetail.questMaster;
         var userQuest = currentQuestDetail.userQuestData;
 
-        // C³: ‚æ‚èÚ×‚È”»’èƒƒO
+        // ä¿®æ­£: ã‚ˆã‚Šè©³ç´°ãªåˆ¤å®šãƒ­ã‚°
         bool hasFirstClearReward = questMaster.HasFirstClearReward();
         int clearCount = userQuest?.clearCount ?? 0;
         bool isFirstClear = clearCount == 0;
 
-        Log($"‰‰ñƒNƒŠƒA•ñV”»’è:");
+        Log($"åˆå›ã‚¯ãƒªã‚¢å ±é…¬åˆ¤å®š:");
         Log($"  hasFirstClearReward: {hasFirstClearReward}");
         Log($"  clearCount: {clearCount}");
         Log($"  isFirstClear: {isFirstClear}");
@@ -605,7 +631,7 @@ public class QuestDetailUI : MonoBehaviour
         Log($"  firstClearItemId: {questMaster.firstClearItemId}");
         Log($"  firstClearItemQuantity: {questMaster.firstClearItemQuantity}");
 
-        // C³: ‰‰ñƒNƒŠƒA•ñV‚ª‚ ‚èA‚©‚Â‰‰ñƒNƒŠƒA‚Ì‚İ•\¦
+        // ä¿®æ­£: åˆå›ã‚¯ãƒªã‚¢å ±é…¬ãŒã‚ã‚Šã€ã‹ã¤åˆå›ã‚¯ãƒªã‚¢æ™‚ã®ã¿è¡¨ç¤º
         bool shouldShow = hasFirstClearReward && isFirstClear;
         Log($"  shouldShow: {shouldShow}");
 
@@ -613,42 +639,42 @@ public class QuestDetailUI : MonoBehaviour
 
         if (shouldShow)
         {
-            Log($"‰‰ñƒNƒŠƒA•ñV•\¦ŠJn: {questMaster.firstClearItemType} ID:{questMaster.firstClearItemId} x{questMaster.firstClearItemQuantity}");
+            Log($"åˆå›ã‚¯ãƒªã‚¢å ±é…¬è¡¨ç¤ºé–‹å§‹: {questMaster.firstClearItemType} ID:{questMaster.firstClearItemId} x{questMaster.firstClearItemQuantity}");
 
-            // C³: Šù‘¶‚ÌƒXƒƒbƒg‚ğƒNƒŠƒA‚µ‚Ä‚©‚çV‚µ‚¢ƒXƒƒbƒg‚ğì¬
+            // ä¿®æ­£: æ—¢å­˜ã®ã‚¹ãƒ­ãƒƒãƒˆã‚’ã‚¯ãƒªã‚¢ã—ã¦ã‹ã‚‰æ–°ã—ã„ã‚¹ãƒ­ãƒƒãƒˆã‚’ä½œæˆ
             ClearFirstClearRewardSlots();
             CreateFirstClearRewardSlot(questMaster);
 
-            Log("‰‰ñƒNƒŠƒA•ñV•\¦Š®—¹");
+            Log("åˆå›ã‚¯ãƒªã‚¢å ±é…¬è¡¨ç¤ºå®Œäº†");
         }
         else
         {
-            Log($"‰‰ñƒNƒŠƒA•ñV”ñ•\¦: hasReward={hasFirstClearReward}, isFirstClear={isFirstClear}");
+            Log($"åˆå›ã‚¯ãƒªã‚¢å ±é…¬éè¡¨ç¤º: hasReward={hasFirstClearReward}, isFirstClear={isFirstClear}");
         }
     }
 
     /// <summary>
-    /// ‰‰ñƒNƒŠƒA•ñVƒXƒƒbƒg‚ğì¬
+    /// åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆã‚’ä½œæˆ
     /// </summary>
-    /// <param name="questMaster">ƒNƒGƒXƒgƒ}ƒXƒ^[ƒf[ƒ^</param>
+    /// <param name="questMaster">ã‚¯ã‚¨ã‚¹ãƒˆãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿</param>
     private void CreateFirstClearRewardSlot(QuestMasterData questMaster)
     {
-        // C³: ‚æ‚èÚ×‚ÈƒGƒ‰[ƒƒO‚ÆƒfƒoƒbƒOî•ñ
+        // ä¿®æ­£: ã‚ˆã‚Šè©³ç´°ãªã‚¨ãƒ©ãƒ¼ãƒ­ã‚°ã¨ãƒ‡ãƒãƒƒã‚°æƒ…å ±
         if (firstClearRewardSlotPrefab == null)
         {
-            LogError("firstClearRewardSlotPrefab‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñBInspector‚Åİ’è‚µ‚Ä‚­‚¾‚³‚¢B");
+            LogError("firstClearRewardSlotPrefabãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚Inspectorã§è¨­å®šã—ã¦ãã ã•ã„ã€‚");
             return;
         }
 
         if (firstClearRewardParent == null)
         {
-            LogError("firstClearRewardParent‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñBInspector‚Åİ’è‚µ‚Ä‚­‚¾‚³‚¢B");
+            LogError("firstClearRewardParentãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚Inspectorã§è¨­å®šã—ã¦ãã ã•ã„ã€‚");
             return;
         }
 
         try
         {
-            Log($"‰‰ñƒNƒŠƒA•ñVƒXƒƒbƒgì¬ŠJn: {questMaster.firstClearItemType} ID:{questMaster.firstClearItemId}");
+            Log($"åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆä½œæˆé–‹å§‹: {questMaster.firstClearItemType} ID:{questMaster.firstClearItemId}");
 
             var slotObject = Instantiate(firstClearRewardSlotPrefab, firstClearRewardParent);
             var rewardSlot = slotObject.GetComponent<FirstClearRewardSlotUI>();
@@ -657,44 +683,44 @@ public class QuestDetailUI : MonoBehaviour
             {
                 rewardSlot.Initialize(questMaster);
                 firstClearRewardSlots.Add(rewardSlot);
-                Log("‰‰ñƒNƒŠƒA•ñVƒXƒƒbƒgì¬¬Œ÷");
+                Log("åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆä½œæˆæˆåŠŸ");
             }
             else
             {
-                LogError("FirstClearRewardSlotUIƒRƒ“ƒ|[ƒlƒ“ƒg‚ªƒvƒŒƒnƒu‚É•t‚¢‚Ä‚¢‚Ü‚¹‚ñ");
+                LogError("FirstClearRewardSlotUIã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆãŒãƒ—ãƒ¬ãƒãƒ–ã«ä»˜ã„ã¦ã„ã¾ã›ã‚“");
                 Destroy(slotObject);
             }
         }
         catch (Exception e)
         {
-            LogError($"‰‰ñƒNƒŠƒA•ñVƒXƒƒbƒgì¬ƒGƒ‰[: {e.Message}");
+            LogError($"åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆä½œæˆã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
     #endregion
 
-    #region ƒ‚ƒ“ƒXƒ^[•\¦
+    #region ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼è¡¨ç¤º
 
     /// <summary>
-    /// oŒ»ƒ‚ƒ“ƒXƒ^[‚ğ•\¦
+    /// å‡ºç¾ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚’è¡¨ç¤º
     /// </summary>
     private void DisplaySpawnMonsters()
     {
         try
         {
-            // C³: Šù‘¶‚ÌƒXƒƒbƒg‚ğ•K‚¸ƒNƒŠƒA
+            // ä¿®æ­£: æ—¢å­˜ã®ã‚¹ãƒ­ãƒƒãƒˆã‚’å¿…ãšã‚¯ãƒªã‚¢
             ClearMonsterSlots();
 
             if (currentQuestDetail?.spawnMonsters == null)
             {
-                Log("oŒ»ƒ‚ƒ“ƒXƒ^[ƒf[ƒ^‚ªnull‚Å‚·");
+                Log("å‡ºç¾ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒnullã§ã™");
                 return;
             }
 
             var monsters = currentQuestDetail.spawnMonsters;
             int displayCount = Mathf.Min(monsters.Count, maxDisplayMonsters);
 
-            SafeSetText(monsterSectionTitle, $"oŒ»ƒ‚ƒ“ƒXƒ^[ ({displayCount}‘Ì)");
+            SafeSetText(monsterSectionTitle, $"å‡ºç¾ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ ({displayCount}ä½“)");
 
             for (int i = 0; i < displayCount; i++)
             {
@@ -704,34 +730,34 @@ public class QuestDetailUI : MonoBehaviour
                 }
                 else
                 {
-                    Log($"ƒ‚ƒ“ƒXƒ^[ƒf[ƒ^[{i}]‚ªnull‚Ì‚½‚ßƒXƒLƒbƒv‚µ‚Ü‚·");
+                    Log($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿[{i}]ãŒnullã®ãŸã‚ã‚¹ã‚­ãƒƒãƒ—ã—ã¾ã™");
                 }
             }
 
-            Log($"oŒ»ƒ‚ƒ“ƒXƒ^[•\¦: {displayCount}‘Ì");
+            Log($"å‡ºç¾ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼è¡¨ç¤º: {displayCount}ä½“");
         }
         catch (Exception e)
         {
-            LogError($"oŒ»ƒ‚ƒ“ƒXƒ^[•\¦ƒGƒ‰[: {e.Message}");
-            LogError($"ƒXƒ^ƒbƒNƒgƒŒ[ƒX: {e.StackTrace}");
+            LogError($"å‡ºç¾ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼è¡¨ç¤ºã‚¨ãƒ©ãƒ¼: {e.Message}");
+            LogError($"ã‚¹ã‚¿ãƒƒã‚¯ãƒˆãƒ¬ãƒ¼ã‚¹: {e.StackTrace}");
         }
     }
 
     /// <summary>
-    /// ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒg‚ğì¬
+    /// ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆã‚’ä½œæˆ
     /// </summary>
-    /// <param name="monsterData">ƒ‚ƒ“ƒXƒ^[ƒf[ƒ^</param>
+    /// <param name="monsterData">ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿</param>
     private void CreateMonsterSlot(MonsterMasterData monsterData)
     {
         if (monsterSlotPrefab == null)
         {
-            LogError("monsterSlotPrefab‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñBInspector‚Åİ’è‚µ‚Ä‚­‚¾‚³‚¢B");
+            LogError("monsterSlotPrefabãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚Inspectorã§è¨­å®šã—ã¦ãã ã•ã„ã€‚");
             return;
         }
 
         if (monsterListParent == null)
         {
-            LogError("monsterListParent‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñBInspector‚Åİ’è‚µ‚Ä‚­‚¾‚³‚¢B");
+            LogError("monsterListParentãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚Inspectorã§è¨­å®šã—ã¦ãã ã•ã„ã€‚");
             return;
         }
 
@@ -740,7 +766,7 @@ public class QuestDetailUI : MonoBehaviour
             var slotObject = Instantiate(monsterSlotPrefab, monsterListParent);
             if (slotObject == null)
             {
-                LogError("ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒgƒIƒuƒWƒFƒNƒg‚Ìì¬‚É¸”s‚µ‚Ü‚µ‚½");
+                LogError("ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ä½œæˆã«å¤±æ•—ã—ã¾ã—ãŸ");
                 return;
             }
 
@@ -750,71 +776,71 @@ public class QuestDetailUI : MonoBehaviour
             {
                 monsterSlot.Initialize(monsterData);
 
-                // ˆÀ‘S‚ÉƒŠƒXƒg‚É’Ç‰Á
+                // å®‰å…¨ã«ãƒªã‚¹ãƒˆã«è¿½åŠ 
                 if (monsterSlots == null)
                     monsterSlots = new List<MonsterSlotUI>();
 
                 monsterSlots.Add(monsterSlot);
-                Log($"ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒgì¬¬Œ÷: {monsterData.monsterName}");
+                Log($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆä½œæˆæˆåŠŸ: {monsterData.monsterName}");
             }
             else
             {
-                LogError("MonsterSlotUIƒRƒ“ƒ|[ƒlƒ“ƒg‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ");
+                LogError("MonsterSlotUIã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“");
                 Destroy(slotObject);
             }
         }
         catch (Exception e)
         {
-            LogError($"ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒgì¬ƒGƒ‰[: {e.Message}");
+            LogError($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆä½œæˆã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
     #endregion
 
-    #region ƒhƒƒbƒvƒAƒCƒeƒ€•\¦
+    #region ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ è¡¨ç¤º
 
     /// <summary>
-    /// ƒhƒƒbƒvƒAƒCƒeƒ€‚ğ•\¦
+    /// ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ ã‚’è¡¨ç¤º
     /// </summary>
     private void DisplayDropItems()
     {
-        // C³: Šù‘¶‚ÌƒXƒƒbƒg‚ğ•K‚¸ƒNƒŠƒA
+        // ä¿®æ­£: æ—¢å­˜ã®ã‚¹ãƒ­ãƒƒãƒˆã‚’å¿…ãšã‚¯ãƒªã‚¢
         ClearDropItemSlots();
 
         if (currentQuestDetail?.dropTable?.dropItems == null)
         {
-            Log("ƒhƒƒbƒvƒe[ƒuƒ‹‚ªnull‚Å‚·");
+            Log("ãƒ‰ãƒ­ãƒƒãƒ—ãƒ†ãƒ¼ãƒ–ãƒ«ãŒnullã§ã™");
             return;
         }
 
         var dropItems = currentQuestDetail.dropTable.dropItems;
         int displayCount = Mathf.Min(dropItems.Count, maxDisplayDropItems);
 
-        SafeSetText(dropItemSectionTitle, $"ƒhƒƒbƒvƒAƒCƒeƒ€ ({displayCount}í—Ş)");
+        SafeSetText(dropItemSectionTitle, $"ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ  ({displayCount}ç¨®é¡)");
 
         for (int i = 0; i < displayCount; i++)
         {
             CreateDropItemSlot(dropItems[i]);
         }
 
-        Log($"ƒhƒƒbƒvƒAƒCƒeƒ€•\¦: {displayCount}í—Ş");
+        Log($"ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ è¡¨ç¤º: {displayCount}ç¨®é¡");
     }
 
     /// <summary>
-    /// ƒhƒƒbƒvƒAƒCƒeƒ€ƒXƒƒbƒg‚ğì¬
+    /// ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆã‚’ä½œæˆ
     /// </summary>
-    /// <param name="dropItem">ƒhƒƒbƒvƒAƒCƒeƒ€ƒf[ƒ^</param>
+    /// <param name="dropItem">ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ ãƒ‡ãƒ¼ã‚¿</param>
     private void CreateDropItemSlot(DropItemData dropItem)
     {
         if (dropItemSlotPrefab == null)
         {
-            LogError("dropItemSlotPrefab‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñBInspector‚Åİ’è‚µ‚Ä‚­‚¾‚³‚¢B");
+            LogError("dropItemSlotPrefabãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚Inspectorã§è¨­å®šã—ã¦ãã ã•ã„ã€‚");
             return;
         }
 
         if (dropItemListParent == null)
         {
-            LogError("dropItemListParent‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñBInspector‚Åİ’è‚µ‚Ä‚­‚¾‚³‚¢B");
+            LogError("dropItemListParentãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚Inspectorã§è¨­å®šã—ã¦ãã ã•ã„ã€‚");
             return;
         }
 
@@ -830,120 +856,314 @@ public class QuestDetailUI : MonoBehaviour
             }
             else
             {
-                LogError("DropItemSlotUIƒRƒ“ƒ|[ƒlƒ“ƒg‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ");
+                LogError("DropItemSlotUIã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“");
                 Destroy(slotObject);
             }
         }
         catch (Exception e)
         {
-            LogError($"ƒhƒƒbƒvƒAƒCƒeƒ€ƒXƒƒbƒgì¬ƒGƒ‰[: {e.Message}");
+            LogError($"ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆä½œæˆã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
     #endregion
 
-    #region ƒ{ƒ^ƒ“§Œä
+    #region ãƒœã‚¿ãƒ³åˆ¶å¾¡
 
     /// <summary>
-    /// oŒ‚ƒ{ƒ^ƒ“‚Ìó‘Ô‚ğXV
-    /// </summary>
-    private void UpdateStartBattleButton()
-    {
-        if (startBattleButton == null || currentQuestDetail == null) return;
-
-        bool canStart = currentQuestDetail.isAvailable;
-        startBattleButton.interactable = canStart;
-
-        SafeSetText(startBattleButtonText, canStart ? "oŒ‚" : "oŒ‚•s‰Â");
-    }
-
-    /// <summary>
-    /// —˜—p‰Â”\«‚ğ•\¦
-    /// </summary>
-    private void DisplayAvailability()
-    {
-        if (availabilityPanel == null || currentQuestDetail == null) return;
-
-        bool showPanel = !currentQuestDetail.isAvailable;
-        availabilityPanel.SetActive(showPanel);
-
-        if (showPanel)
-        {
-            SafeSetText(availabilityReasonText, currentQuestDetail.availabilityReason);
-        }
-    }
-
-    #endregion
-
-    #region ƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰
-
-    /// <summary>
-    /// oŒ‚ƒ{ƒ^ƒ“ƒNƒŠƒbƒNˆ—
+    /// æˆ¦é—˜é–‹å§‹ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯å‡¦ç†ï¼ˆãƒ‡ãƒãƒƒã‚°å¼·åŒ–ç‰ˆï¼‰
     /// </summary>
     private void OnStartBattleButtonClicked()
     {
         try
         {
+            Log("=== æˆ¦é—˜é–‹å§‹ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯å‡¦ç†é–‹å§‹ ===");
+
             if (currentQuestDetail == null)
             {
-                LogError("ƒNƒGƒXƒgÚ×ƒf[ƒ^‚ªnull‚Å‚·");
+                LogError("currentQuestDetail ãŒnullã§ã™");
                 return;
             }
+
+            if (currentQuestDetail.questMaster == null)
+            {
+                LogError("currentQuestDetail.questMaster ãŒnullã§ã™");
+                return;
+            }
+
+            var questMaster = currentQuestDetail.questMaster;
+            Log($"ã‚¯ã‚¨ã‚¹ãƒˆæƒ…å ±: ID={questMaster.questId}, Name='{questMaster.questName}'");
 
             if (!currentQuestDetail.isAvailable)
             {
-                Log($"—˜—p‚Å‚«‚È‚¢ƒNƒGƒXƒg‚Å‚·: {currentQuestDetail.availabilityReason}");
+                Log($"åˆ©ç”¨ã§ããªã„ã‚¯ã‚¨ã‚¹ãƒˆã§ã™: {currentQuestDetail.availabilityReason}");
                 return;
             }
 
-            Log($"oŒ‚ƒ{ƒ^ƒ“ƒNƒŠƒbƒN: {currentQuestDetail.questMaster.questName}");
+            Log("æˆ¦é—˜é–‹å§‹ãƒãƒªãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³å®Ÿè¡Œä¸­...");
 
-            OnStartBattleClicked?.Invoke(currentQuestDetail.questMaster.questId);
+            // æœ€çµ‚ç¢ºèªï¼ˆã‚¹ã‚¿ãƒŸãƒŠãƒã‚§ãƒƒã‚¯ç­‰ï¼‰
+            if (!ValidateBattleStart(questMaster))
+            {
+                Log("æˆ¦é—˜é–‹å§‹ãƒãƒªãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³å¤±æ•—");
+                return;
+            }
+
+            Log("æˆ¦é—˜é–‹å§‹ãƒãƒªãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³æˆåŠŸ");
+
+            // ä¿®æ­£: ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®šã™ã‚‹å‰ã«ãƒ­ã‚°å‡ºåŠ›
+            Log($"QuestSelectionData.SetSelectedQuest({questMaster.questId}) å®Ÿè¡Œå‰");
+
+            // ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
+            QuestSelectionData.SetSelectedQuest(questMaster.questId);
+
+            // ä¿®æ­£: è¨­å®šç›´å¾Œã«ç¢ºèª
+            int setQuestId = QuestSelectionData.GetSelectedQuestId();
+            bool hasValidQuest = QuestSelectionData.HasValidQuest();
+            Log($"è¨­å®šç¢ºèª: questId={setQuestId}, hasValidQuest={hasValidQuest}");
+
+            // ä¿®æ­£: è¨­å®šã«å¤±æ•—ã—ãŸå ´åˆã¯å†è©¦è¡Œ
+            if (!hasValidQuest || setQuestId != questMaster.questId)
+            {
+                LogError($"ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã®è¨­å®šã«å¤±æ•—ã—ã¾ã—ãŸã€‚questId={setQuestId}, expected={questMaster.questId}");
+                Log("å†è©¦è¡Œã—ã¾ã™...");
+
+                // å†è©¦è¡Œ
+                QuestSelectionData.SetSelectedQuest(questMaster.questId);
+
+                // å†ç¢ºèª
+                setQuestId = QuestSelectionData.GetSelectedQuestId();
+                hasValidQuest = QuestSelectionData.HasValidQuest();
+                Log($"å†è©¦è¡Œå¾Œã®ç¢ºèª: questId={setQuestId}, hasValidQuest={hasValidQuest}");
+
+                if (!hasValidQuest)
+                {
+                    LogError($"å†è©¦è¡Œå¾Œã‚‚ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã®è¨­å®šã«å¤±æ•—ã—ã¾ã—ãŸã€‚questId={setQuestId}");
+                    return;
+                }
+            }
+
+            Log("æˆ¦é—˜ã‚·ãƒ¼ãƒ³é·ç§»é–‹å§‹...");
+
+            // æˆ¦é—˜ã‚·ãƒ¼ãƒ³ã«é·ç§»
+            TransitionToBattleScene();
+
+            Log("=== æˆ¦é—˜é–‹å§‹ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯å‡¦ç†å®Œäº† ===");
         }
         catch (Exception e)
         {
-            LogError($"oŒ‚ƒ{ƒ^ƒ“ƒNƒŠƒbƒNˆ—ƒGƒ‰[: {e.Message}");
+            LogError($"æˆ¦é—˜é–‹å§‹ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯å‡¦ç†ã‚¨ãƒ©ãƒ¼: {e.Message}");
+            LogError($"ã‚¹ã‚¿ãƒƒã‚¯ãƒˆãƒ¬ãƒ¼ã‚¹: {e.StackTrace}");
         }
     }
 
     /// <summary>
-    /// •Â‚¶‚éƒ{ƒ^ƒ“ƒNƒŠƒbƒNˆ—
+    /// æˆ¦é—˜é–‹å§‹å‰ã®æœ€çµ‚ç¢ºèª
+    /// </summary>
+    private bool ValidateBattleStart(QuestMasterData questMaster)
+    {
+        var userData = SaveDataManager.Instance?.CurrentSaveData;
+        if (userData == null)
+        {
+            LogError("ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ‡ãƒ¼ã‚¿ãŒå–å¾—ã§ãã¾ã›ã‚“");
+            return false;
+        }
+
+        // ã‚¹ã‚¿ãƒŸãƒŠãƒã‚§ãƒƒã‚¯
+        if (userData.currentStamina < questMaster.requiredStamina)
+        {
+            Log($"ã‚¹ã‚¿ãƒŸãƒŠä¸è¶³: å¿…è¦{questMaster.requiredStamina}, ç¾åœ¨{userData.currentStamina}");
+            // ã“ã“ã§ä¸è¶³UIè¡¨ç¤ºãªã©ã‚’è¡Œã†
+            return false;
+        }
+
+        // ãƒ¬ãƒ™ãƒ«ãƒã‚§ãƒƒã‚¯
+        if (userData.playerLevel < questMaster.needLevel)
+        {
+            Log($"ãƒ¬ãƒ™ãƒ«ä¸è¶³: å¿…è¦Lv.{questMaster.needLevel}, ç¾åœ¨Lv.{userData.playerLevel}");
+            return false;
+        }
+
+        Log("æˆ¦é—˜é–‹å§‹æ¡ä»¶ãƒã‚§ãƒƒã‚¯å®Œäº†");
+        return true;
+    }
+
+    /// <summary>
+    /// æˆ¦é—˜ã‚·ãƒ¼ãƒ³ã«é·ç§»
+    /// </summary>
+    private void TransitionToBattleScene()
+    {
+        Log("æˆ¦é—˜ã‚·ãƒ¼ãƒ³ã«é·ç§»ã—ã¾ã™");
+
+        try
+        {
+            // SceneTransitionManagerã¾ãŸã¯GameSceneManagerã‚’ä½¿ç”¨ã—ã¦ã‚·ãƒ¼ãƒ³é·ç§»
+            if (GameSceneManager.Instance != null)
+            {
+                // GameSceneManagerã«æˆ¦é—˜ã‚·ãƒ¼ãƒ³é·ç§»ãƒ¡ã‚½ãƒƒãƒ‰ã‚’è¿½åŠ ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
+                TransitionToQuestBattleScene();
+            }
+            else if (SceneTransitionManager.Instance != null)
+            {
+                // SceneTransitionManagerã‚’ç›´æ¥ä½¿ç”¨
+                SceneTransitionManager.Instance.TransitionToScene("QuestBattleScene");
+            }
+            else
+            {
+                LogError("ã‚·ãƒ¼ãƒ³é·ç§»ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“");
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"æˆ¦é—˜ã‚·ãƒ¼ãƒ³é·ç§»ã‚¨ãƒ©ãƒ¼: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// GameSceneManagerçµŒç”±ã§æˆ¦é—˜ã‚·ãƒ¼ãƒ³ã«é·ç§»
+    /// </summary>
+    private void TransitionToQuestBattleScene()
+    {
+        // GameSceneManagerã«ä»¥ä¸‹ã®ãƒ¡ã‚½ãƒƒãƒ‰ã‚’è¿½åŠ ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
+        // GameSceneManager.Instance.TransitionToQuestBattle();
+
+        // æš«å®šçš„ã«SceneTransitionManagerã‚’ç›´æ¥ä½¿ç”¨ï¼ˆã‚·ãƒ¼ãƒ³åã‚’BattleSceneã«ä¿®æ­£ï¼‰
+        if (SceneTransitionManager.Instance != null)
+        {
+            SceneTransitionManager.Instance.TransitionToScene("BattleScene");
+        }
+        else
+        {
+            LogError("SceneTransitionManager.InstanceãŒnullã§ã™");
+        }
+    }
+
+    /// <summary>
+    /// å‡ºæ’ƒãƒœã‚¿ãƒ³ã®çŠ¶æ…‹ã‚’æ›´æ–°
+    /// </summary>
+    private void UpdateStartBattleButton()
+    {
+        if (startBattleButton == null || currentQuestDetail == null)
+        {
+            LogError("startBattleButtonã¾ãŸã¯currentQuestDetailãŒnullã§ã™");
+            return;
+        }
+
+        try
+        {
+            bool canStart = currentQuestDetail.isAvailable;
+            startBattleButton.interactable = canStart;
+
+            // ãƒœã‚¿ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã®æ›´æ–°
+            if (startBattleButtonText != null)
+            {
+                startBattleButtonText.text = canStart ? "å‡ºæ’ƒ" : "å‡ºæ’ƒä¸å¯";
+
+                // è‰²ã®å¤‰æ›´ï¼ˆåˆ©ç”¨å¯èƒ½/ä¸å¯ã§è‰²åˆ†ã‘ï¼‰
+                startBattleButtonText.color = canStart ? Color.white : Color.gray;
+            }
+
+            Log($"å‡ºæ’ƒãƒœã‚¿ãƒ³çŠ¶æ…‹æ›´æ–°: interactable={canStart}, reason='{currentQuestDetail.availabilityReason}'");
+        }
+        catch (Exception e)
+        {
+            LogError($"å‡ºæ’ƒãƒœã‚¿ãƒ³çŠ¶æ…‹æ›´æ–°ã‚¨ãƒ©ãƒ¼: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// åˆ©ç”¨å¯èƒ½æ€§ã‚’è¡¨ç¤º
+    /// </summary>
+    private void DisplayAvailability()
+    {
+        if (currentQuestDetail == null)
+        {
+            LogError("currentQuestDetailãŒnullã®ãŸã‚DisplayAvailabilityã‚’ã‚¹ã‚­ãƒƒãƒ—");
+            return;
+        }
+
+        try
+        {
+            bool showPanel = !currentQuestDetail.isAvailable;
+
+            // åˆ©ç”¨å¯èƒ½æ€§ãƒ‘ãƒãƒ«ã®è¡¨ç¤º/éè¡¨ç¤º
+            if (availabilityPanel != null)
+            {
+                availabilityPanel.SetActive(showPanel);
+            }
+
+            if (showPanel)
+            {
+                // åˆ©ç”¨ä¸å¯ã®ç†ç”±ã‚’è¡¨ç¤º
+                if (availabilityReasonText != null)
+                {
+                    string reason = !string.IsNullOrEmpty(currentQuestDetail.availabilityReason)
+                        ? currentQuestDetail.availabilityReason
+                        : "ã“ã®ã‚¯ã‚¨ã‚¹ãƒˆã¯ç¾åœ¨åˆ©ç”¨ã§ãã¾ã›ã‚“";
+
+                    availabilityReasonText.text = reason;
+                }
+
+                // åˆ©ç”¨ä¸å¯ã‚¢ã‚¤ã‚³ãƒ³ã®è¨­å®š
+                if (availabilityIcon != null)
+                {
+                    availabilityIcon.color = Color.red;
+                    // å¿…è¦ã«å¿œã˜ã¦ã‚¢ã‚¤ã‚³ãƒ³ç”»åƒã‚’è¨­å®š
+                    // availabilityIcon.sprite = warningIconSprite;
+                }
+
+                Log($"åˆ©ç”¨ä¸å¯è¡¨ç¤º: {currentQuestDetail.availabilityReason}");
+            }
+            else
+            {
+                Log("ã‚¯ã‚¨ã‚¹ãƒˆåˆ©ç”¨å¯èƒ½ - åˆ©ç”¨å¯èƒ½æ€§ãƒ‘ãƒãƒ«éè¡¨ç¤º");
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"åˆ©ç”¨å¯èƒ½æ€§è¡¨ç¤ºã‚¨ãƒ©ãƒ¼: {e.Message}");
+        }
+    }
+
+
+    /// <summary>
+    /// é–‰ã˜ã‚‹ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯å‡¦ç†
     /// </summary>
     private void OnCloseButtonClicked()
     {
         try
         {
-            Log("•Â‚¶‚éƒ{ƒ^ƒ“ƒNƒŠƒbƒN - Ú×‰æ–Ê‚ğ”ñ•\¦‚É‚µ‚Ü‚·");
+            Log("é–‰ã˜ã‚‹ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯ - è©³ç´°ç”»é¢ã‚’éè¡¨ç¤ºã«ã—ã¾ã™");
 
-            // C³: Ú×‚ğƒNƒŠƒA‚µ‚Ä‚©‚çƒCƒxƒ“ƒg‚ğ”­‰Î
+            // ä¿®æ­£: è©³ç´°ã‚’ã‚¯ãƒªã‚¢ã—ã¦ã‹ã‚‰ã‚¤ãƒ™ãƒ³ãƒˆã‚’ç™ºç«
             ClearDetail();
 
-            // •Â‚¶‚éƒCƒxƒ“ƒg‚ğ”­‰Î
+            // é–‰ã˜ã‚‹ã‚¤ãƒ™ãƒ³ãƒˆã‚’ç™ºç«
             OnCloseClicked?.Invoke();
         }
         catch (Exception e)
         {
-            LogError($"•Â‚¶‚éƒ{ƒ^ƒ“ƒNƒŠƒbƒNˆ—ƒGƒ‰[: {e.Message}");
+            LogError($"é–‰ã˜ã‚‹ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯å‡¦ç†ã‚¨ãƒ©ãƒ¼: {e.Message}");
         }
     }
 
     #endregion
 
-    #region ƒXƒƒbƒgŠÇ—
+    #region ã‚¹ãƒ­ãƒƒãƒˆç®¡ç†
 
     /// <summary>
-    /// ‘SƒXƒƒbƒg‚ğƒNƒŠƒA
+    /// å…¨ã‚¹ãƒ­ãƒƒãƒˆã‚’ã‚¯ãƒªã‚¢
     /// </summary>
     private void ClearAllSlots()
     {
         ClearMonsterSlots();
         ClearDropItemSlots();
         ClearFirstClearRewardSlots();
-        Log("‘SƒXƒƒbƒgƒNƒŠƒAŠ®—¹");
+        Log("å…¨ã‚¹ãƒ­ãƒƒãƒˆã‚¯ãƒªã‚¢å®Œäº†");
     }
 
     /// <summary>
-    /// ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒg‚ğƒNƒŠƒA
+    /// ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆã‚’ã‚¯ãƒªã‚¢
     /// </summary>
     private void ClearMonsterSlots()
     {
@@ -951,7 +1171,7 @@ public class QuestDetailUI : MonoBehaviour
         {
             if (monsterSlots == null)
             {
-                Log("monsterSlots‚ªnull‚Ì‚½‚ß‰Šú‰»‚µ‚Ü‚·");
+                Log("monsterSlotsãŒnullã®ãŸã‚åˆæœŸåŒ–ã—ã¾ã™");
                 monsterSlots = new List<MonsterSlotUI>();
                 return;
             }
@@ -968,18 +1188,18 @@ public class QuestDetailUI : MonoBehaviour
                 }
             }
             monsterSlots.Clear();
-            Log("ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒgƒNƒŠƒAŠ®—¹");
+            Log("ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆã‚¯ãƒªã‚¢å®Œäº†");
         }
         catch (Exception e)
         {
-            LogError($"ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒgƒNƒŠƒAƒGƒ‰[: {e.Message}");
-            // ƒGƒ‰[‚Í‹­§“I‚ÉV‚µ‚¢ƒŠƒXƒg‚ğì¬
+            LogError($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆã‚¯ãƒªã‚¢ã‚¨ãƒ©ãƒ¼: {e.Message}");
+            // ã‚¨ãƒ©ãƒ¼æ™‚ã¯å¼·åˆ¶çš„ã«æ–°ã—ã„ãƒªã‚¹ãƒˆã‚’ä½œæˆ
             monsterSlots = new List<MonsterSlotUI>();
         }
     }
 
     /// <summary>
-    /// ƒhƒƒbƒvƒAƒCƒeƒ€ƒXƒƒbƒg‚ğƒNƒŠƒA
+    /// ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆã‚’ã‚¯ãƒªã‚¢
     /// </summary>
     private void ClearDropItemSlots()
     {
@@ -987,7 +1207,7 @@ public class QuestDetailUI : MonoBehaviour
         {
             if (dropItemSlots == null)
             {
-                Log("dropItemSlots‚ªnull‚Ì‚½‚ß‰Šú‰»‚µ‚Ü‚·");
+                Log("dropItemSlotsãŒnullã®ãŸã‚åˆæœŸåŒ–ã—ã¾ã™");
                 dropItemSlots = new List<DropItemSlotUI>();
                 return;
             }
@@ -1004,18 +1224,18 @@ public class QuestDetailUI : MonoBehaviour
                 }
             }
             dropItemSlots.Clear();
-            Log("ƒhƒƒbƒvƒAƒCƒeƒ€ƒXƒƒbƒgƒNƒŠƒAŠ®—¹");
+            Log("ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆã‚¯ãƒªã‚¢å®Œäº†");
         }
         catch (Exception e)
         {
-            LogError($"ƒhƒƒbƒvƒAƒCƒeƒ€ƒXƒƒbƒgƒNƒŠƒAƒGƒ‰[: {e.Message}");
-            // ƒGƒ‰[‚Í‹­§“I‚ÉV‚µ‚¢ƒŠƒXƒg‚ğì¬
+            LogError($"ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆã‚¯ãƒªã‚¢ã‚¨ãƒ©ãƒ¼: {e.Message}");
+            // ã‚¨ãƒ©ãƒ¼æ™‚ã¯å¼·åˆ¶çš„ã«æ–°ã—ã„ãƒªã‚¹ãƒˆã‚’ä½œæˆ
             dropItemSlots = new List<DropItemSlotUI>();
         }
     }
 
     /// <summary>
-    /// ‰‰ñƒNƒŠƒA•ñVƒXƒƒbƒg‚ğƒNƒŠƒA
+    /// åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆã‚’ã‚¯ãƒªã‚¢
     /// </summary>
     private void ClearFirstClearRewardSlots()
     {
@@ -1023,7 +1243,7 @@ public class QuestDetailUI : MonoBehaviour
         {
             if (firstClearRewardSlots == null)
             {
-                Log("firstClearRewardSlots‚ªnull‚Ì‚½‚ß‰Šú‰»‚µ‚Ü‚·");
+                Log("firstClearRewardSlotsãŒnullã®ãŸã‚åˆæœŸåŒ–ã—ã¾ã™");
                 firstClearRewardSlots = new List<FirstClearRewardSlotUI>();
                 return;
             }
@@ -1040,22 +1260,22 @@ public class QuestDetailUI : MonoBehaviour
                 }
             }
             firstClearRewardSlots.Clear();
-            Log("‰‰ñƒNƒŠƒA•ñVƒXƒƒbƒgƒNƒŠƒAŠ®—¹");
+            Log("åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆã‚¯ãƒªã‚¢å®Œäº†");
         }
         catch (Exception e)
         {
-            LogError($"‰‰ñƒNƒŠƒA•ñVƒXƒƒbƒgƒNƒŠƒAƒGƒ‰[: {e.Message}");
-            // ƒGƒ‰[‚Í‹­§“I‚ÉV‚µ‚¢ƒŠƒXƒg‚ğì¬
+            LogError($"åˆå›ã‚¯ãƒªã‚¢å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆã‚¯ãƒªã‚¢ã‚¨ãƒ©ãƒ¼: {e.Message}");
+            // ã‚¨ãƒ©ãƒ¼æ™‚ã¯å¼·åˆ¶çš„ã«æ–°ã—ã„ãƒªã‚¹ãƒˆã‚’ä½œæˆ
             firstClearRewardSlots = new List<FirstClearRewardSlotUI>();
         }
     }
 
     #endregion
 
-    #region ˆÀ‘S‚ÈUI‘€ìƒƒ\ƒbƒh
+    #region å®‰å…¨ãªUIæ“ä½œãƒ¡ã‚½ãƒƒãƒ‰
 
     /// <summary>
-    /// ˆÀ‘S‚ÉƒeƒLƒXƒg‚ğİ’è
+    /// å®‰å…¨ã«ãƒ†ã‚­ã‚¹ãƒˆã‚’è¨­å®š
     /// </summary>
     private void SafeSetText(TextMeshProUGUI textComponent, string text)
     {
@@ -1066,7 +1286,7 @@ public class QuestDetailUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ˆÀ‘S‚ÉGameObject‚ğƒAƒNƒeƒBƒuİ’è
+    /// å®‰å…¨ã«GameObjectã‚’ã‚¢ã‚¯ãƒ†ã‚£ãƒ–è¨­å®š
     /// </summary>
     private void SafeSetActive(GameObject obj, bool active)
     {
@@ -1077,7 +1297,7 @@ public class QuestDetailUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ˆÀ‘S‚ÉƒRƒ“ƒ|[ƒlƒ“ƒg‚ğƒAƒNƒeƒBƒuİ’è
+    /// å®‰å…¨ã«ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’ã‚¢ã‚¯ãƒ†ã‚£ãƒ–è¨­å®š
     /// </summary>
     private void SafeSetActive(Component component, bool active)
     {
@@ -1089,7 +1309,7 @@ public class QuestDetailUI : MonoBehaviour
 
     #endregion
 
-    #region ƒƒOEƒfƒoƒbƒO
+    #region ãƒ­ã‚°ãƒ»ãƒ‡ãƒãƒƒã‚°
 
     private void Log(string message)
     {
@@ -1109,42 +1329,138 @@ public class QuestDetailUI : MonoBehaviour
 
     #endregion
 
-    #region ƒGƒfƒBƒ^[—pƒc[ƒ‹
+    #region ã‚¨ãƒ‡ã‚£ã‚¿ãƒ¼ç”¨ãƒ„ãƒ¼ãƒ«
 
 #if UNITY_EDITOR
-    [ContextMenu("Ú×ƒpƒlƒ‹‚ğƒNƒŠƒA")]
+    /// <summary>
+    /// ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã®çŠ¶æ…‹ã‚’ç¢ºèª
+    /// </summary>
+    [ContextMenu("ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿çŠ¶æ…‹ç¢ºèª")]
+    private void DebugQuestSelectionDataState()
+    {
+        Log("=== ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿çŠ¶æ…‹ç¢ºèª ===");
+
+        // ç¾åœ¨ã®ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°ç¢ºèª
+        if (currentQuestDetail != null && currentQuestDetail.questMaster != null)
+        {
+            var questMaster = currentQuestDetail.questMaster;
+            Log($"ç¾åœ¨ã®ã‚¯ã‚¨ã‚¹ãƒˆ: ID={questMaster.questId}, Name='{questMaster.questName}'");
+            Log($"åˆ©ç”¨å¯èƒ½: {currentQuestDetail.isAvailable}");
+            Log($"åˆ©ç”¨ä¸å¯ç†ç”±: '{currentQuestDetail.availabilityReason}'");
+        }
+        else
+        {
+            Log("currentQuestDetail ã¾ãŸã¯ questMaster ãŒ null ã§ã™");
+        }
+
+
+        // å„ç¨®ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã®çŠ¶æ…‹ç¢ºèª
+        Log("=== ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼çŠ¶æ…‹ç¢ºèª ===");
+        Log($"SaveDataManager: {(SaveDataManager.Instance != null ? "å­˜åœ¨" : "null")}, IsDataLoaded: {SaveDataManager.Instance?.IsDataLoaded}");
+        Log($"MasterDataManager: {(MasterDataManager.Instance != null ? "å­˜åœ¨" : "null")}, IsDataLoaded: {MasterDataManager.Instance?.IsDataLoaded}");
+        Log($"QuestDataManager: {(QuestDataManager.Instance != null ? "å­˜åœ¨" : "null")}, IsDataLoaded: {QuestDataManager.Instance?.IsDataLoaded}");
+        Log($"GameSceneManager: {(GameSceneManager.Instance != null ? "å­˜åœ¨" : "null")}");
+        Log($"SceneTransitionManager: {(SceneTransitionManager.Instance != null ? "å­˜åœ¨" : "null")}");
+    }
+
+    /// <summary>
+    /// å‡ºæ’ƒãƒœã‚¿ãƒ³ã‚’å¼·åˆ¶å®Ÿè¡Œï¼ˆãƒ‡ãƒãƒƒã‚°ç”¨ï¼‰
+    /// </summary>
+    [ContextMenu("å‡ºæ’ƒãƒœã‚¿ãƒ³å¼·åˆ¶å®Ÿè¡Œ")]
+    private void DebugForceStartBattle()
+    {
+        Log("å‡ºæ’ƒãƒœã‚¿ãƒ³å¼·åˆ¶å®Ÿè¡Œé–‹å§‹");
+        OnStartBattleButtonClicked();
+        Log("å‡ºæ’ƒãƒœã‚¿ãƒ³å¼·åˆ¶å®Ÿè¡Œå®Œäº†");
+    }
+
+    /// <summary>
+    /// ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’æ‰‹å‹•è¨­å®šï¼ˆãƒ‡ãƒãƒƒã‚°ç”¨ï¼‰
+    /// </summary>
+    [ContextMenu("ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿æ‰‹å‹•è¨­å®šï¼ˆID=1ï¼‰")]
+    private void DebugSetQuestSelectionData()
+    {
+        int testQuestId = 1;
+        Log($"ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’æ‰‹å‹•è¨­å®š: questId={testQuestId}");
+
+        QuestSelectionData.SetSelectedQuest(testQuestId);
+
+    }
+
+    /// <summary>
+    /// ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’ã‚¯ãƒªã‚¢ï¼ˆãƒ‡ãƒãƒƒã‚°ç”¨ï¼‰
+    /// </summary>
+    [ContextMenu("ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚¯ãƒªã‚¢")]
+    private void DebugClearQuestSelectionData()
+    {
+        Log("ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚¯ãƒªã‚¢å®Ÿè¡Œ");
+        QuestSelectionData.ClearSelectedQuest();
+    }
+
+    /// <summary>
+    /// æˆ¦é—˜ã‚·ãƒ¼ãƒ³é·ç§»ãƒ†ã‚¹ãƒˆï¼ˆãƒ‡ãƒãƒƒã‚°ç”¨ï¼‰
+    /// </summary>
+    [ContextMenu("æˆ¦é—˜ã‚·ãƒ¼ãƒ³é·ç§»ãƒ†ã‚¹ãƒˆ")]
+    private void DebugTestBattleSceneTransition()
+    {
+        Log("æˆ¦é—˜ã‚·ãƒ¼ãƒ³é·ç§»ãƒ†ã‚¹ãƒˆé–‹å§‹");
+
+        // å¼·åˆ¶çš„ã«ã‚¯ã‚¨ã‚¹ãƒˆIDã‚’è¨­å®š
+        QuestSelectionData.SetSelectedQuest(1);
+
+        // é·ç§»å®Ÿè¡Œ
+        if (GameSceneManager.Instance != null)
+        {
+            Log("GameSceneManagerçµŒç”±ã§é·ç§»ãƒ†ã‚¹ãƒˆ");
+            GameSceneManager.Instance.TransitionToQuestBattle();
+        }
+        else if (SceneTransitionManager.Instance != null)
+        {
+            Log("SceneTransitionManagerçµŒç”±ã§é·ç§»ãƒ†ã‚¹ãƒˆ");
+            SceneTransitionManager.Instance.TransitionToQuestBattle();
+        }
+        else
+        {
+            LogError("ã‚·ãƒ¼ãƒ³é·ç§»ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“");
+        }
+    }
+#endif
+
+
+#if UNITY_EDITOR
+    [ContextMenu("è©³ç´°ãƒ‘ãƒãƒ«ã‚’ã‚¯ãƒªã‚¢")]
     private void ManualClearDetail()
     {
         ClearDetail();
     }
 
-    [ContextMenu("ƒXƒƒbƒg”‚ğƒƒOo—Í")]
+    [ContextMenu("ã‚¹ãƒ­ãƒƒãƒˆæ•°ã‚’ãƒ­ã‚°å‡ºåŠ›")]
     private void LogSlotCounts()
     {
-        Log($"ƒ‚ƒ“ƒXƒ^[ƒXƒƒbƒg: {monsterSlots?.Count ?? 0}, " +
-            $"ƒhƒƒbƒvƒAƒCƒeƒ€ƒXƒƒbƒg: {dropItemSlots?.Count ?? 0}, " +
-            $"‰‰ñ•ñVƒXƒƒbƒg: {firstClearRewardSlots?.Count ?? 0}");
+        Log($"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ãƒ­ãƒƒãƒˆ: {monsterSlots?.Count ?? 0}, " +
+            $"ãƒ‰ãƒ­ãƒƒãƒ—ã‚¢ã‚¤ãƒ†ãƒ ã‚¹ãƒ­ãƒƒãƒˆ: {dropItemSlots?.Count ?? 0}, " +
+            $"åˆå›å ±é…¬ã‚¹ãƒ­ãƒƒãƒˆ: {firstClearRewardSlots?.Count ?? 0}");
     }
 
-    [ContextMenu("ƒAƒTƒCƒ“ó‹µ‚ğƒ`ƒFƒbƒN")]
+    [ContextMenu("ã‚¢ã‚µã‚¤ãƒ³çŠ¶æ³ã‚’ãƒã‚§ãƒƒã‚¯")]
     private void CheckAssignments()
     {
-        Log("=== ƒAƒTƒCƒ“ó‹µƒ`ƒFƒbƒN ===");
-        Log($"monsterSlotPrefab: {(monsterSlotPrefab != null ? "OK" : "–¢İ’è")}");
-        Log($"dropItemSlotPrefab: {(dropItemSlotPrefab != null ? "OK" : "–¢İ’è")}");
-        Log($"firstClearRewardSlotPrefab: {(firstClearRewardSlotPrefab != null ? "OK" : "–¢İ’è")}");
-        Log($"firstClearRewardParent: {(firstClearRewardParent != null ? "OK" : "–¢İ’è")}");
-        Log($"firstClearRewardSection: {(firstClearRewardSection != null ? "OK" : "–¢İ’è")}");
-        Log($"closeButton: {(closeButton != null ? "OK" : "–¢İ’è")}");
+        Log("=== ã‚¢ã‚µã‚¤ãƒ³çŠ¶æ³ãƒã‚§ãƒƒã‚¯ ===");
+        Log($"monsterSlotPrefab: {(monsterSlotPrefab != null ? "OK" : "æœªè¨­å®š")}");
+        Log($"dropItemSlotPrefab: {(dropItemSlotPrefab != null ? "OK" : "æœªè¨­å®š")}");
+        Log($"firstClearRewardSlotPrefab: {(firstClearRewardSlotPrefab != null ? "OK" : "æœªè¨­å®š")}");
+        Log($"firstClearRewardParent: {(firstClearRewardParent != null ? "OK" : "æœªè¨­å®š")}");
+        Log($"firstClearRewardSection: {(firstClearRewardSection != null ? "OK" : "æœªè¨­å®š")}");
+        Log($"closeButton: {(closeButton != null ? "OK" : "æœªè¨­å®š")}");
     }
 
-    [ContextMenu("‰‰ñƒNƒŠƒA•ñVƒfƒoƒbƒO")]
+    [ContextMenu("åˆå›ã‚¯ãƒªã‚¢å ±é…¬ãƒ‡ãƒãƒƒã‚°")]
     private void DebugFirstClearReward()
     {
         if (currentQuestDetail?.questMaster != null)
         {
             var questMaster = currentQuestDetail.questMaster;
-            Log($"=== ‰‰ñƒNƒŠƒA•ñVƒfƒoƒbƒO ===");
+            Log($"=== åˆå›ã‚¯ãƒªã‚¢å ±é…¬ãƒ‡ãƒãƒƒã‚° ===");
             Log($"questId: {questMaster.questId}");
             Log($"questName: {questMaster.questName}");
             Log($"HasFirstClearReward(): {questMaster.HasFirstClearReward()}");
@@ -1163,10 +1479,72 @@ public class QuestDetailUI : MonoBehaviour
         }
         else
         {
-            Log("currentQuestDetail ‚Ü‚½‚Í questMaster ‚ª null ‚Å‚·");
+            Log("currentQuestDetail ã¾ãŸã¯ questMaster ãŒ null ã§ã™");
         }
     }
 #endif
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// ãƒ‡ãƒãƒƒã‚°ç”¨ï¼šç¾åœ¨ã®ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠçŠ¶æ…‹ã‚’ç¢ºèª
+    /// </summary>
+    [ContextMenu("ç¾åœ¨ã®ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠçŠ¶æ…‹ã‚’ç¢ºèª")]
+    private void DebugCurrentQuestSelection()
+    {
+        Log("=== ç¾åœ¨ã®ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠçŠ¶æ…‹ ===");
+
+        int selectedQuestId = QuestSelectionData.GetSelectedQuestId();
+        bool hasValidQuest = QuestSelectionData.HasValidQuest();
+
+        Log($"é¸æŠã•ã‚ŒãŸã‚¯ã‚¨ã‚¹ãƒˆID: {selectedQuestId}");
+        Log($"æœ‰åŠ¹ãªã‚¯ã‚¨ã‚¹ãƒˆé¸æŠ: {hasValidQuest}");
+
+        if (currentQuestDetail?.questMaster != null)
+        {
+            Log($"è¡¨ç¤ºä¸­ã®ã‚¯ã‚¨ã‚¹ãƒˆ: {currentQuestDetail.questMaster.questName} (ID: {currentQuestDetail.questMaster.questId})");
+
+            if (selectedQuestId != currentQuestDetail.questMaster.questId)
+            {
+                LogError($"è¡¨ç¤ºä¸­ã‚¯ã‚¨ã‚¹ãƒˆã¨é¸æŠãƒ‡ãƒ¼ã‚¿ãŒä¸€è‡´ã—ã¾ã›ã‚“ï¼è¡¨ç¤º:{currentQuestDetail.questMaster.questId}, é¸æŠ:{selectedQuestId}");
+            }
+            else
+            {
+                Log("âœ… è¡¨ç¤ºä¸­ã‚¯ã‚¨ã‚¹ãƒˆã¨é¸æŠãƒ‡ãƒ¼ã‚¿ãŒä¸€è‡´ã—ã¦ã„ã¾ã™");
+            }
+        }
+        else
+        {
+            LogError("è¡¨ç¤ºä¸­ã®ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°ãŒã‚ã‚Šã¾ã›ã‚“");
+        }
+
+        Log("=== ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠçŠ¶æ…‹ç¢ºèªçµ‚äº† ===");
+    }
+
+    /// <summary>
+    /// ãƒ‡ãƒãƒƒã‚°ç”¨ï¼šå¼·åˆ¶çš„ã«ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
+    /// </summary>
+    [ContextMenu("å¼·åˆ¶çš„ã«ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š")]
+    private void DebugForceSetQuestSelection()
+    {
+        if (currentQuestDetail?.questMaster != null)
+        {
+            int questId = currentQuestDetail.questMaster.questId;
+            Log($"å¼·åˆ¶çš„ã«ã‚¯ã‚¨ã‚¹ãƒˆé¸æŠãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š: questId={questId}");
+
+            QuestSelectionData.SetSelectedQuest(questId);
+
+            // ç¢ºèª
+            int setQuestId = QuestSelectionData.GetSelectedQuestId();
+            bool hasValidQuest = QuestSelectionData.HasValidQuest();
+            Log($"è¨­å®šå¾Œç¢ºèª: questId={setQuestId}, hasValid={hasValidQuest}");
+        }
+        else
+        {
+            LogError("è¨­å®šã™ã‚‹ã‚¯ã‚¨ã‚¹ãƒˆè©³ç´°ãŒã‚ã‚Šã¾ã›ã‚“");
+        }
+    }
+#endif
+
 
     #endregion
 }

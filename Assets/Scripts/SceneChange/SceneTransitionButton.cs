@@ -120,7 +120,7 @@ public class SceneTransitionButton : MonoBehaviour
     }
 
     /// <summary>
-    /// ボタンテキストを自動設定
+    /// ボタンテキストを自動設定（修正版）
     /// </summary>
     private void UpdateButtonText()
     {
@@ -132,7 +132,7 @@ public class SceneTransitionButton : MonoBehaviour
             TransitionType.ToHome => "ホームへ",
             TransitionType.ToEquipmentEdit => "装備編集",
             TransitionType.ToEquipmentEnhance => "装備強化",
-            TransitionType.ToQuestBattle => "クエスト",
+            TransitionType.ToQuestBattle => "戦闘開始", // ← "クエスト"から"戦闘"に変更
             TransitionType.ToGacha => "ガチャ",
             TransitionType.GoBack => "戻る",
             TransitionType.CustomScene => !string.IsNullOrEmpty(customSceneName) ? customSceneName : "カスタム",
@@ -318,13 +318,14 @@ public class SceneTransitionButton : MonoBehaviour
     }
 
     /// <summary>
-    /// 未実装シーンかチェック
+    /// 未実装シーンかチェック（修正版：戦闘シーンを実装済みとして扱う）
     /// </summary>
     private bool IsUnimplementedScene()
     {
         return transitionType switch
         {
-            TransitionType.ToQuestBattle => !SceneNames.IsSceneImplemented(SceneNames.QUEST_BATTLE),
+            // 修正：戦闘シーンは実装済みなのでfalseを返す
+            TransitionType.ToQuestBattle => false, // SceneNames.IsSceneImplemented(SceneNames.QUEST_BATTLE)から変更
             TransitionType.ToGacha => !SceneNames.IsSceneImplemented(SceneNames.GACHA),
             TransitionType.CustomScene => !SceneNames.IsSceneImplemented(customSceneName),
             _ => false

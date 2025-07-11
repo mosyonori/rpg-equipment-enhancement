@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -22,18 +24,6 @@ public class PlayerBattleUI : MonoBehaviour
     [SerializeField] private Color hpNormalColor = Color.green;
     [SerializeField] private Color hpWarningColor = Color.yellow;
     [SerializeField] private Color hpDangerColor = Color.red;
-
-    [Header("ステータス表示")]
-    [SerializeField] private TextMeshProUGUI offenseText;
-    [SerializeField] private TextMeshProUGUI defenseText;
-    [SerializeField] private TextMeshProUGUI speedText;
-    [SerializeField] private TextMeshProUGUI criticalRateText;
-
-    [Header("属性攻撃力表示")]
-    [SerializeField] private TextMeshProUGUI fireOffenseText;
-    [SerializeField] private TextMeshProUGUI waterOffenseText;
-    [SerializeField] private TextMeshProUGUI windOffenseText;
-    [SerializeField] private TextMeshProUGUI earthOffenseText;
 
     [Header("行動順位表示")]
     [SerializeField] private GameObject turnOrderIndicator;
@@ -64,7 +54,11 @@ public class PlayerBattleUI : MonoBehaviour
     private float targetHpRatio = 1f;
     private Coroutine hpAnimationCoroutine;
 
-    // HPバー警告しきい値
+    // インスタンス管理用リスト（プレハブエラー対策）
+    private List<GameObject> statusEffectInstances = new List<GameObject>();
+    private List<GameObject> skillSlotInstances = new List<GameObject>();
+
+    // HPバー危険度しきい値
     private const float HP_WARNING_THRESHOLD = 0.5f;
     private const float HP_DANGER_THRESHOLD = 0.25f;
 
@@ -263,8 +257,6 @@ public class PlayerBattleUI : MonoBehaviour
         if (currentPlayerData == null) return;
 
         UpdateHPDisplay();
-        UpdateStatusDisplay();
-        UpdateAttributeAttackDisplay();
         UpdateStatusEffectDisplay();
         UpdateSkillDisplay();
     }
@@ -332,7 +324,7 @@ public class PlayerBattleUI : MonoBehaviour
     /// <summary>
     /// HPアニメーションコルーチン
     /// </summary>
-    private System.Collections.IEnumerator HPAnimationCoroutine()
+    private IEnumerator HPAnimationCoroutine()
     {
         float startValue = hpSlider.value;
         float elapsed = 0f;
@@ -347,60 +339,6 @@ public class PlayerBattleUI : MonoBehaviour
 
         hpSlider.value = targetHpRatio;
         hpAnimationCoroutine = null;
-    }
-
-    /// <summary>
-    /// ステータス表示更新
-    /// </summary>
-    private void UpdateStatusDisplay()
-    {
-        if (currentPlayerData == null) return;
-
-        try
-        {
-            if (offenseText != null)
-                offenseText.text = currentPlayerData.offense.ToString();
-
-            if (defenseText != null)
-                defenseText.text = currentPlayerData.defense.ToString();
-
-            if (speedText != null)
-                speedText.text = currentPlayerData.speed.ToString();
-
-            if (criticalRateText != null)
-                criticalRateText.text = $"{currentPlayerData.criticalRate}%";
-        }
-        catch (Exception e)
-        {
-            LogError($"ステータス表示更新エラー: {e.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 属性攻撃力表示更新
-    /// </summary>
-    private void UpdateAttributeAttackDisplay()
-    {
-        if (currentPlayerData == null) return;
-
-        try
-        {
-            if (fireOffenseText != null)
-                fireOffenseText.text = currentPlayerData.fireOffence.ToString();
-
-            if (waterOffenseText != null)
-                waterOffenseText.text = currentPlayerData.waterOffence.ToString();
-
-            if (windOffenseText != null)
-                windOffenseText.text = currentPlayerData.windOffence.ToString();
-
-            if (earthOffenseText != null)
-                earthOffenseText.text = currentPlayerData.earthOffence.ToString();
-        }
-        catch (Exception e)
-        {
-            LogError($"属性攻撃力表示更新エラー: {e.Message}");
-        }
     }
 
     /// <summary>
@@ -480,7 +418,7 @@ public class PlayerBattleUI : MonoBehaviour
     /// <summary>
     /// ダメージ振動コルーチン
     /// </summary>
-    private System.Collections.IEnumerator DamageShakeCoroutine()
+    private IEnumerator DamageShakeCoroutine()
     {
         Vector3 originalPosition = transform.localPosition;
         float elapsed = 0f;
@@ -543,6 +481,7 @@ public class PlayerBattleUI : MonoBehaviour
         try
         {
             GameObject iconObj = Instantiate(statusEffectIconPrefab, statusEffectParent);
+            statusEffectInstances.Add(iconObj);
 
             // 基本的なテキスト表示のみ実装（詳細UIは別途作成予定）
             var textComponent = iconObj.GetComponentInChildren<TextMeshProUGUI>();
@@ -567,6 +506,7 @@ public class PlayerBattleUI : MonoBehaviour
         try
         {
             GameObject slotObj = Instantiate(skillSlotPrefab, skillListParent);
+            skillSlotInstances.Add(slotObj);
 
             // 基本的なテキスト表示のみ実装（詳細UIは別途作成予定）
             var textComponents = slotObj.GetComponentsInChildren<TextMeshProUGUI>();
@@ -587,28 +527,94 @@ public class PlayerBattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 状態効果クリア
+    /// 状態効果クリア（プレハブエラー対策版）
     /// </summary>
     private void ClearStatusEffects()
     {
         if (statusEffectParent == null) return;
 
-        for (int i = statusEffectParent.childCount - 1; i >= 0; i--)
+        try
         {
-            DestroyImmediate(statusEffectParent.GetChild(i).gameObject);
+            // インスタンス管理リストからクリア
+            foreach (var instance in statusEffectInstances)
+            {
+                if (instance != null)
+                {
+                    if (Application.isPlaying)
+                    {
+                        Destroy(instance);
+                    }
+                    else
+                    {
+                        // エディタモードでは非表示にする
+                        instance.SetActive(false);
+                    }
+                }
+            }
+            statusEffectInstances.Clear();
+
+            // 念のため直接の子オブジェクトもチェック
+            if (Application.isPlaying)
+            {
+                for (int i = statusEffectParent.childCount - 1; i >= 0; i--)
+                {
+                    var child = statusEffectParent.GetChild(i);
+                    if (child != null)
+                    {
+                        Destroy(child.gameObject);
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"状態効果クリアエラー: {e.Message}");
         }
     }
 
     /// <summary>
-    /// スキルリストクリア
+    /// スキルリストクリア（プレハブエラー対策版）
     /// </summary>
     private void ClearSkillList()
     {
         if (skillListParent == null) return;
 
-        for (int i = skillListParent.childCount - 1; i >= 0; i--)
+        try
         {
-            DestroyImmediate(skillListParent.GetChild(i).gameObject);
+            // インスタンス管理リストからクリア
+            foreach (var instance in skillSlotInstances)
+            {
+                if (instance != null)
+                {
+                    if (Application.isPlaying)
+                    {
+                        Destroy(instance);
+                    }
+                    else
+                    {
+                        // エディタモードでは非表示にする
+                        instance.SetActive(false);
+                    }
+                }
+            }
+            skillSlotInstances.Clear();
+
+            // 念のため直接の子オブジェクトもチェック
+            if (Application.isPlaying)
+            {
+                for (int i = skillListParent.childCount - 1; i >= 0; i--)
+                {
+                    var child = skillListParent.GetChild(i);
+                    if (child != null)
+                    {
+                        Destroy(child.gameObject);
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"スキルリストクリアエラー: {e.Message}");
         }
     }
 

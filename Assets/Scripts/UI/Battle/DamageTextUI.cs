@@ -6,9 +6,9 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// ダメージ数値の表示演出UI制御
-/// 役割：ダメージ数値ポップアップ・クリティカル時の特別演出・数値色分け表示
-/// 機能：ダメージ数値ポップアップ、クリティカル演出、回復・無効化演出、複数同時表示管理
+/// ダメージ数値の表示演出UI管理
+/// 役割：ダメージ数値ポップアップ・クリティカル時の特別演出・数値色別け表示
+/// 機能：ダメージ数値ポップアップ、クリティカル演出、回復・無効化演出、複数同時表示対応
 /// データアクセス統一ルール: UI層 → Manager層 → データ層
 /// </summary>
 public class DamageTextUI : MonoBehaviour
@@ -37,21 +37,7 @@ public class DamageTextUI : MonoBehaviour
     [SerializeField] private float criticalShakeStrength = 5f;
     [SerializeField] private int criticalShakeCount = 3;
 
-    [Header("色設定")]
-    [SerializeField] private Color normalDamageColor = Color.white;
-    [SerializeField] private Color criticalDamageColor = Color.red;
-    [SerializeField] private Color healColor = Color.green;
-    [SerializeField] private Color nullifyColor = Color.blue;
-    [SerializeField] private Color superEffectiveColor = Color.yellow;
-    [SerializeField] private Color notVeryEffectiveColor = Color.gray;
-
-    [Header("フォント設定")]
-    [SerializeField] private int normalFontSize = 24;
-    [SerializeField] private int criticalFontSize = 36;
-    [SerializeField] private int healFontSize = 20;
-    [SerializeField] private int nullifyFontSize = 18;
-
-    [Header("多重表示制御")]
+    [Header("複数表示制御")]
     [SerializeField] private int maxSimultaneousTexts = 5;
     [SerializeField] private float textSpacing = 0.3f;
 
@@ -235,7 +221,7 @@ public class DamageTextUI : MonoBehaviour
 
                 Vector3 displayPosition = baseWorldPosition + offset;
 
-                // 少し時間差をつけて表示
+                // 少し遅延差をつけて表示
                 StartCoroutine(DelayedDamageTextShow(damageData, displayPosition, i * 0.1f));
             }
 
@@ -333,7 +319,7 @@ public class DamageTextUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ダメージテキストの内容設定
+    /// ダメージテキストの内容設定（プレハブの見た目設定はそのまま使用）
     /// </summary>
     private void SetupDamageText(TextMeshProUGUI textComponent, DamageData damageData)
     {
@@ -341,23 +327,9 @@ public class DamageTextUI : MonoBehaviour
 
         try
         {
-            // テキスト内容設定
+            // テキスト内容のみ設定（色・サイズ・スタイルはプレハブの設定をそのまま使用）
             string displayText = GetDamageDisplayText(damageData);
             textComponent.text = displayText;
-
-            // 色設定
-            Color textColor = GetDamageTextColor(damageData);
-            textComponent.color = textColor;
-
-            // フォントサイズ設定
-            int fontSize = GetDamageFontSize(damageData);
-            textComponent.fontSize = fontSize;
-
-            // フォントスタイル設定
-            if (damageData.isCritical)
-            {
-                textComponent.fontStyle = FontStyles.Bold;
-            }
         }
         catch (Exception e)
         {
@@ -376,11 +348,11 @@ public class DamageTextUI : MonoBehaviour
         }
         else if (damageData.IsNullified())
         {
-            return "無効化";
+            return "";
         }
         else if (damageData.finalDamage == 0)
         {
-            return "MISS";
+            return "";
         }
         else
         {
@@ -388,55 +360,21 @@ public class DamageTextUI : MonoBehaviour
 
             if (damageData.isCritical)
             {
-                baseText = $"CRITICAL!\n{baseText}";
+                baseText = $"{baseText}";
             }
 
             // 属性効果表示
             if (damageData.effectiveness == DamageEffectiveness.SuperEffective)
             {
-                baseText += "\n効果抜群！";
+                baseText += "";
             }
             else if (damageData.effectiveness == DamageEffectiveness.NotVeryEffective)
             {
-                baseText += "\n効果いまひとつ...";
+                baseText += "";
             }
 
             return baseText;
         }
-    }
-
-    /// <summary>
-    /// ダメージテキスト色取得
-    /// </summary>
-    private Color GetDamageTextColor(DamageData damageData)
-    {
-        if (damageData.IsHealing())
-            return healColor;
-        else if (damageData.IsNullified())
-            return nullifyColor;
-        else if (damageData.isCritical)
-            return criticalDamageColor;
-        else if (damageData.effectiveness == DamageEffectiveness.SuperEffective)
-            return superEffectiveColor;
-        else if (damageData.effectiveness == DamageEffectiveness.NotVeryEffective)
-            return notVeryEffectiveColor;
-        else
-            return normalDamageColor;
-    }
-
-    /// <summary>
-    /// ダメージフォントサイズ取得
-    /// </summary>
-    private int GetDamageFontSize(DamageData damageData)
-    {
-        if (damageData.IsHealing())
-            return healFontSize;
-        else if (damageData.IsNullified())
-            return nullifyFontSize;
-        else if (damageData.isCritical)
-            return criticalFontSize;
-        else
-            return normalFontSize;
     }
 
     #endregion
@@ -450,7 +388,7 @@ public class DamageTextUI : MonoBehaviour
     {
         Vector3 basePosition = worldPosition + new Vector3(0f, yOffset, 0f);
 
-        // 利用可能位置がある場合は使用
+        // 利用可能位置があるか確認
         if (availablePositions.Count > 0)
         {
             Vector3 offset = availablePositions.Dequeue();
@@ -491,7 +429,7 @@ public class DamageTextUI : MonoBehaviour
 
         float elapsed = 0f;
 
-        // クリティカル用の特殊処理
+        // クリティカル用の特別処理
         if (damageData.isCritical)
         {
             yield return StartCoroutine(PlayCriticalEffect(textTransform, canvasGroup));

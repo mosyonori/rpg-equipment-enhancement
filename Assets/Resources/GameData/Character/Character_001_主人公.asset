@@ -30,8 +30,8 @@ MonoBehaviour:
   defaultSkillId: 0
   usedSkill1: 0
   usedSkill2: 0
-  characterIcon: {fileID: 0}
-  characterIconPath: 
+  characterIcon: {fileID: 21300000, guid: 8df3dd1b1668c8544a19f581ca8429ef, type: 3}
+  characterIconPath: Icons/Character/Character_1
   characterAnimationPath: 
   description: "\u4E3B\u4EBA\u516C"
   completionFlag: 1
