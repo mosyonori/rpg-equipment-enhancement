@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 
 /// <summary>
-/// 戦闘システム全体の統括制御
+/// 戦闘システム全体の統合制御
 /// 責任範囲：
 /// - 戦闘開始・終了フロー制御
 /// - 各Manager間の連携調整
@@ -53,15 +53,25 @@ public class BattleManager : MonoBehaviour
 
     private void Awake()
     {
+        // 修正: 自身が非アクティブの場合、強制的に有効化
+        if (!gameObject.activeInHierarchy)
+        {
+            Debug.Log("[BattleManager] BattleManagerが非アクティブのため、有効化します");
+            gameObject.SetActive(true);
+        }
+
         // シングルトン設定
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            Debug.Log("[BattleManager] BattleManager Awake - シングルトン設定完了");
             InitializeManager();
         }
         else
         {
+            Debug.Log("[BattleManager] BattleManager重複インスタンス検出 - 削除");
             Destroy(gameObject);
         }
     }
@@ -126,27 +136,27 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 依存するManagerの存在確認
+    /// 修正: 依存するManagerの存在確認
     /// </summary>
     private bool CheckDependencies()
     {
         // 必須Manager確認
         if (SaveDataManager.Instance == null || !SaveDataManager.Instance.IsDataLoaded)
         {
-            Log("SaveDataManagerが未初期化");
+            Log("SaveDataManager未初期化");
             return false;
         }
 
         if (MasterDataManager.Instance == null || !MasterDataManager.Instance.IsDataLoaded)
         {
-            Log("MasterDataManagerが未初期化");
+            Log("MasterDataManager未初期化");
             return false;
         }
 
         // QuestDataManagerの確認を追加
         if (QuestDataManager.Instance == null || !QuestDataManager.Instance.IsDataLoaded)
         {
-            Log("QuestDataManagerが未初期化");
+            Log("QuestDataManager未初期化");
             return false;
         }
 
@@ -259,7 +269,7 @@ public class BattleManager : MonoBehaviour
                 return false;
             }
 
-            // ★修正: 装備データの詳細ログ出力
+            // 修正: 装備データの詳細ログ出力
             LogPlayerEquipmentDetails(userData);
 
             // スタミナ消費チェック・実行
@@ -285,16 +295,16 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// ★新規追加: プレイヤーの装備データの詳細ログ出力（HomeManagerパターンを参考）
+    /// 修正: プレイヤーの装備データの詳細ログ出力（HomeManagerパターンを参考）
     /// </summary>
     private void LogPlayerEquipmentDetails(UserSaveData userData)
     {
         Log("=== プレイヤー装備データ詳細確認 ===");
 
         Log($"全装備数: {userData.equipments?.Count ?? 0}");
-        Log($"装備武器ID数: {userData.equippedWeaponIds?.Count ?? 0}");
-        Log($"装備防具ID数: {userData.equippedArmorIds?.Count ?? 0}");
-        Log($"装備アクセサリID数: {userData.equippedAccessoryIds?.Count ?? 0}");
+        Log($"装備武器IDの数: {userData.equippedWeaponIds?.Count ?? 0}");
+        Log($"装備防具IDの数: {userData.equippedArmorIds?.Count ?? 0}");
+        Log($"装備アクセサリIDの数: {userData.equippedAccessoryIds?.Count ?? 0}");
         Log($"戦闘スキル1: {userData.battleSkill1Id}");
         Log($"戦闘スキル2: {userData.battleSkill2Id}");
 
@@ -431,7 +441,7 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// ★追加: 生存している敵キャラクター一覧を取得
+    /// 修正: 生存している敵キャラクター一覧を取得
     /// </summary>
     public List<BattleCharacterData> GetAliveEnemies()
     {
@@ -439,7 +449,7 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// ★追加: 生存しているプレイヤーキャラクター一覧を取得
+    /// 修正: 生存しているプレイヤーキャラクター一覧を取得
     /// </summary>
     public List<BattleCharacterData> GetAlivePlayers()
     {
@@ -491,7 +501,7 @@ public class BattleManager : MonoBehaviour
     #region 内部メソッド - 戦闘フロー
 
     /// <summary>
-    /// 戦闘初期化処理
+    /// 修正: 戦闘初期化処理（エラー修正版）
     /// </summary>
     private void InitializeBattle()
     {
@@ -506,20 +516,40 @@ public class BattleManager : MonoBehaviour
             // キャラクターデータ構築
             CreateBattleCharacters();
 
+            // 修正: allCharactersの内容を詳細確認
+            Log($"作成されたキャラクター総数: {allCharacters?.Count ?? 0}");
+            if (allCharacters != null)
+            {
+                foreach (var character in allCharacters)
+                {
+                    Log($"キャラクター: {character.characterName} (プレイヤー:{character.isPlayer}, 生存:{character.isAlive}, HP:{character.currentHp}/{character.maxHp})");
+                }
+            }
+
             // 戦闘データManager初期化
+            Log("BattleDataManager初期化開始");
             battleDataManager.InitializeBattle(allCharacters, currentBattleSetup);
+            Log("BattleDataManager初期化完了");
 
-            // BattleTurnManagerの依存関係設定（メモ書きに従って実行）
-            // 1. BattleDataManagerの参照を設定
+            // BattleTurnManager の依存関係設定
+            Log("BattleTurnManager.SetDataManager呼び出し");
             battleTurnManager.SetDataManager(battleDataManager);
+            Log("BattleTurnManager.SetDataManager完了");
 
-            // 2. ターン制限を設定（必要に応じて）
+            Log($"BattleTurnManager.SetTurnLimit呼び出し: {currentBattleSetup.turnLimit}");
             battleTurnManager.SetTurnLimit(currentBattleSetup.turnLimit);
+            Log("BattleTurnManager.SetTurnLimit完了");
 
-            // 3. 行動順序を初期化
+            Log("BattleTurnManager.InitializeTurnOrder呼び出し");
             battleTurnManager.InitializeTurnOrder();
+            Log("BattleTurnManager.InitializeTurnOrder完了");
 
-            // BattleCalculationManagerにもBattleDataManagerの参照を設定
+            // 修正: BattleTurnManagerの状態を確認
+            Log($"BattleTurnManager.Instance存在確認: {(BattleTurnManager.Instance != null ? "存在" : "null")}");
+            Log($"battleTurnManager参照確認: {(battleTurnManager != null ? "存在" : "null")}");
+            Log($"battleTurnManager == BattleTurnManager.Instance: {(battleTurnManager == BattleTurnManager.Instance)}");
+
+            // BattleCalculationManager にも BattleDataManager の参照を設定
             SetCalculationManagerDependencies();
 
             // 戦闘結果データ初期化
@@ -530,13 +560,16 @@ public class BattleManager : MonoBehaviour
             ChangeState(BattleState.InProgress);
 
             // 戦闘開始
+            Log("BattleMainLoop開始前");
             battleCoroutine = StartCoroutine(BattleMainLoop());
+            Log("BattleMainLoop開始後");
 
             Log("戦闘初期化処理完了");
         }
         catch (Exception e)
         {
             LogError($"戦闘初期化エラー: {e.Message}");
+            LogError($"スタックトレース: {e.StackTrace}");
             OnBattleError?.Invoke("戦闘の初期化に失敗しました");
             ChangeState(BattleState.Idle);
         }
@@ -600,7 +633,7 @@ public class BattleManager : MonoBehaviour
 
         foreach (var monsterId in currentBattleSetup.spawnMonsterIds)
         {
-            Log($"モンスターID {monsterId} の作成を試行");
+            Log($"モンスターID {monsterId} の作成を実行");
 
             try
             {
@@ -633,7 +666,7 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        // ★修正: メソッド追加後なので正常に動作
+        // 修正: メソッド追加後なので正常に動作
         int playerCount = GetAlivePlayers().Count;
         int enemyCount = GetAliveEnemies().Count;
 
@@ -647,7 +680,6 @@ public class BattleManager : MonoBehaviour
 
         Log("=== 戦闘キャラクター作成終了 ===");
     }
-
 
     /// <summary>
     /// フォールバックプレイヤーキャラクター作成
@@ -745,11 +777,8 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-
-
-
     /// <summary>
-    /// ★新規追加: プレイヤーの装備ステータス計算（HomeManagerのEquipmentSummaryData.CreateFromSaveDataパターンを参考）
+    /// 修正: プレイヤーの装備ステータス計算（HomeManagerのEquipmentSummaryData.CreateFromSaveDataパターンを参考）
     /// </summary>
     private EquipmentTotalStats CalculatePlayerEquipmentStats(UserSaveData userData)
     {
@@ -842,11 +871,21 @@ public class BattleManager : MonoBehaviour
 
         while (elapsed < timeout)
         {
-            // プレイヤーと敵が両方存在するかチェック
-            bool hasPlayer = GetAlivePlayers().Count > 0;
-            bool hasEnemies = GetAliveEnemies().Count > 0;
+            // 修正: より確実な条件チェック
+            bool hasValidData = allCharacters != null && allCharacters.Count > 0;
+            bool hasPlayer = false;
+            bool hasEnemies = false;
 
-            if (hasPlayer && hasEnemies)
+            if (hasValidData)
+            {
+                // 修正: 直接リストから確認
+                hasPlayer = allCharacters.Any(c => c.isPlayer && c.isAlive);
+                hasEnemies = allCharacters.Any(c => !c.isPlayer && c.isAlive);
+            }
+
+            Log($"準備状況チェック: データ有効={hasValidData}, プレイヤー={hasPlayer}, 敵={hasEnemies}");
+
+            if (hasValidData && hasPlayer && hasEnemies)
             {
                 Log($"戦闘準備完了: プレイヤー{GetAlivePlayers().Count}体, 敵{GetAliveEnemies().Count}体");
                 yield break;
@@ -866,7 +905,7 @@ public class BattleManager : MonoBehaviour
     {
         Log("戦闘自動開始処理");
 
-        // UIに戦闘開始を通知
+        // UI に戦闘開始を通知
         var playerChar = GetPlayerCharacter();
         var enemyChars = GetEnemyCharacters();
 
@@ -874,12 +913,19 @@ public class BattleManager : MonoBehaviour
         {
             Log($"戦闘開始: {playerChar.characterName} vs {string.Join(", ", enemyChars.ConvertAll(e => e.characterName))}");
 
-            // BattleTurnManager にターン処理開始を指示
+            // 修正: BattleTurnManager にターン処理開始を具体的に指示
             if (battleTurnManager != null)
             {
                 Log("BattleTurnManager にターン処理開始を指示");
-                // 必要に応じてBattleTurnManagerの開始メソッドを呼び出し
-                // battleTurnManager.StartTurnProcessing();
+
+                // 修正: コメントアウトを解除してターン処理を開始
+                battleTurnManager.StartTurnProcessing();
+
+                Log("BattleTurnManager ターン処理開始完了");
+            }
+            else
+            {
+                LogError("BattleTurnManager が null です");
             }
 
             yield return new WaitForSeconds(1f); // 戦闘開始演出時間
@@ -890,8 +936,6 @@ public class BattleManager : MonoBehaviour
             LogError($"戦闘開始失敗: プレイヤー:{(playerChar != null ? "存在" : "なし")}, 敵:{enemyChars.Count}体");
         }
     }
-
-
 
     /// <summary>
     /// 戦闘終了条件をチェック
@@ -943,7 +987,7 @@ public class BattleManager : MonoBehaviour
             // 戦闘結果作成
             CreateBattleResult(isVictory, endReason);
 
-            // 勝利時の報酬処理
+            // 勝利後の報酬処理
             if (isVictory)
             {
                 ProcessVictoryRewards();
@@ -996,7 +1040,7 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 勝利時報酬処理
+    /// 勝利後報酬処理
     /// </summary>
     private void ProcessVictoryRewards()
     {
@@ -1126,7 +1170,7 @@ public class BattleManager : MonoBehaviour
 
     #endregion
 
-    #region エディター用ツール
+    #region エディタ用ツール
 
 #if UNITY_EDITOR
     [ContextMenu("戦闘状態をログ出力")]

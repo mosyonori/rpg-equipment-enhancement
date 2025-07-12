@@ -27,7 +27,7 @@ public class BattleUI : MonoBehaviour
 
     [Header("UIコンポーネント参照")]
     [SerializeField] private PlayerBattleUI playerBattleUI;
-    [SerializeField] private MonsterAreaManager monsterAreaManager; // 変更: MonsterBattleUI → MonsterAreaManager
+    [SerializeField] private MonsterAreaManager monsterAreaManager;
     [SerializeField] private BattleInfoUI battleInfoUI;
     [SerializeField] private SkillInfoUI skillInfoUI;
     [SerializeField] private BattleLogUI battleLogUI;
@@ -50,6 +50,10 @@ public class BattleUI : MonoBehaviour
     private int currentSpeedIndex = 0;
     private bool isPaused = false;
     private bool isInitialized = false;
+
+    // 修正: キャラクターデータ保持
+    private BattleCharacterData currentPlayerData;
+    private System.Collections.Generic.List<BattleCharacterData> currentEnemyData;
 
     // イベント
     public static event Action OnBattleUIReady;
@@ -84,7 +88,7 @@ public class BattleUI : MonoBehaviour
     {
         if (!Application.isPlaying)
         {
-            DebugLog("エディタモードのため初期化をスキップ");
+            DebugLog("エディタモード中のため初期化をスキップ");
             return;
         }
 
@@ -121,7 +125,7 @@ public class BattleUI : MonoBehaviour
         if (playerBattleUI != null)
             playerBattleUI.Initialize();
 
-        if (monsterAreaManager != null) // 変更: MonsterAreaManager
+        if (monsterAreaManager != null)
             monsterAreaManager.Initialize();
 
         if (battleInfoUI != null)
@@ -223,20 +227,101 @@ public class BattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 戦闘初期化完了イベント
+    /// 修正: 戦闘初期化完了イベント - キャラクターデータを取得・配布
     /// </summary>
     private void OnBattleInitialized(BattleSetupData setupData)
     {
-        // 戦闘画面表示
-        ShowBattleUI();
+        try
+        {
+            DebugLog("戦闘初期化完了 - キャラクターデータ取得開始");
 
-        // 戦闘情報更新
-        UpdateBattleInfo(setupData);
+            // 戦闘画面表示
+            ShowBattleUI();
 
-        // 各UIコンポーネントに戦闘開始を通知
-        NotifyBattleStartToComponents(setupData);
+            // 戦闘情報更新
+            UpdateBattleInfo(setupData);
 
-        DebugLog($"戦闘初期化完了: {setupData.questId}");
+            // 修正: BattleManagerからキャラクターデータを取得
+            if (BattleManager.Instance != null)
+            {
+                var allCharacters = BattleManager.Instance.GetAllCharacters();
+                DebugLog($"BattleManagerから取得したキャラクター数: {allCharacters?.Count ?? 0}");
+
+                if (allCharacters != null && allCharacters.Count > 0)
+                {
+                    // プレイヤーデータとモンスターデータを分離
+                    currentPlayerData = allCharacters.Find(c => c.isPlayer);
+                    currentEnemyData = allCharacters.FindAll(c => !c.isPlayer);
+
+                    DebugLog($"プレイヤーデータ: {(currentPlayerData != null ? currentPlayerData.characterName : "null")}");
+                    DebugLog($"モンスターデータ数: {currentEnemyData?.Count ?? 0}");
+
+                    // 各UIコンポーネントにデータを配布
+                    DistributeCharacterDataToComponents(setupData);
+                }
+                else
+                {
+                    DebugLogError("BattleManagerからキャラクターデータを取得できませんでした");
+                }
+            }
+            else
+            {
+                DebugLogError("BattleManager.Instanceがnullです");
+            }
+
+            DebugLog($"戦闘初期化完了: {setupData.questId}");
+        }
+        catch (Exception e)
+        {
+            DebugLogError($"戦闘初期化処理エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: キャラクターデータを各UIコンポーネントに配布
+    /// </summary>
+    private void DistributeCharacterDataToComponents(BattleSetupData setupData)
+    {
+        try
+        {
+            DebugLog("キャラクターデータ配布開始");
+
+            // PlayerBattleUIにプレイヤーデータを設定
+            if (playerBattleUI != null && currentPlayerData != null)
+            {
+                playerBattleUI.OnBattleStart(setupData);
+                playerBattleUI.UpdatePlayerData(currentPlayerData);
+                DebugLog($"PlayerBattleUIにデータ設定: {currentPlayerData.characterName}");
+            }
+            else
+            {
+                DebugLogError($"PlayerBattleUI設定失敗: playerBattleUI={playerBattleUI != null}, currentPlayerData={currentPlayerData != null}");
+            }
+
+            // MonsterAreaManagerにモンスターデータを設定
+            if (monsterAreaManager != null && currentEnemyData != null && currentEnemyData.Count > 0)
+            {
+                monsterAreaManager.OnBattleStart(setupData);
+                // 修正: 直接モンスターデータを渡す
+                monsterAreaManager.UpdateMonstersData(currentEnemyData);
+                DebugLog($"MonsterAreaManagerにデータ設定: {currentEnemyData.Count}体");
+            }
+            else
+            {
+                DebugLogError($"MonsterAreaManager設定失敗: monsterAreaManager={monsterAreaManager != null}, currentEnemyData={currentEnemyData?.Count ?? 0}");
+            }
+
+            // 他のUIコンポーネントにも基本的な戦闘開始通知
+            battleInfoUI?.OnBattleStart(setupData);
+            skillInfoUI?.OnBattleStart(setupData);
+            battleLogUI?.OnBattleStart(setupData);
+
+            DebugLog("キャラクターデータ配布完了");
+        }
+        catch (Exception e)
+        {
+            DebugLogError($"キャラクターデータ配布エラー: {e.Message}");
+        }
     }
 
     /// <summary>
@@ -282,7 +367,7 @@ public class BattleUI : MonoBehaviour
     private void OnBattleError(string errorMessage)
     {
         DebugLogError($"戦闘エラー: {errorMessage}");
-        // エラー時は強制的にホーム画面に戻る等の処理を実装
+        // エラー後は強制的にホーム画面に戻る等の処理を実装
     }
 
     #endregion
@@ -290,7 +375,7 @@ public class BattleUI : MonoBehaviour
     #region UI状態更新
 
     /// <summary>
-    /// 戦闘状態に基づくUI更新
+    /// 戦闘状態に応じたUI更新
     /// </summary>
     private void UpdateUIBasedOnBattleState(BattleState state)
     {
@@ -368,24 +453,12 @@ public class BattleUI : MonoBehaviour
     #region UIコンポーネント通知
 
     /// <summary>
-    /// 各UIコンポーネントに戦闘開始を通知
-    /// </summary>
-    private void NotifyBattleStartToComponents(BattleSetupData setupData)
-    {
-        playerBattleUI?.OnBattleStart(setupData);
-        monsterAreaManager?.OnBattleStart(setupData); // 変更: MonsterAreaManager
-        battleInfoUI?.OnBattleStart(setupData);
-        skillInfoUI?.OnBattleStart(setupData);
-        battleLogUI?.OnBattleStart(setupData);
-    }
-
-    /// <summary>
     /// 各UIコンポーネントにターン開始を通知
     /// </summary>
     private void NotifyTurnStartToComponents(BattleCharacterData character)
     {
         playerBattleUI?.OnTurnStart(character);
-        monsterAreaManager?.OnTurnStart(character); // 変更: MonsterAreaManager
+        monsterAreaManager?.OnTurnStart(character);
         battleInfoUI?.OnTurnStart(character);
         skillInfoUI?.OnTurnStart(character);
     }
@@ -396,7 +469,7 @@ public class BattleUI : MonoBehaviour
     private void NotifyActionExecutedToComponents(ActionData action)
     {
         playerBattleUI?.OnActionExecuted(action);
-        monsterAreaManager?.OnActionExecuted(action); // 変更: MonsterAreaManager
+        monsterAreaManager?.OnActionExecuted(action);
         battleLogUI?.OnActionExecuted(action);
     }
 
@@ -527,6 +600,22 @@ public class BattleUI : MonoBehaviour
     public PlayerBattleUI GetPlayerBattleUI()
     {
         return playerBattleUI;
+    }
+
+    /// <summary>
+    /// 修正: 現在のキャラクターデータ取得メソッド追加
+    /// </summary>
+    public BattleCharacterData GetCurrentPlayerData()
+    {
+        return currentPlayerData;
+    }
+
+    /// <summary>
+    /// 修正: 現在のモンスターデータ取得メソッド追加
+    /// </summary>
+    public System.Collections.Generic.List<BattleCharacterData> GetCurrentEnemyData()
+    {
+        return currentEnemyData;
     }
 
     #endregion

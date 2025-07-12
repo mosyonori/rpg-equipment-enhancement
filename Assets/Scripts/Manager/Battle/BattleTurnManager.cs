@@ -5,14 +5,14 @@ using System.Collections;
 
 /// <summary>
 /// ターン・行動順制御管理クラス
-/// ターン制バトルの進行制御とオートバトルAIを担当
+/// ターン制バトルの進行制御とオートバトルAIを全担当
 /// </summary>
 public class BattleTurnManager : MonoBehaviour
 {
     [Header("ターン制御設定")]
     [SerializeField] private float turnActionDelay = 1.0f;
     [SerializeField] private float skillAnimationDelay = 0.5f;
-    [SerializeField] private bool enableAIDebugLog = false;
+    [SerializeField] private bool enableAIDebugLog = true;
 
     [Header("オートバトル設定")]
     [SerializeField] private float autoActionInterval = 2.0f;
@@ -22,7 +22,7 @@ public class BattleTurnManager : MonoBehaviour
     // シングルトンパターン
     public static BattleTurnManager Instance { get; private set; }
 
-    // 戦闘状態
+    // 内戦状況
     public bool IsTurnInProgress { get; private set; }
     public int CurrentTurnNumber { get; private set; }
     public string CurrentActorId { get; private set; }
@@ -67,7 +67,7 @@ public class BattleTurnManager : MonoBehaviour
 
     private void Start()
     {
-        // 依存関係は実行時に取得（BattleDataManagerはシングルトンではない）
+        // 依存関係は後から設定されるため、BattleDataManagerはシングルトンではない）
         calculationManager = BattleCalculationManager.Instance;
 
         if (calculationManager == null)
@@ -104,7 +104,7 @@ public class BattleTurnManager : MonoBehaviour
     public void SetBattleSpeed(float speedMultiplier)
     {
         // 実装は現在のところ何もしない（将来拡張可能）
-        DebugLog($"戦闘速度設定: {speedMultiplier}倍速");
+        DebugLog($"戦闘速度設定: {speedMultiplier}倍");
     }
 
     /// <summary>
@@ -124,13 +124,29 @@ public class BattleTurnManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 戦闘初期化（BattleManager互換用）
+    /// 修正: 戦闘初期化（BattleManager経由用）
     /// </summary>
     public void InitializeBattle(List<BattleCharacterData> characters, int battleTurnLimit)
     {
+        if (characters == null || characters.Count == 0)
+        {
+            DebugLogError("キャラクターリストが空です");
+            return;
+        }
+
         SetTurnLimit(battleTurnLimit);
+
+        // 修正: データマネージャーが設定されていることを確認
+        if (dataManager == null)
+        {
+            DebugLogError("BattleDataManagerが設定されていません。InitializeBattleを実行できません。");
+            return;
+        }
+
         InitializeTurnOrder();
+
         DebugLog($"戦闘初期化完了: キャラクター{characters.Count}体, ターン制限{battleTurnLimit}");
+        DebugLog($"行動順序: {string.Join(" → ", turnOrder)}");
     }
 
     #endregion
@@ -138,22 +154,34 @@ public class BattleTurnManager : MonoBehaviour
     #region 公開メソッド - ターン管理
 
     /// <summary>
-    /// 戦闘開始時の行動順序を決定
-    /// 戦闘画面フロー ステップ4の実装
+    /// 修正: 行動順序初期化（デバッグ強化版）
     /// </summary>
     public void InitializeTurnOrder()
     {
+        Debug.Log("[BattleTurnManager] 行動順序初期化開始");
+
         if (dataManager == null)
         {
-            DebugLogError("BattleDataManagerが初期化されていません");
+            DebugLogError("BattleDataManager が初期化されていません");
             return;
         }
 
         var allCharacters = dataManager.GetAllCharacters();
+        Debug.Log($"[BattleTurnManager] 取得キャラクター数: {allCharacters?.Count ?? 0}");
+
         if (allCharacters == null || allCharacters.Count == 0)
         {
             DebugLogError("戦闘キャラクターが存在しません");
             return;
+        }
+
+        // 生存キャラクターをログ出力
+        var aliveCharacters = allCharacters.Where(c => c.isAlive && c.CanAct()).ToList();
+        Debug.Log($"[BattleTurnManager] 生存行動可能キャラクター数: {aliveCharacters.Count}");
+
+        foreach (var character in aliveCharacters)
+        {
+            Debug.Log($"[BattleTurnManager] 行動可能: {character.characterName} (速度:{character.speed}, プレイヤー:{character.isPlayer})");
         }
 
         // 速度順でソート（同速の場合はプレイヤー優先、敵は配置順）
@@ -168,26 +196,90 @@ public class BattleTurnManager : MonoBehaviour
         currentTurnIndex = 0;
         CurrentTurnNumber = 1;
 
-        DebugLog($"行動順序を決定: {string.Join(" → ", turnOrder)}");
+        Debug.Log($"[BattleTurnManager] 行動順序を決定: {string.Join(" → ", turnOrder)}");
     }
 
     /// <summary>
-    /// ターン処理を開始
+    /// 修正: StartTurnProcessing（エラー修正版）
     /// </summary>
     public void StartTurnProcessing()
     {
-        if (IsTurnInProgress)
+        // 最重要ログを必ず出力
+        Debug.Log("**** [BattleTurnManager] StartTurnProcessing が呼び出されました ****");
+
+        try
         {
-            DebugLogWarning("既にターン処理中です");
-            return;
+            Debug.Log($"[BattleTurnManager] 現在の状態チェック開始");
+            Debug.Log($"[BattleTurnManager] IsTurnInProgress: {IsTurnInProgress}");
+            Debug.Log($"[BattleTurnManager] gameObject.activeInHierarchy: {gameObject.activeInHierarchy}");
+            Debug.Log($"[BattleTurnManager] this.enabled: {this.enabled}");
+
+            if (IsTurnInProgress)
+            {
+                Debug.LogWarning("[BattleTurnManager] 既にターン処理中です");
+                return;
+            }
+
+            Debug.Log($"[BattleTurnManager] dataManager チェック: {(dataManager == null ? "null" : "存在")}");
+
+            if (dataManager == null)
+            {
+                Debug.LogError("[BattleTurnManager] BattleDataManagerが設定されていません");
+                return;
+            }
+
+            // 修正: GetAllCharacters()が実際のデータを確認
+            var allCharacters = dataManager.GetAllCharacters();
+            Debug.Log($"[BattleTurnManager] dataManager.GetAllCharacters(): {allCharacters?.Count ?? 0}体");
+
+            if (allCharacters != null)
+            {
+                foreach (var character in allCharacters)
+                {
+                    Debug.Log($"[BattleTurnManager] キャラクター: {character.characterName} (プレイヤー:{character.isPlayer}, 生存:{character.isAlive})");
+                }
+            }
+
+            Debug.Log($"[BattleTurnManager] turnOrder チェック: {(turnOrder == null ? "null" : $"要素数{turnOrder.Count}")}");
+
+            if (turnOrder == null || turnOrder.Count == 0)
+            {
+                Debug.LogError("[BattleTurnManager] 行動順序が初期化されていません");
+
+                Debug.Log("[BattleTurnManager] 行動順序を再初期化します");
+                InitializeTurnOrder();
+
+                Debug.Log($"[BattleTurnManager] 再初期化後のturnOrder: {(turnOrder == null ? "null" : $"要素数{turnOrder.Count}")}");
+
+                if (turnOrder == null || turnOrder.Count == 0)
+                {
+                    Debug.LogError("[BattleTurnManager] 行動順序の再初期化に失敗しました");
+                    return;
+                }
+            }
+
+            if (turnCoroutine != null)
+            {
+                Debug.Log("[BattleTurnManager] 既存のコルーチンを停止");
+                StopCoroutine(turnCoroutine);
+            }
+
+            Debug.Log("[BattleTurnManager] ===== ターン処理開始 =====");
+            Debug.Log($"[BattleTurnManager] 行動順序: {string.Join(" → ", turnOrder)}");
+            Debug.Log($"[BattleTurnManager] 最初の行動者: {GetCurrentActorId()}");
+
+            Debug.Log("[BattleTurnManager] StartCoroutine(TurnProcessingCoroutine)呼び出し");
+            turnCoroutine = StartCoroutine(TurnProcessingCoroutine());
+            Debug.Log("[BattleTurnManager] StartCoroutine(TurnProcessingCoroutine)完了");
+
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[BattleTurnManager] StartTurnProcessing中に例外: {e.Message}");
+            Debug.LogError($"[BattleTurnManager] スタックトレース: {e.StackTrace}");
         }
 
-        if (turnCoroutine != null)
-        {
-            StopCoroutine(turnCoroutine);
-        }
-
-        turnCoroutine = StartCoroutine(TurnProcessingCoroutine());
+        Debug.Log("**** [BattleTurnManager] StartTurnProcessing 終了 ****");
     }
 
     /// <summary>
@@ -259,7 +351,7 @@ public class BattleTurnManager : MonoBehaviour
     /// </summary>
     public ActionData DecideAction(BattleCharacterData character, List<BattleCharacterData> allCharacters)
     {
-        // 優先順位に基づくスキル選択
+        // 優先順位に従うスキル選択
         var selectedSkill = SelectSkillByPriority(character);
 
         if (selectedSkill != null)
@@ -306,18 +398,37 @@ public class BattleTurnManager : MonoBehaviour
     #region ターン処理コルーチン
 
     /// <summary>
-    /// メインターン処理コルーチン
-    /// 戦闘画面フローの ステップ5-17を実装
+    /// 修正: TurnProcessingCoroutine（エラー修正版）
     /// </summary>
     private IEnumerator TurnProcessingCoroutine()
     {
+        Debug.Log("☆☆☆ [BattleTurnManager] TurnProcessingCoroutine 開始 ☆☆☆");
+
         IsTurnInProgress = true;
+        Debug.Log($"[BattleTurnManager] IsTurnInProgress を true に設定");
+
+        int loopCount = 0;
+        const int MAX_LOOPS = 1000;
+
+        Debug.Log("[BattleTurnManager] while ループ開始前の状態チェック");
+        Debug.Log($"[BattleTurnManager] AreAllPlayersDefeated: {dataManager.AreAllPlayersDefeated()}");
+        Debug.Log($"[BattleTurnManager] AreAllEnemiesDefeated: {dataManager.AreAllEnemiesDefeated()}");
 
         while (!dataManager.AreAllPlayersDefeated() && !dataManager.AreAllEnemiesDefeated())
         {
-            // ステップ5: 限界ターン数チェック
+            loopCount++;
+            Debug.Log($"[BattleTurnManager] ===== ループ {loopCount} 開始 =====");
+
+            if (loopCount > MAX_LOOPS)
+            {
+                Debug.LogError($"[BattleTurnManager] ターン処理が{MAX_LOOPS}回を超えました。強制終了します。");
+                break;
+            }
+
+            // ステップ5: 制限ターン数チェック
             if (CheckTurnLimit())
             {
+                Debug.Log("[BattleTurnManager] ターン制限に達しました");
                 OnTurnLimitReached?.Invoke();
                 yield break;
             }
@@ -326,63 +437,71 @@ public class BattleTurnManager : MonoBehaviour
             CurrentActorId = GetCurrentActorId();
             var currentActor = dataManager.GetCharacter(CurrentActorId);
 
+            Debug.Log($"[BattleTurnManager] ターン{CurrentTurnNumber} - 行動者ID: {CurrentActorId}");
+            Debug.Log($"[BattleTurnManager] 行動者データ: {(currentActor != null ? $"{currentActor.characterName}(生存:{currentActor.isAlive})" : "null")}");
+
             if (currentActor == null || !currentActor.isAlive)
             {
-                // 死亡キャラクターをスキップして次へ
+                Debug.Log($"[BattleTurnManager] 行動者が無効または死亡しているためスキップ: {CurrentActorId}");
                 AdvanceToNextActor();
                 continue;
             }
 
-            DebugLog($"ターン{CurrentTurnNumber}: {currentActor.characterName}の行動開始");
+            Debug.Log($"[BattleTurnManager] ターン{CurrentTurnNumber}: {currentActor.characterName}の行動開始");
             OnTurnStart?.Invoke(CurrentActorId, CurrentTurnNumber);
 
-            // ステップ6: 行動前処理
-            yield return StartCoroutine(PreActionProcessing(currentActor));
-
-            // 行動不能チェック（スタン等）
-            if (!currentActor.CanAct() || dataManager.IsCharacterActionBlocked(currentActor.characterId))
-            {
-                if (dataManager.IsCharacterActionBlocked(currentActor.characterId))
-                {
-                    DebugLog($"{currentActor.characterName}は状態効果により行動不能です");
-                }
-                else
-                {
-                    DebugLog($"{currentActor.characterName}は行動不能です");
-                }
-
-                yield return StartCoroutine(PostActionProcessing(currentActor));
-                AdvanceToNextActor();
-                continue;
-            }
-
-            // ステップ7-8: 自動行動実行
-            yield return StartCoroutine(ExecuteAutoAction(currentActor));
-
-            // ステップ16: ターン終了時の状態異常処理
-            yield return StartCoroutine(PostActionProcessing(currentActor));
-
-            // ステップ13: 勝敗判定
-            if (dataManager.AreAllPlayersDefeated())
-            {
-                OnPlayerDefeated?.Invoke();
-                break;
-            }
-            else if (dataManager.AreAllEnemiesDefeated())
-            {
-                OnAllEnemiesDefeated?.Invoke();
-                break;
-            }
+            // 修正: 実際のターン処理を実行
+            yield return StartCoroutine(ExecuteActorTurn(currentActor));
 
             // 次の行動者へ移行
             AdvanceToNextActor();
 
-            // 行動間の待機時間
+            Debug.Log($"[BattleTurnManager] ===== ループ {loopCount} 終了 =====");
             yield return new WaitForSeconds(turnActionDelay);
         }
 
+        // 戦闘終了判定
+        if (dataManager.AreAllPlayersDefeated())
+        {
+            Debug.Log("[BattleTurnManager] プレイヤー全滅");
+            OnPlayerDefeated?.Invoke();
+        }
+        else if (dataManager.AreAllEnemiesDefeated())
+        {
+            Debug.Log("[BattleTurnManager] 敵全滅");
+            OnAllEnemiesDefeated?.Invoke();
+        }
+
         IsTurnInProgress = false;
-        DebugLog("ターン処理を終了します");
+        Debug.Log($"☆☆☆ [BattleTurnManager] TurnProcessingCoroutine 終了 (ループ数: {loopCount}) ☆☆☆");
+    }
+
+    /// <summary>
+    /// 修正: 個別ターン実行処理
+    /// </summary>
+    private IEnumerator ExecuteActorTurn(BattleCharacterData actor)
+    {
+        Debug.Log($"[BattleTurnManager] {actor.characterName}のターン実行開始");
+
+        // エラーハンドリングは各メソッド内で個別に行う
+
+        // 行動前処理（CT減算、ターン開始時効果）
+        yield return StartCoroutine(PreActionProcessing(actor));
+
+        // 行動決定・実行
+        if (actor.CanAct())
+        {
+            yield return StartCoroutine(ExecuteAutoAction(actor));
+        }
+        else
+        {
+            Debug.Log($"[BattleTurnManager] {actor.characterName}は行動不能");
+        }
+
+        // 行動後処理（状態効果のターン数減算）
+        yield return StartCoroutine(PostActionProcessing(actor));
+
+        Debug.Log($"[BattleTurnManager] {actor.characterName}のターン実行完了");
     }
 
     /// <summary>
@@ -391,18 +510,25 @@ public class BattleTurnManager : MonoBehaviour
     /// </summary>
     private IEnumerator PreActionProcessing(BattleCharacterData actor)
     {
-        // 全スキルのCT減算
-        dataManager.ReduceSkillCooldowns(actor.characterId);
-
-        // ターン開始時の状態効果処理
-        if (calculationManager != null)
+        try
         {
-            var turnStartEffects = calculationManager.CalculateTurnStartEffects(actor);
-            foreach (var effectDamage in turnStartEffects)
+            // 全スキルのCT減算
+            dataManager.ReduceSkillCooldowns(actor.characterId);
+
+            // ターン開始時の状態効果処理
+            if (calculationManager != null)
             {
-                effectDamage.ApplyDamageToTarget(actor);
-                DebugLog($"{actor.characterName}にターン開始効果: {effectDamage.finalDamage}");
+                var turnStartEffects = calculationManager.CalculateTurnStartEffects(actor);
+                foreach (var effectDamage in turnStartEffects)
+                {
+                    effectDamage.ApplyDamageToTarget(actor);
+                    DebugLog($"{actor.characterName}にターン開始効果: {effectDamage.finalDamage}");
+                }
             }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[BattleTurnManager] 行動前処理エラー ({actor.characterName}): {e.Message}");
         }
 
         yield return new WaitForSeconds(0.1f);
@@ -414,7 +540,7 @@ public class BattleTurnManager : MonoBehaviour
     /// </summary>
     private IEnumerator ExecuteAutoAction(BattleCharacterData actor)
     {
-        // ステップ7: 行動優先順位に従い自動行動
+        // ステップ7: 行動優先順位に従う自動行動
         var selectedSkill = SelectSkillByPriority(actor);
 
         if (selectedSkill != null)
@@ -430,13 +556,20 @@ public class BattleTurnManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 行動後処理（状態効果のターン減算）
+    /// 行動後処理（状態効果のターン数減算）
     /// 戦闘画面フロー ステップ16の実装
     /// </summary>
     private IEnumerator PostActionProcessing(BattleCharacterData actor)
     {
-        // 状態効果のターン数減算
-        dataManager.ProcessTurnStartStatusEffects(actor.characterId);
+        try
+        {
+            // 状態効果のターン数減算
+            dataManager.ProcessTurnStartStatusEffects(actor.characterId);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[BattleTurnManager] 行動後処理エラー ({actor.characterName}): {e.Message}");
+        }
 
         yield return new WaitForSeconds(0.1f);
     }
@@ -446,7 +579,7 @@ public class BattleTurnManager : MonoBehaviour
     #region スキル選択AI
 
     /// <summary>
-    /// 優先順位に基づくスキル選択
+    /// 優先順位に従うスキル選択
     /// 優先順位：設定スキル1（使用可能） > 設定スキル2（使用可能） > 通常攻撃
     /// </summary>
     private BattleSkillData SelectSkillByPriority(BattleCharacterData actor)
@@ -731,14 +864,14 @@ public class BattleTurnManager : MonoBehaviour
     #region ヘルパーメソッド
 
     /// <summary>
-    /// 限界ターン数チェック
+    /// 制限ターン数チェック
     /// 戦闘画面フロー ステップ5の実装
     /// </summary>
     private bool CheckTurnLimit()
     {
         if (turnLimit > 0 && CurrentTurnNumber > turnLimit)
         {
-            DebugLog($"限界ターン数{turnLimit}に到達しました");
+            DebugLog($"制限ターン数{turnLimit}に到達しました");
             return true;
         }
 
@@ -764,7 +897,7 @@ public class BattleTurnManager : MonoBehaviour
 
         currentTurnIndex = (currentTurnIndex + 1) % turnOrder.Count;
 
-        // 1巡した場合はターン数を増加
+        // 1周した場合はターン数を増加
         if (currentTurnIndex == 0)
         {
             CurrentTurnNumber++;
@@ -778,20 +911,18 @@ public class BattleTurnManager : MonoBehaviour
 
     #region デバッグ
 
+    /// <summary>
+    /// 修正: デバッグログメソッド（強制出力版）
+    /// </summary>
     private void DebugLog(string message)
     {
-        if (enableAIDebugLog)
-        {
-            Debug.Log($"[BattleTurnManager] {message}");
-        }
+        // 設定に関係なく常に出力
+        Debug.Log($"[BattleTurnManager] {message}");
     }
 
     private void DebugLogWarning(string message)
     {
-        if (enableAIDebugLog)
-        {
-            Debug.LogWarning($"[BattleTurnManager] {message}");
-        }
+        Debug.LogWarning($"[BattleTurnManager] {message}");
     }
 
     private void DebugLogError(string message)

@@ -122,34 +122,47 @@ public class QuestBattleSceneManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 依存するManagerの存在確認
+    /// 修正: 依存関係チェック（BattleManager有効化追加）
     /// </summary>
     private bool CheckDependencies()
     {
-        // 必須Manager確認
+        // 必須Managerの確認
         if (SaveDataManager.Instance == null || !SaveDataManager.Instance.IsDataLoaded)
         {
-            Log("SaveDataManagerが未初期化");
+            Log("SaveDataManager未初期化");
             return false;
         }
 
         if (MasterDataManager.Instance == null || !MasterDataManager.Instance.IsDataLoaded)
         {
-            Log("MasterDataManagerが未初期化");
+            Log("MasterDataManager未初期化");
             return false;
         }
 
         if (QuestDataManager.Instance == null || !QuestDataManager.Instance.IsDataLoaded)
         {
-            Log("QuestDataManagerが未初期化");
+            Log("QuestDataManager未初期化");
             return false;
         }
 
-        // BattleManager確認
+        // 修正: BattleManager確認と強制有効化
         battleManager = BattleManager.Instance;
-        if (battleManager == null || !battleManager.IsInitialized)
+        if (battleManager == null)
         {
-            Log("BattleManagerが未初期化");
+            Log("BattleManager未初期化");
+            return false;
+        }
+
+        // 修正: BattleManagerのGameObjectが非アクティブの場合、有効化
+        if (!battleManager.gameObject.activeInHierarchy)
+        {
+            Log("BattleManagerが非アクティブのため、有効化します");
+            battleManager.gameObject.SetActive(true);
+        }
+
+        if (!battleManager.IsInitialized)
+        {
+            Log("BattleManager未初期化");
             return false;
         }
 
@@ -157,16 +170,33 @@ public class QuestBattleSceneManager : MonoBehaviour
         return true;
     }
 
+
     #endregion
 
     #region 戦闘準備・開始
 
     /// <summary>
-    /// 戦闘準備処理
+    /// 修正: 戦闘準備処理（BattleManager有効化確認追加）
     /// </summary>
     private IEnumerator PrepareBattle()
     {
         Log("戦闘準備処理開始");
+
+        // 修正: BattleManagerの状態を再確認
+        if (battleManager == null)
+        {
+            LogError("battleManagerがnullです");
+            yield break;
+        }
+
+        if (!battleManager.gameObject.activeInHierarchy)
+        {
+            LogError("BattleManagerが非アクティブです。有効化します。");
+            battleManager.gameObject.SetActive(true);
+
+            // 有効化後、少し待機
+            yield return new WaitForSeconds(0.1f);
+        }
 
         // データ検証を事前に実行
         bool dataValid = ValidateBattleData();

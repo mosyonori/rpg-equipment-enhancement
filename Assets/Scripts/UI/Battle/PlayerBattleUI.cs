@@ -32,7 +32,7 @@ public class PlayerBattleUI : MonoBehaviour
     [SerializeField] private Color activeTurnColor = Color.yellow;
     [SerializeField] private Color inactiveTurnColor = Color.gray;
 
-    [Header("状態効果表示")]
+    [Header("状態異常表示")]
     [SerializeField] private Transform statusEffectParent;
     [SerializeField] private GameObject statusEffectIconPrefab;
 
@@ -45,6 +45,9 @@ public class PlayerBattleUI : MonoBehaviour
     [SerializeField] private float damageShakeStrength = 10f;
     [SerializeField] private float damageShakeDuration = 0.2f;
 
+    [Header("デバッグ設定")]
+    [SerializeField] private bool enableDebugLog = true;
+
     // イベント
     public static event Action<string> OnSkillInfoRequested;
 
@@ -54,7 +57,7 @@ public class PlayerBattleUI : MonoBehaviour
     private float targetHpRatio = 1f;
     private Coroutine hpAnimationCoroutine;
 
-    // インスタンス管理用リスト（プレハブエラー対策）
+    // インスタンス管理用リスト（プレハブエラー対処）
     private List<GameObject> statusEffectInstances = new List<GameObject>();
     private List<GameObject> skillSlotInstances = new List<GameObject>();
 
@@ -101,7 +104,7 @@ public class PlayerBattleUI : MonoBehaviour
             // 行動順位表示初期化
             SetTurnOrderActive(false);
 
-            // 状態効果エリアクリア
+            // 状態異常エリアクリア
             ClearStatusEffects();
 
             // スキルエリアクリア
@@ -139,7 +142,7 @@ public class PlayerBattleUI : MonoBehaviour
     #region 公開メソッド - イベントハンドラ
 
     /// <summary>
-    /// 戦闘開始時の処理
+    /// 修正: 戦闘開始後の処理 - 基本情報のみ設定
     /// </summary>
     public void OnBattleStart(BattleSetupData setupData)
     {
@@ -149,14 +152,16 @@ public class PlayerBattleUI : MonoBehaviour
         {
             Log("戦闘開始 - プレイヤーUI初期化");
 
-            // プレイヤー基本情報表示
+            // 修正: BattleSetupDataから基本情報を設定
             if (characterNameText != null)
                 characterNameText.text = setupData.playerName;
 
             if (characterLevelText != null)
                 characterLevelText.text = $"Lv.{setupData.playerLevel}";
 
-            Log("プレイヤー戦闘UI準備完了");
+            Log($"プレイヤー基本情報設定完了: {setupData.playerName} Lv.{setupData.playerLevel}");
+
+            // 修正: 実際のBattleCharacterDataはUpdatePlayerData()で後から受け取る
         }
         catch (Exception e)
         {
@@ -165,18 +170,26 @@ public class PlayerBattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// ターン開始時の処理
+    /// ターン開始後の処理
     /// </summary>
     public void OnTurnStart(BattleCharacterData character)
     {
+        if (character == null) return;
+
         try
         {
             if (character.isPlayer)
             {
                 // プレイヤーのターン開始
                 SetTurnOrderActive(true);
-                currentPlayerData = character;
-                UpdateAllPlayerInfo();
+
+                // 修正: データが更新されている可能性があるため、最新データで更新
+                if (currentPlayerData != null && character.characterId == currentPlayerData.characterId)
+                {
+                    currentPlayerData = character;
+                    UpdateAllPlayerInfo();
+                }
+
                 Log($"プレイヤーターン開始: {character.characterName}");
             }
             else
@@ -192,19 +205,21 @@ public class PlayerBattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 行動実行時の処理
+    /// 行動実行後の処理
     /// </summary>
     public void OnActionExecuted(ActionData action)
     {
+        if (action == null || currentPlayerData == null) return;
+
         try
         {
             // ダメージを受けた場合の処理
             foreach (var damage in action.damageResults)
             {
-                if (currentPlayerData != null && damage.targetId == currentPlayerData.characterId)
+                if (damage.targetId == currentPlayerData.characterId)
                 {
-                    // HPバー更新
-                    UpdateHPDisplay();
+                    // 修正: BattleManagerから最新のプレイヤーデータを取得
+                    RefreshPlayerData();
 
                     // ダメージエフェクト表示
                     if (damage.finalDamage > 0)
@@ -212,7 +227,8 @@ public class PlayerBattleUI : MonoBehaviour
                         PlayDamageEffect();
                     }
 
-                    Log($"プレイヤーダメージ: {damage.finalDamage}");
+                    Log($"プレイヤーダメージ: {damage.finalDamage} (残りHP: {currentPlayerData.currentHp})");
+                    break;
                 }
             }
         }
@@ -227,22 +243,51 @@ public class PlayerBattleUI : MonoBehaviour
     #region 公開メソッド - データ更新
 
     /// <summary>
-    /// プレイヤーデータ更新
+    /// 修正: プレイヤーデータ設定（BattleUIから呼び出される）
     /// </summary>
     public void UpdatePlayerData(BattleCharacterData playerData)
     {
-        if (playerData == null || !playerData.isPlayer) return;
+        if (playerData == null)
+        {
+            LogError("UpdatePlayerData: playerDataがnullです");
+            return;
+        }
+
+        if (!playerData.isPlayer)
+        {
+            LogError($"UpdatePlayerData: プレイヤーではないデータが渡されました: {playerData.characterName}");
+            return;
+        }
 
         try
         {
+            Log($"プレイヤーデータ更新開始: {playerData.characterName}");
+
             currentPlayerData = playerData;
             UpdateAllPlayerInfo();
-            Log($"プレイヤーデータ更新: {playerData.characterName}");
+
+            Log($"プレイヤーデータ更新完了: {playerData.characterName} (HP: {playerData.currentHp}/{playerData.maxHp})");
         }
         catch (Exception e)
         {
             LogError($"プレイヤーデータ更新エラー: {e.Message}");
         }
+    }
+
+    /// <summary>
+    /// 修正: 現在のプレイヤーデータ取得
+    /// </summary>
+    public BattleCharacterData GetCurrentPlayerData()
+    {
+        return currentPlayerData;
+    }
+
+    /// <summary>
+    /// 修正: プレイヤーが生存しているかチェック
+    /// </summary>
+    public bool IsPlayerAlive()
+    {
+        return currentPlayerData != null && currentPlayerData.isAlive && currentPlayerData.currentHp > 0;
     }
 
     #endregion
@@ -256,9 +301,47 @@ public class PlayerBattleUI : MonoBehaviour
     {
         if (currentPlayerData == null) return;
 
-        UpdateHPDisplay();
-        UpdateStatusEffectDisplay();
-        UpdateSkillDisplay();
+        try
+        {
+            UpdateBasicInfo();
+            UpdateHPDisplay();
+            UpdateStatusEffectDisplay();
+            UpdateSkillDisplay();
+
+            Log($"プレイヤー情報全体更新完了: {currentPlayerData.characterName}");
+        }
+        catch (Exception e)
+        {
+            LogError($"プレイヤー情報全体更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: 基本情報更新
+    /// </summary>
+    private void UpdateBasicInfo()
+    {
+        if (currentPlayerData == null) return;
+
+        try
+        {
+            // 名前とレベルを更新（すでにOnBattleStartで設定済みだが、最新情報で上書き）
+            if (characterNameText != null)
+                characterNameText.text = currentPlayerData.characterName;
+
+            if (characterLevelText != null)
+                characterLevelText.text = $"Lv.{currentPlayerData.characterLevel}";
+
+            // キャラクター画像設定（スプライトがあれば）
+            if (characterImage != null && currentPlayerData.characterSprite != null)
+                characterImage.sprite = currentPlayerData.characterSprite;
+
+            Log($"基本情報更新: {currentPlayerData.characterName} Lv.{currentPlayerData.characterLevel}");
+        }
+        catch (Exception e)
+        {
+            LogError($"基本情報更新エラー: {e.Message}");
+        }
     }
 
     /// <summary>
@@ -281,6 +364,8 @@ public class PlayerBattleUI : MonoBehaviour
 
             // HPバーアニメーション
             AnimateHPBar(newHpRatio);
+
+            Log($"HP表示更新: {currentPlayerData.currentHp}/{currentPlayerData.maxHp} ({newHpRatio:F2})");
         }
         catch (Exception e)
         {
@@ -342,7 +427,7 @@ public class PlayerBattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 状態効果表示更新
+    /// 状態異常表示更新
     /// </summary>
     private void UpdateStatusEffectDisplay()
     {
@@ -350,21 +435,26 @@ public class PlayerBattleUI : MonoBehaviour
 
         try
         {
-            // 既存の状態効果アイコンをクリア
+            // 既存の状態異常アイコンをクリア
             ClearStatusEffects();
 
-            // 現在の状態効果を表示
-            foreach (var effect in currentPlayerData.statusEffects)
+            // 現在の状態異常を表示
+            if (currentPlayerData.statusEffects != null)
             {
-                if (effect.IsActive())
+                foreach (var effect in currentPlayerData.statusEffects)
                 {
-                    CreateStatusEffectIcon(effect);
+                    if (effect.IsActive())
+                    {
+                        CreateStatusEffectIcon(effect);
+                    }
                 }
+
+                Log($"状態異常表示更新: {currentPlayerData.statusEffects.Count}個");
             }
         }
         catch (Exception e)
         {
-            LogError($"状態効果表示更新エラー: {e.Message}");
+            LogError($"状態異常表示更新エラー: {e.Message}");
         }
     }
 
@@ -381,14 +471,49 @@ public class PlayerBattleUI : MonoBehaviour
             ClearSkillList();
 
             // 使用可能スキルを表示
-            foreach (var skill in currentPlayerData.availableSkills)
+            if (currentPlayerData.availableSkills != null)
             {
-                CreateSkillSlot(skill);
+                foreach (var skill in currentPlayerData.availableSkills)
+                {
+                    CreateSkillSlot(skill);
+                }
+
+                Log($"スキル表示更新: {currentPlayerData.availableSkills.Count}個");
             }
         }
         catch (Exception e)
         {
             LogError($"スキル表示更新エラー: {e.Message}");
+        }
+    }
+
+    #endregion
+
+    #region 内部メソッド - データ同期
+
+    /// <summary>
+    /// 修正: BattleManagerから最新のプレイヤーデータを取得
+    /// </summary>
+    private void RefreshPlayerData()
+    {
+        if (currentPlayerData == null) return;
+
+        try
+        {
+            if (BattleManager.Instance != null)
+            {
+                var playerData = BattleManager.Instance.GetPlayerCharacter();
+                if (playerData != null && playerData.characterId == currentPlayerData.characterId)
+                {
+                    currentPlayerData = playerData;
+                    UpdateAllPlayerInfo();
+                    Log($"プレイヤーデータ同期完了: {playerData.characterName}");
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"プレイヤーデータ同期エラー: {e.Message}");
         }
     }
 
@@ -460,6 +585,8 @@ public class PlayerBattleUI : MonoBehaviour
 
             if (turnOrderText != null)
                 turnOrderText.text = isActive ? "行動中" : "";
+
+            Log($"行動順位表示設定: {(isActive ? "アクティブ" : "非アクティブ")}");
         }
         catch (Exception e)
         {
@@ -472,7 +599,7 @@ public class PlayerBattleUI : MonoBehaviour
     #region 内部メソッド - UI要素生成
 
     /// <summary>
-    /// 状態効果アイコン生成
+    /// 状態異常アイコン生成
     /// </summary>
     private void CreateStatusEffectIcon(StatusEffectData effect)
     {
@@ -489,10 +616,12 @@ public class PlayerBattleUI : MonoBehaviour
             {
                 textComponent.text = effect.remainingTurns.ToString();
             }
+
+            Log($"状態異常アイコン生成: {effect.effectName}");
         }
         catch (Exception e)
         {
-            LogError($"状態効果アイコン生成エラー: {e.Message}");
+            LogError($"状態異常アイコン生成エラー: {e.Message}");
         }
     }
 
@@ -519,6 +648,8 @@ public class PlayerBattleUI : MonoBehaviour
                 textComponents[1].text = skill.currentCoolTime > 0 ?
                     $"CT:{skill.currentCoolTime}" : "使用可能";
             }
+
+            Log($"スキルスロット生成: {skill.skillName}");
         }
         catch (Exception e)
         {
@@ -527,7 +658,7 @@ public class PlayerBattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 状態効果クリア（プレハブエラー対策版）
+    /// 状態異常クリア（プレハブエラー対処版）
     /// </summary>
     private void ClearStatusEffects()
     {
@@ -565,15 +696,17 @@ public class PlayerBattleUI : MonoBehaviour
                     }
                 }
             }
+
+            Log("状態異常クリア完了");
         }
         catch (Exception e)
         {
-            LogError($"状態効果クリアエラー: {e.Message}");
+            LogError($"状態異常クリアエラー: {e.Message}");
         }
     }
 
     /// <summary>
-    /// スキルリストクリア（プレハブエラー対策版）
+    /// スキルリストクリア（プレハブエラー対処版）
     /// </summary>
     private void ClearSkillList()
     {
@@ -611,6 +744,8 @@ public class PlayerBattleUI : MonoBehaviour
                     }
                 }
             }
+
+            Log("スキルリストクリア完了");
         }
         catch (Exception e)
         {
@@ -636,12 +771,18 @@ public class PlayerBattleUI : MonoBehaviour
 
     private void Log(string message)
     {
-        Debug.Log($"[PlayerBattleUI] {message}");
+        if (enableDebugLog)
+        {
+            Debug.Log($"[PlayerBattleUI] {message}");
+        }
     }
 
     private void LogWarning(string message)
     {
-        Debug.LogWarning($"[PlayerBattleUI] {message}");
+        if (enableDebugLog)
+        {
+            Debug.LogWarning($"[PlayerBattleUI] {message}");
+        }
     }
 
     private void LogError(string message)
@@ -675,6 +816,22 @@ public class PlayerBattleUI : MonoBehaviour
         float testRatio = UnityEngine.Random.Range(0.1f, 1.0f);
         Log($"HPバーテストアニメーション: {testRatio:F2}");
         AnimateHPBar(testRatio);
+    }
+
+    [ContextMenu("現在の状態を表示")]
+    private void ShowCurrentStatus()
+    {
+        Log($"=== PlayerBattleUI現在の状態 ===");
+        Log($"初期化済み: {isInitialized}");
+        Log($"プレイヤーデータ: {(currentPlayerData != null ? currentPlayerData.characterName : "null")}");
+        if (currentPlayerData != null)
+        {
+            Log($"  HP: {currentPlayerData.currentHp}/{currentPlayerData.maxHp}");
+            Log($"  レベル: {currentPlayerData.characterLevel}");
+            Log($"  生存: {currentPlayerData.isAlive}");
+        }
+        Log($"状態異常インスタンス数: {statusEffectInstances.Count}");
+        Log($"スキルインスタンス数: {skillSlotInstances.Count}");
     }
 #endif
 

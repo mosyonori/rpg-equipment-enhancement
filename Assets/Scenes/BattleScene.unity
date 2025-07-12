@@ -1573,8 +1573,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 100}
-  m_SizeDelta: {x: 0, y: -200}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &526799931
 MonoBehaviour:
@@ -3735,6 +3735,7 @@ MonoBehaviour:
   maxMonsters: 3
   autoArrange: 1
   startPosition: {x: 0, y: 0, z: 0}
+  enableDebugLog: 1
 --- !u!114 &1255415735
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4821,7 +4822,7 @@ MonoBehaviour:
   battleInfoUI: {fileID: 109126855}
   skillInfoUI: {fileID: 0}
   battleLogUI: {fileID: 0}
-  battleResultUI: {fileID: 0}
+  battleResultUI: {fileID: 372466669}
   normalAttackButton: {fileID: 0}
   skill1Button: {fileID: 0}
   skill2Button: {fileID: 0}
@@ -5382,7 +5383,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.9438973, b: 0.8349056, a: 1}
+  m_Color: {r: 1, g: 0.9438973, b: 0.8349056, a: 0.25490198}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
