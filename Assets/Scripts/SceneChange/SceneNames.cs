@@ -105,8 +105,8 @@ public static class SceneNames
         {
             TITLE => "タイトル",
             HOME => "ホーム",
-            EQUIPMENT_EDIT => "装備編集",
-            EQUIPMENT_ENHANCE => "装備強化",
+            EQUIPMENT_EDIT => "編集",
+            EQUIPMENT_ENHANCE => "強化",
             QUEST_BATTLE => "戦闘", // ← 表示名を簡潔に変更
             GACHA => "ガチャ",
             _ => "不明なシーン"

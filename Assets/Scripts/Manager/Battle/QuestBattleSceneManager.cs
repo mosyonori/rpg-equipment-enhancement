@@ -175,6 +175,9 @@ public class QuestBattleSceneManager : MonoBehaviour
             yield break;
         }
 
+        // 修正: 戦闘データの詳細ログ出力
+        LogDetailedBattleData();
+
         Log($"戦闘準備完了: {currentQuestData.questName}");
 
         // 少し待機してから戦闘開始
@@ -183,6 +186,62 @@ public class QuestBattleSceneManager : MonoBehaviour
         // 戦闘開始
         StartBattleWithErrorHandling();
     }
+
+    /// <summary>
+    /// 修正: 戦闘データの詳細ログ出力
+    /// </summary>
+    private void LogDetailedBattleData()
+    {
+        Log("=== 詳細戦闘データ確認 ===");
+
+        // クエストデータ詳細
+        Log($"クエスト名: {currentQuestData.questName}");
+        Log($"必要レベル: Lv.{currentQuestData.needLevel}");
+        Log($"必要スタミナ: {currentQuestData.requiredStamina}");
+        Log($"推奨戦闘力: {currentQuestData.recommendedPower}");
+
+        // 出現モンスター詳細確認
+        var monsterIds = currentQuestData.GetSpawnMonsterIds();
+        Log($"出現モンスターID一覧: [{string.Join(", ", monsterIds)}]");
+
+        foreach (var monsterId in monsterIds)
+        {
+            var monster = QuestDataManager.Instance.GetMonsterData(monsterId);
+            if (monster != null)
+            {
+                Log($"  モンスター: {monster.monsterName} (ID:{monster.monsterId}, HP:{monster.hp}, ATK:{monster.offense})");
+            }
+            else
+            {
+                LogError($"  モンスターID {monsterId} のデータが見つかりません！");
+            }
+        }
+
+        // プレイヤーデータ詳細確認
+        Log($"プレイヤーレベル: Lv.{currentUserData.playerLevel}");
+        Log($"現在スタミナ: {currentUserData.currentStamina}");
+        Log($"所持金: {currentUserData.gold}");
+
+        // 装備データ確認
+        if (currentUserData.equipments != null)
+        {
+            var equippedItems = currentUserData.equipments.FindAll(e => e.isEquipped);
+            Log($"装備中アイテム数: {equippedItems.Count}");
+
+            foreach (var equipment in equippedItems)
+            {
+                var masterData = MasterDataManager.Instance?.GetEquipmentData(equipment.equipmentMasterId);
+                if (masterData != null)
+                {
+                    var totalStats = equipment.CalculateTotalStats(masterData);
+                    Log($"  装備: {masterData.equipmentName} - HP+{totalStats.hp}, ATK+{totalStats.offense}, DEF+{totalStats.defense}");
+                }
+            }
+        }
+
+        Log("=== 詳細戦闘データ確認終了 ===");
+    }
+
 
     /// <summary>
     /// 戦闘データの検証

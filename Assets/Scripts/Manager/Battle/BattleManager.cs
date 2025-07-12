@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -430,6 +431,22 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
+    /// ★追加: 生存している敵キャラクター一覧を取得
+    /// </summary>
+    public List<BattleCharacterData> GetAliveEnemies()
+    {
+        return allCharacters?.FindAll(c => !c.isPlayer && c.isAlive) ?? new List<BattleCharacterData>();
+    }
+
+    /// <summary>
+    /// ★追加: 生存しているプレイヤーキャラクター一覧を取得
+    /// </summary>
+    public List<BattleCharacterData> GetAlivePlayers()
+    {
+        return allCharacters?.FindAll(c => c.isPlayer && c.isAlive) ?? new List<BattleCharacterData>();
+    }
+
+    /// <summary>
     /// 戦闘履歴を取得
     /// </summary>
     public List<ActionData> GetBattleHistory()
@@ -526,45 +543,210 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 戦闘参加キャラクター作成
-    /// ★修正: HomeManagerのパターンを参考に装備データを適切に計算
+    /// 戦闘参加キャラクター作成（修正版）
     /// </summary>
     private void CreateBattleCharacters()
     {
         allCharacters.Clear();
+        Log("=== 戦闘キャラクター作成開始 ===");
 
-        // ★修正: プレイヤーキャラクター作成時に装備込みステータスを計算
-        var playerCharacterMaster = MasterDataManager.Instance.GetCharacterData(1); // プレイヤーキャラクターID=1と仮定
-        if (playerCharacterMaster != null)
+        // プレイヤーキャラクター作成
+        try
         {
-            // ★重要: HomeManagerのUpdateEquipmentSummary()と同じパターンで装備ステータスを計算
-            var userData = SaveDataManager.Instance.CurrentSaveData;
-            var equipmentStats = CalculatePlayerEquipmentStats(userData);
+            var playerCharacterMaster = MasterDataManager.Instance.GetCharacterData(1);
+            if (playerCharacterMaster != null)
+            {
+                Log($"プレイヤーキャラクターマスター取得: {playerCharacterMaster.CharacterName}");
 
-            Log($"計算済み装備ステータス: HP+{equipmentStats.hp}, ATK+{equipmentStats.offense}, DEF+{equipmentStats.defense}");
+                // 装備込みステータス計算
+                var userData = SaveDataManager.Instance.CurrentSaveData;
+                var equipmentStats = CalculatePlayerEquipmentStats(userData);
 
-            var playerChar = BattleCharacterData.CreateFromCharacterMaster(
-                playerCharacterMaster,
-                equipmentStats // 計算済み装備ステータスを渡す
-            );
-            allCharacters.Add(playerChar);
-            Log($"プレイヤーキャラクター作成: {playerChar.characterName} (最終HP:{playerChar.maxHp}, ATK:{playerChar.offense})");
+                Log($"計算済み装備ステータス: HP+{equipmentStats.hp}, ATK+{equipmentStats.offense}, DEF+{equipmentStats.defense}");
+
+                var playerChar = BattleCharacterData.CreateFromCharacterMaster(
+                    playerCharacterMaster,
+                    equipmentStats
+                );
+
+                // プレイヤーレベル反映
+                playerChar.characterLevel = userData.playerLevel;
+
+                allCharacters.Add(playerChar);
+                Log($"プレイヤーキャラクター作成完了: {playerChar.characterName} (最終HP:{playerChar.maxHp}, ATK:{playerChar.offense}, Level:{playerChar.characterLevel})");
+            }
+            else
+            {
+                LogError("プレイヤーキャラクターマスターデータが見つかりません！");
+
+                // フォールバック: 最小限のプレイヤーキャラクター作成
+                var fallbackPlayer = CreateFallbackPlayer();
+                allCharacters.Add(fallbackPlayer);
+                LogError("フォールバックプレイヤーキャラクターを作成しました");
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"プレイヤーキャラクター作成エラー: {e.Message}");
+
+            // フォールバック: 最小限のプレイヤーキャラクター作成
+            var fallbackPlayer = CreateFallbackPlayer();
+            allCharacters.Add(fallbackPlayer);
+            LogError("例外によりフォールバックプレイヤーキャラクターを作成しました");
         }
 
-        // 敵モンスター作成（QuestDataManagerを使用）
+        // 敵モンスター作成（詳細ログ付き）
+        Log($"敵モンスター作成開始: {currentBattleSetup.spawnMonsterIds.Count}体");
+
         foreach (var monsterId in currentBattleSetup.spawnMonsterIds)
         {
-            var monsterMaster = QuestDataManager.Instance.GetMonsterData(monsterId);
-            if (monsterMaster != null)
+            Log($"モンスターID {monsterId} の作成を試行");
+
+            try
             {
-                var monsterChar = BattleCharacterData.CreateFromMonsterMaster(monsterMaster);
-                allCharacters.Add(monsterChar);
-                Log($"敵モンスター作成: {monsterChar.characterName}");
+                var monsterMaster = QuestDataManager.Instance.GetMonsterData(monsterId);
+                if (monsterMaster != null)
+                {
+                    var monsterChar = BattleCharacterData.CreateFromMonsterMaster(monsterMaster);
+                    allCharacters.Add(monsterChar);
+                    Log($"敵モンスター作成成功: {monsterChar.characterName} (HP:{monsterChar.maxHp}, ATK:{monsterChar.offense})");
+                }
+                else
+                {
+                    LogError($"モンスターID {monsterId} のマスターデータが見つかりません！");
+                    LogQuestDataManagerStatus(); // デバッグ情報出力
+
+                    // フォールバック: デフォルトモンスター作成
+                    var fallbackMonster = CreateFallbackMonster(monsterId);
+                    allCharacters.Add(fallbackMonster);
+                    LogError($"フォールバックモンスター{monsterId}を作成しました");
+                }
+            }
+            catch (Exception e)
+            {
+                LogError($"モンスターID {monsterId} 作成エラー: {e.Message}");
+
+                // フォールバック: デフォルトモンスター作成
+                var fallbackMonster = CreateFallbackMonster(monsterId);
+                allCharacters.Add(fallbackMonster);
+                LogError($"例外によりフォールバックモンスター{monsterId}を作成しました");
             }
         }
 
-        Log($"戦闘キャラクター作成完了: 合計{allCharacters.Count}体");
+        // ★修正: メソッド追加後なので正常に動作
+        int playerCount = GetAlivePlayers().Count;
+        int enemyCount = GetAliveEnemies().Count;
+
+        Log($"戦闘キャラクター作成完了: 合計{allCharacters.Count}体 (プレイヤー:{playerCount}体, 敵:{enemyCount}体)");
+
+        // 作成されたキャラクターの詳細情報
+        foreach (var character in allCharacters)
+        {
+            Log($"  作成済み: {character.characterName} ({(character.isPlayer ? "プレイヤー" : "敵")}) HP:{character.maxHp} Level:{character.characterLevel}");
+        }
+
+        Log("=== 戦闘キャラクター作成終了 ===");
     }
+
+
+    /// <summary>
+    /// フォールバックプレイヤーキャラクター作成
+    /// </summary>
+    private BattleCharacterData CreateFallbackPlayer()
+    {
+        var userData = SaveDataManager.Instance.CurrentSaveData;
+
+        return new BattleCharacterData
+        {
+            characterId = "player",
+            characterName = "プレイヤー",
+            isPlayer = true,
+            isAlive = true,
+            characterLevel = userData?.playerLevel ?? 1,
+            maxHp = 100,
+            currentHp = 100,
+            offense = 20,
+            defense = 15,
+            speed = 10,
+            criticalRate = 5,
+            criticalDamageRate = 150,
+            availableSkills = new List<BattleSkillData>
+        {
+            new BattleSkillData
+            {
+                skillId = 1,
+                skillName = "通常攻撃",
+                currentCoolTime = 0,
+                maxCoolTime = 0,
+                isUsable = true
+            }
+        },
+            statusEffects = new List<StatusEffectData>()
+        };
+    }
+
+    /// <summary>
+    /// フォールバックモンスター作成
+    /// </summary>
+    private BattleCharacterData CreateFallbackMonster(int monsterId)
+    {
+        return new BattleCharacterData
+        {
+            characterId = $"monster_{monsterId}",
+            characterName = $"敵モンスター{monsterId}",
+            isPlayer = false,
+            isAlive = true,
+            characterLevel = 1,
+            maxHp = 80,
+            currentHp = 80,
+            offense = 15,
+            defense = 10,
+            speed = 8,
+            criticalRate = 3,
+            criticalDamageRate = 130,
+            availableSkills = new List<BattleSkillData>
+        {
+            new BattleSkillData
+            {
+                skillId = 1,
+                skillName = "モンスター攻撃",
+                currentCoolTime = 0,
+                maxCoolTime = 2,
+                isUsable = true
+            }
+        },
+            statusEffects = new List<StatusEffectData>()
+        };
+    }
+
+    /// <summary>
+    /// QuestDataManagerの状態をログ出力（デバッグ用）
+    /// </summary>
+    private void LogQuestDataManagerStatus()
+    {
+        if (QuestDataManager.Instance == null)
+        {
+            LogError("QuestDataManager.Instance が null です");
+            return;
+        }
+
+        if (!QuestDataManager.Instance.IsDataLoaded)
+        {
+            LogError("QuestDataManager.IsDataLoaded が false です");
+            return;
+        }
+
+        var allMonsters = QuestDataManager.Instance.GetMonsterDataList();
+        LogError($"利用可能なモンスター数: {allMonsters.Count}");
+
+        if (allMonsters.Count > 0)
+        {
+            LogError($"登録済みモンスターID例: {string.Join(", ", allMonsters.Take(5).Select(m => m.monsterId))}");
+        }
+    }
+
+
+
 
     /// <summary>
     /// ★新規追加: プレイヤーの装備ステータス計算（HomeManagerのEquipmentSummaryData.CreateFromSaveDataパターンを参考）
@@ -616,14 +798,19 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 戦闘メインループ
+    /// 修正: 戦闘メインループに自動開始機能を追加
     /// </summary>
     private IEnumerator BattleMainLoop()
     {
         Log("戦闘メインループ開始");
 
-        // 4. ターン処理開始（メモ書きの最後のステップ）
-        // BattleTurnManagerは自動でターン処理を行うため、
+        // 修正: 戦闘開始前の準備完了確認
+        yield return StartCoroutine(WaitForBattleReady());
+
+        // 修正: 戦闘自動開始
+        yield return StartCoroutine(AutoStartBattle());
+
+        // ターン処理開始（BattleTurnManager が自動でターン処理を行うため、
         // ここでは戦闘状態の監視のみ行う
         while (CurrentState == BattleState.InProgress)
         {
@@ -642,6 +829,69 @@ public class BattleManager : MonoBehaviour
 
         Log("戦闘メインループ終了");
     }
+
+    /// <summary>
+    /// 修正: 戦闘準備完了まで待機
+    /// </summary>
+    private IEnumerator WaitForBattleReady()
+    {
+        Log("戦闘準備完了を待機中...");
+
+        float timeout = 5f;
+        float elapsed = 0f;
+
+        while (elapsed < timeout)
+        {
+            // プレイヤーと敵が両方存在するかチェック
+            bool hasPlayer = GetAlivePlayers().Count > 0;
+            bool hasEnemies = GetAliveEnemies().Count > 0;
+
+            if (hasPlayer && hasEnemies)
+            {
+                Log($"戦闘準備完了: プレイヤー{GetAlivePlayers().Count}体, 敵{GetAliveEnemies().Count}体");
+                yield break;
+            }
+
+            elapsed += 0.1f;
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        LogError($"戦闘準備がタイムアウトしました。プレイヤー:{GetAlivePlayers().Count}体, 敵:{GetAliveEnemies().Count}体");
+    }
+
+    /// <summary>
+    /// 修正: 戦闘自動開始処理
+    /// </summary>
+    private IEnumerator AutoStartBattle()
+    {
+        Log("戦闘自動開始処理");
+
+        // UIに戦闘開始を通知
+        var playerChar = GetPlayerCharacter();
+        var enemyChars = GetEnemyCharacters();
+
+        if (playerChar != null && enemyChars.Count > 0)
+        {
+            Log($"戦闘開始: {playerChar.characterName} vs {string.Join(", ", enemyChars.ConvertAll(e => e.characterName))}");
+
+            // BattleTurnManager にターン処理開始を指示
+            if (battleTurnManager != null)
+            {
+                Log("BattleTurnManager にターン処理開始を指示");
+                // 必要に応じてBattleTurnManagerの開始メソッドを呼び出し
+                // battleTurnManager.StartTurnProcessing();
+            }
+
+            yield return new WaitForSeconds(1f); // 戦闘開始演出時間
+            Log("戦闘自動開始完了");
+        }
+        else
+        {
+            LogError($"戦闘開始失敗: プレイヤー:{(playerChar != null ? "存在" : "なし")}, 敵:{enemyChars.Count}体");
+        }
+    }
+
+
 
     /// <summary>
     /// 戦闘終了条件をチェック

@@ -130,8 +130,8 @@ public class SceneTransitionButton : MonoBehaviour
         {
             TransitionType.ToTitle => "タイトルへ",
             TransitionType.ToHome => "ホームへ",
-            TransitionType.ToEquipmentEdit => "装備編集",
-            TransitionType.ToEquipmentEnhance => "装備強化",
+            TransitionType.ToEquipmentEdit => "編集",
+            TransitionType.ToEquipmentEnhance => "強化",
             TransitionType.ToQuestBattle => "戦闘開始", // ← "クエスト"から"戦闘"に変更
             TransitionType.ToGacha => "ガチャ",
             TransitionType.GoBack => "戻る",

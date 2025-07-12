@@ -14,6 +14,7 @@ public class BattleCharacterData
     public string characterName;            // キャラクター名
     public bool isPlayer;                   // プレイヤーキャラクターか
     public bool isAlive;                    // 生存フラグ
+    public int characterLevel;              // ★追加: キャラクターレベル
     public Sprite characterSprite;          // キャラクター画像（追加）
 
     [Header("現在ステータス")]
@@ -50,7 +51,7 @@ public class BattleCharacterData
     public int skillsUsed;                  // 使用スキル回数
 
     [Header("既存データ参照用")]
-    public int masterDataId;                // CharacterMasterData or MonsterMasterDataのID
+    public int masterDataId;                // CharacterMasterData or MonsterMasterData のID
 
     /// <summary>
     /// デフォルトコンストラクタ
@@ -60,36 +61,39 @@ public class BattleCharacterData
         availableSkills = new List<BattleSkillData>();
         statusEffects = new List<StatusEffectData>();
         isAlive = true;
+        characterLevel = 1; // ★追加: デフォルトレベル
     }
 
     /// <summary>
-    /// 既存CharacterMasterDataからBattleCharacterDataを作成
+    /// 修正: CharacterMasterData から BattleCharacterData を作成
+    /// 正しいプロパティ名を使用
     /// </summary>
     public static BattleCharacterData CreateFromCharacterMaster(CharacterMasterData masterData, EquipmentTotalStats equipmentStats)
     {
         var battleChar = new BattleCharacterData
         {
             characterId = "player",
-            characterName = masterData.CharacterName,
+            characterName = masterData.CharacterName, // ★修正: 大文字
             isPlayer = true,
             isAlive = true,
-            masterDataId = masterData.CharacterId,
-            characterSprite = null, // 必要に応じて設定
+            characterLevel = 1, // デフォルトレベル（後でBattleManagerで設定）
+            masterDataId = masterData.CharacterId, // ★修正: 大文字
+            characterSprite = masterData.CharacterIcon, // ★追加: アイコン設定
 
             // 装備込みステータス設定
-            maxHp = masterData.Hp + equipmentStats.hp,
+            maxHp = masterData.Hp + equipmentStats.hp, // ★修正: 大文字
             currentHp = masterData.Hp + equipmentStats.hp,
-            offense = masterData.Offense + equipmentStats.offense,
-            defense = masterData.Defense + equipmentStats.defense,
-            speed = masterData.Speed + equipmentStats.speed,
-            criticalRate = masterData.CriticalRate + equipmentStats.criticalRate,
-            criticalDamageRate = masterData.CriticalDamageRate + equipmentStats.criticalDamageRate,
+            offense = masterData.Offense + equipmentStats.offense, // ★修正: 大文字
+            defense = masterData.Defense + equipmentStats.defense, // ★修正: 大文字
+            speed = masterData.Speed + equipmentStats.speed, // ★修正: 大文字
+            criticalRate = masterData.CriticalRate + equipmentStats.criticalRate, // ★修正: 大文字
+            criticalDamageRate = masterData.CriticalDamageRate + equipmentStats.criticalDamageRate, // ★修正: 大文字
 
             // 属性攻撃力
-            fireOffence = masterData.FireOffence + equipmentStats.fireOffence,
-            waterOffence = masterData.WaterOffence + equipmentStats.waterOffence,
-            windOffence = masterData.WindOffence + equipmentStats.windOffence,
-            earthOffence = masterData.EarthOffence + equipmentStats.earthOffence,
+            fireOffence = masterData.FireOffence + equipmentStats.fireOffence, // ★修正: 大文字
+            waterOffence = masterData.WaterOffence + equipmentStats.waterOffence, // ★修正: 大文字
+            windOffence = masterData.WindOffence + equipmentStats.windOffence, // ★修正: 大文字
+            earthOffence = masterData.EarthOffence + equipmentStats.earthOffence, // ★修正: 大文字
 
             // キャラクター属性（属性攻撃力から判定）
             characterAttribute = GetDominantAttribute(
@@ -102,7 +106,9 @@ public class BattleCharacterData
 
         // スキル設定
         battleChar.availableSkills = new List<BattleSkillData>();
-        if (masterData.DefaultSkillId > 0)
+
+        // デフォルトスキル
+        if (masterData.DefaultSkillId > 0) // ★修正: 大文字
         {
             battleChar.availableSkills.Add(new BattleSkillData
             {
@@ -114,12 +120,39 @@ public class BattleCharacterData
             });
         }
 
+        // 使用スキル1
+        if (masterData.UsedSkill1 > 0) // ★修正: 大文字
+        {
+            battleChar.availableSkills.Add(new BattleSkillData
+            {
+                skillId = masterData.UsedSkill1,
+                skillName = $"スキル1_{masterData.UsedSkill1}",
+                currentCoolTime = 0,
+                maxCoolTime = 3,
+                isUsable = true
+            });
+        }
+
+        // 使用スキル2
+        if (masterData.UsedSkill2 > 0) // ★修正: 大文字
+        {
+            battleChar.availableSkills.Add(new BattleSkillData
+            {
+                skillId = masterData.UsedSkill2,
+                skillName = $"スキル2_{masterData.UsedSkill2}",
+                currentCoolTime = 0,
+                maxCoolTime = 5,
+                isUsable = true
+            });
+        }
+
         battleChar.statusEffects = new List<StatusEffectData>();
         return battleChar;
     }
 
+
     /// <summary>
-    /// 既存MonsterMasterDataからBattleCharacterDataを作成
+    /// 既存MonsterMasterData から BattleCharacterData を作成
     /// </summary>
     public static BattleCharacterData CreateFromMonsterMaster(MonsterMasterData masterData)
     {
@@ -129,6 +162,7 @@ public class BattleCharacterData
             characterName = masterData.monsterName,
             isPlayer = false,
             isAlive = true,
+            characterLevel = 1, // ★追加: モンスターはレベル1固定
             masterDataId = masterData.monsterId,
             characterSprite = null, // 必要に応じて設定
 

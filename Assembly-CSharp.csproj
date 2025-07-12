@@ -124,8 +124,8 @@
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\ShaderPropAnimator.cs" />
     <Compile Include="Assets\Scripts\Data\UserData\UserEquipmentData.cs" />
     <Compile Include="Assets\Scripts\UI\Quest\MonsterSlotUI.cs" />
-    <Compile Include="Assets\Scripts\Test\EquipmentEnhanceTestUI.cs" />
     <Compile Include="Assets\Scripts\Manager\Battle\BattleDamageDisplayManager.cs" />
+    <Compile Include="Assets\Scripts\Test\EquipmentEnhanceTestUI.cs" />
     <Compile Include="Assets\Scripts\UI\Battle\BattleSpeedUI.cs" />
     <Compile Include="Assets\Scripts\Data\Quest\MonsterMasterData.cs" />
     <Compile Include="Assets\Scripts\UI\Home\HomeUI.cs" />
