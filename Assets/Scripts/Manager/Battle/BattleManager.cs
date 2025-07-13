@@ -20,6 +20,11 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private float battleSpeedMultiplier = 1.0f;
     [SerializeField] private bool isPaused = false;
 
+    [Header("修正: UI待機設定")]
+    [SerializeField] private float uiReadyTimeout = 10.0f;
+    [SerializeField] private float uiReadyCheckInterval = 0.2f;
+    [SerializeField] private float battleStartDelay = 1.0f;
+
     // イベント
     public static event Action<BattleState> OnBattleStateChanged;
     public static event Action<BattleSetupData> OnBattleInitialized;
@@ -48,6 +53,9 @@ public class BattleManager : MonoBehaviour
     private BattleDataManager battleDataManager;
     private BattleCalculationManager battleCalculationManager;
     private BattleTurnManager battleTurnManager;
+
+    // 修正: UI層参照追加
+    private BattleUI battleUI;
 
     #region Unity Lifecycle
 
@@ -136,7 +144,7 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 修正: 依存するManagerの存在確認
+    /// 修正: 依存する全Managerの存在確認
     /// </summary>
     private bool CheckDependencies()
     {
@@ -180,6 +188,14 @@ public class BattleManager : MonoBehaviour
         if (battleTurnManager == null)
         {
             Log("BattleTurnManagerが見つかりません");
+            return false;
+        }
+
+        // 修正: BattleUIの取得を新しいAPIに変更
+        battleUI = FindAnyObjectByType<BattleUI>();
+        if (battleUI == null)
+        {
+            Log("BattleUIが見つかりません");
             return false;
         }
 
@@ -302,13 +318,13 @@ public class BattleManager : MonoBehaviour
         Log("=== プレイヤー装備データ詳細確認 ===");
 
         Log($"全装備数: {userData.equipments?.Count ?? 0}");
-        Log($"装備武器IDの数: {userData.equippedWeaponIds?.Count ?? 0}");
-        Log($"装備防具IDの数: {userData.equippedArmorIds?.Count ?? 0}");
-        Log($"装備アクセサリIDの数: {userData.equippedAccessoryIds?.Count ?? 0}");
+        Log($"装備武器ID数: {userData.equippedWeaponIds?.Count ?? 0}");
+        Log($"装備防具ID数: {userData.equippedArmorIds?.Count ?? 0}");
+        Log($"装備アクセサリID数: {userData.equippedAccessoryIds?.Count ?? 0}");
         Log($"戦闘スキル1: {userData.battleSkill1Id}");
         Log($"戦闘スキル2: {userData.battleSkill2Id}");
 
-        // 装備中のアイテム詳細確認（HomeManagerのUpdateEquipmentSummary相当）
+        // 装備中のアイテム詳細確認（HomeManager のUpdateEquipmentSummary相当）
         if (userData.equipments != null)
         {
             var equippedItems = userData.equipments.FindAll(e => e.isEquipped);
@@ -323,7 +339,7 @@ public class BattleManager : MonoBehaviour
                     var totalStats = item.CalculateTotalStats(masterData);
                     Log($"装備: {masterData.equipmentName} - HP:{totalStats.hp}, ATK:{totalStats.offense}, DEF:{totalStats.defense}");
 
-                    // 戦闘力計算（UserDataUtilityのCalculateTotalPowerと同じロジック）
+                    // 戦闘力計算（UserDataUtility のCalculateTotalPowerと同じロジック）
                     totalPower += totalStats.hp / 10;
                     totalPower += totalStats.offense * 2;
                     totalPower += totalStats.defense;
@@ -355,7 +371,7 @@ public class BattleManager : MonoBehaviour
         battleSpeedMultiplier = speedMultiplier;
         Log($"戦闘速度設定: {speedMultiplier}倍速");
 
-        // TimeScaleは使わず、アニメーション・処理待機時間を調整
+        // TimeScaleは使わず、アニメーション・処理待機系を調整
         if (battleTurnManager != null)
         {
             battleTurnManager.SetBattleSpeed(speedMultiplier);
@@ -778,7 +794,7 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 修正: プレイヤーの装備ステータス計算（HomeManagerのEquipmentSummaryData.CreateFromSaveDataパターンを参考）
+    /// 修正: プレイヤーの装備ステータス計算（HomeManager のEquipmentSummaryData.CreateFromSaveDataパターンを参考）
     /// </summary>
     private EquipmentTotalStats CalculatePlayerEquipmentStats(UserSaveData userData)
     {
@@ -839,7 +855,7 @@ public class BattleManager : MonoBehaviour
         // 修正: 戦闘自動開始
         yield return StartCoroutine(AutoStartBattle());
 
-        // ターン処理開始（BattleTurnManager が自動でターン処理を行うため、
+        // ターン処理開始、BattleTurnManager が自動でターン処理を行うため、
         // ここでは戦闘状態の監視のみ行う
         while (CurrentState == BattleState.InProgress)
         {
@@ -866,15 +882,15 @@ public class BattleManager : MonoBehaviour
     {
         Log("戦闘準備完了を待機中...");
 
-        float timeout = 5f;
         float elapsed = 0f;
 
-        while (elapsed < timeout)
+        while (elapsed < uiReadyTimeout)
         {
             // 修正: より確実な条件チェック
             bool hasValidData = allCharacters != null && allCharacters.Count > 0;
             bool hasPlayer = false;
             bool hasEnemies = false;
+            bool uiReady = false;
 
             if (hasValidData)
             {
@@ -883,16 +899,23 @@ public class BattleManager : MonoBehaviour
                 hasEnemies = allCharacters.Any(c => !c.isPlayer && c.isAlive);
             }
 
-            Log($"準備状況チェック: データ有効={hasValidData}, プレイヤー={hasPlayer}, 敵={hasEnemies}");
-
-            if (hasValidData && hasPlayer && hasEnemies)
+            // 修正: UI準備完了確認
+            if (battleUI != null && battleUI.IsInitialized())
             {
-                Log($"戦闘準備完了: プレイヤー{GetAlivePlayers().Count}体, 敵{GetAliveEnemies().Count}体");
+                // UI層のデータ設定完了を確認
+                uiReady = battleUI.IsUISetupComplete();
+            }
+
+            Log($"準備状況チェック: データ有効={hasValidData}, プレイヤー={hasPlayer}, 敵={hasEnemies}, UI準備={uiReady}");
+
+            if (hasValidData && hasPlayer && hasEnemies && uiReady)
+            {
+                Log($"戦闘準備完了: プレイヤー{GetAlivePlayers().Count}体, 敵{GetAliveEnemies().Count}体, UI準備完了");
                 yield break;
             }
 
-            elapsed += 0.1f;
-            yield return new WaitForSeconds(0.1f);
+            elapsed += uiReadyCheckInterval;
+            yield return new WaitForSeconds(uiReadyCheckInterval);
         }
 
         LogError($"戦闘準備がタイムアウトしました。プレイヤー:{GetAlivePlayers().Count}体, 敵:{GetAliveEnemies().Count}体");
@@ -918,7 +941,11 @@ public class BattleManager : MonoBehaviour
             {
                 Log("BattleTurnManager にターン処理開始を指示");
 
-                // 修正: コメントアウトを解除してターン処理を開始
+                // 修正: 初期化を確実に実行してからターン処理開始
+                battleTurnManager.InitializeBattle(allCharacters, currentBattleSetup.turnLimit);
+
+                yield return new WaitForSeconds(battleStartDelay); // 開始前の待機時間
+
                 battleTurnManager.StartTurnProcessing();
 
                 Log("BattleTurnManager ターン処理開始完了");

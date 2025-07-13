@@ -202,7 +202,7 @@ public class MonsterAreaManager : MonoBehaviour
     #region 公開メソッド - データ更新
 
     /// <summary>
-    /// モンスターデータ更新
+    /// 修正: モンスターデータ更新 - returnによる早期終了を削除
     /// </summary>
     public void UpdateMonstersData(List<BattleCharacterData> monsters)
     {
@@ -219,27 +219,41 @@ public class MonsterAreaManager : MonoBehaviour
             currentMonsters = new List<BattleCharacterData>(monsters);
 
             // 修正: 初回のモンスターデータ設定の場合、UIを作成
-            if (monsterUIs.Count == 0 && monsters.Count > 0)
+            bool isFirstTimeSetup = (monsterUIs.Count == 0 && monsters.Count > 0);
+
+            if (isFirstTimeSetup)
             {
                 Log("初回モンスターデータ設定のためUI作成");
                 CreateMonsterUIs(monsters);
-                return;
+                // 修正: return文を削除して、以下の個別更新処理も実行する
             }
 
-            // 各モンスターUIのデータ更新
+            // 修正: 初回作成時も含めて、各モンスターUIのデータ更新を実行
             foreach (var monster in monsters)
             {
                 if (monsterUIs.ContainsKey(monster.characterId))
                 {
-                    monsterUIs[monster.characterId].UpdateMonsterData();
+                    // 修正: SetMonsterDataを使用してデータを確実に更新
+                    monsterUIs[monster.characterId].SetMonsterData(monster);
+                    Log($"モンスターUI個別データ更新: {monster.characterName}");
                 }
                 else
                 {
-                    LogWarning($"モンスターUI未発見: {monster.characterId}");
+                    LogWarning($"モンスターUI未発見: {monster.characterId} - UI再作成を試行");
+
+                    // 修正: UIが見つからない場合は個別に作成を試行
+                    if (!isFirstTimeSetup)
+                    {
+                        CreateSingleMonsterUIForMissingData(monster);
+                    }
                 }
             }
 
-            Log($"モンスターデータ更新完了: {monsters.Count}体");
+            // 修正: 作成・更新完了後の検証ログ
+            Log($"モンスターデータ更新完了: データ{monsters.Count}体, UI作成済み{monsterUIs.Count}個");
+
+            // 修正: データとUIの整合性チェック
+            ValidateDataUIConsistency();
         }
         catch (Exception e)
         {
@@ -285,6 +299,27 @@ public class MonsterAreaManager : MonoBehaviour
     public int GetActiveMonsterUICount()
     {
         return monsterUIs?.Count ?? 0;
+    }
+
+    /// <summary>
+    /// 修正: UI作成とデータ設定の完了状態確認
+    /// </summary>
+    public bool IsUISetupComplete()
+    {
+        if (currentMonsters == null || currentMonsters.Count == 0)
+            return false;
+
+        // データ数とUI数が一致し、全てのUIがデータを持っているかチェック
+        if (monsterUIs.Count != currentMonsters.Count)
+            return false;
+
+        foreach (var monster in currentMonsters)
+        {
+            if (!monsterUIs.ContainsKey(monster.characterId))
+                return false;
+        }
+
+        return true;
     }
 
     #endregion
@@ -364,6 +399,9 @@ public class MonsterAreaManager : MonoBehaviour
             var monsterUI = monsterObj.GetComponent<MonsterBattleUI>();
             if (monsterUI != null)
             {
+                // 修正: Initialize()を先に呼び出してから、データ設定
+                monsterUI.Initialize();
+
                 // モンスターデータ設定
                 monsterUI.SetMonsterData(monster);
 
@@ -390,6 +428,27 @@ public class MonsterAreaManager : MonoBehaviour
         catch (Exception e)
         {
             LogError($"単体モンスターUI作成エラー ({monster?.characterName}): {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: 不足しているモンスターデータ用のUI個別作成
+    /// </summary>
+    private void CreateSingleMonsterUIForMissingData(BattleCharacterData monster)
+    {
+        if (monster == null || monster.isPlayer) return;
+
+        try
+        {
+            Log($"不足モンスターUI作成: {monster.characterName}");
+
+            // 現在のUI数をインデックスとして使用
+            int index = monsterUIs.Count;
+            CreateSingleMonsterUI(monster, index);
+        }
+        catch (Exception e)
+        {
+            LogError($"不足モンスターUI作成エラー ({monster?.characterName}): {e.Message}");
         }
     }
 
@@ -545,6 +604,44 @@ public class MonsterAreaManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 修正: データとUIの整合性チェック
+    /// </summary>
+    private void ValidateDataUIConsistency()
+    {
+        try
+        {
+            if (currentMonsters == null)
+            {
+                LogWarning("currentMonstersがnullです");
+                return;
+            }
+
+            Log($"データ・UI整合性チェック: データ{currentMonsters.Count}体 vs UI{monsterUIs.Count}個");
+
+            foreach (var monster in currentMonsters)
+            {
+                if (!monsterUIs.ContainsKey(monster.characterId))
+                {
+                    LogWarning($"データ存在・UI不在: {monster.characterName} (ID: {monster.characterId})");
+                }
+            }
+
+            foreach (var uiPair in monsterUIs)
+            {
+                var foundData = currentMonsters.Find(m => m.characterId == uiPair.Key);
+                if (foundData == null)
+                {
+                    LogWarning($"UI存在・データ不在: {uiPair.Key}");
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"データ・UI整合性チェックエラー: {e.Message}");
+        }
+    }
+
     #endregion
 
     #region ログ・デバッグ
@@ -607,11 +704,18 @@ public class MonsterAreaManager : MonoBehaviour
         Log($"モンスターUI数: {monsterUIs.Count}");
         Log($"現在のモンスターデータ数: {currentMonsters.Count}");
         Log($"monsterParent子オブジェクト数: {(monsterParent != null ? monsterParent.childCount : 0)}");
+        Log($"UI設定完了: {IsUISetupComplete()}");
 
         foreach (var kvp in monsterUIs)
         {
             Log($"  UI: {kvp.Key} -> {(kvp.Value != null ? "存在" : "null")}");
         }
+    }
+
+    [ContextMenu("データ・UI整合性チェック")]
+    private void TestValidateDataUIConsistency()
+    {
+        ValidateDataUIConsistency();
     }
 #endif
 

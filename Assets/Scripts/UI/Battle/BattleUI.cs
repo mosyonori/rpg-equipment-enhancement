@@ -2,10 +2,11 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 /// <summary>
-/// 戦闘画面全体の制御・Manager層との連携窓口
-/// データアクセス統一ルール: UI層 → Manager層 → Data層
+/// 戦闘画面全体の制御・Manager層との連携
+/// データアクセス統一ルール: UI層 → Manager層 → データ層
 /// </summary>
 public class BattleUI : MonoBehaviour
 {
@@ -45,15 +46,22 @@ public class BattleUI : MonoBehaviour
     [SerializeField] private float[] battleSpeeds = { 1.0f, 2.0f, 4.0f };
     [SerializeField] private string[] speedTexts = { "1倍速", "2倍速", "4倍速" };
 
+    [Header("修正: UI準備完了待機設定")]
+    [SerializeField] private float uiSetupTimeout = 5.0f;
+    [SerializeField] private float uiSetupCheckInterval = 0.1f;
+    [SerializeField] private int maxDataDistributionRetries = 3;
+
     // 内部状態
     private BattleState currentBattleState;
     private int currentSpeedIndex = 0;
     private bool isPaused = false;
     private bool isInitialized = false;
 
-    // 修正: キャラクターデータ保持
+    // 修正: キャラクターデータ保持と状態管理
     private BattleCharacterData currentPlayerData;
     private System.Collections.Generic.List<BattleCharacterData> currentEnemyData;
+    private bool isDataDistributionComplete = false;
+    private bool isUISetupComplete = false;
 
     // イベント
     public static event Action OnBattleUIReady;
@@ -104,6 +112,10 @@ public class BattleUI : MonoBehaviour
             // 戦闘制御UI初期化
             UpdateSpeedButtonText();
             UpdatePauseButtonState();
+
+            // 修正: 状態フラグ初期化
+            isDataDistributionComplete = false;
+            isUISetupComplete = false;
 
             isInitialized = true;
             OnBattleUIReady?.Invoke();
@@ -227,13 +239,13 @@ public class BattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 修正: 戦闘初期化完了イベント - キャラクターデータを取得・配布
+    /// 修正: 戦闘初期化完了イベント - 非同期データ配布処理
     /// </summary>
     private void OnBattleInitialized(BattleSetupData setupData)
     {
         try
         {
-            DebugLog("戦闘初期化完了 - キャラクターデータ取得開始");
+            DebugLog("戦闘初期化完了 - UI準備開始");
 
             // 戦闘画面表示
             ShowBattleUI();
@@ -241,86 +253,12 @@ public class BattleUI : MonoBehaviour
             // 戦闘情報更新
             UpdateBattleInfo(setupData);
 
-            // 修正: BattleManagerからキャラクターデータを取得
-            if (BattleManager.Instance != null)
-            {
-                var allCharacters = BattleManager.Instance.GetAllCharacters();
-                DebugLog($"BattleManagerから取得したキャラクター数: {allCharacters?.Count ?? 0}");
-
-                if (allCharacters != null && allCharacters.Count > 0)
-                {
-                    // プレイヤーデータとモンスターデータを分離
-                    currentPlayerData = allCharacters.Find(c => c.isPlayer);
-                    currentEnemyData = allCharacters.FindAll(c => !c.isPlayer);
-
-                    DebugLog($"プレイヤーデータ: {(currentPlayerData != null ? currentPlayerData.characterName : "null")}");
-                    DebugLog($"モンスターデータ数: {currentEnemyData?.Count ?? 0}");
-
-                    // 各UIコンポーネントにデータを配布
-                    DistributeCharacterDataToComponents(setupData);
-                }
-                else
-                {
-                    DebugLogError("BattleManagerからキャラクターデータを取得できませんでした");
-                }
-            }
-            else
-            {
-                DebugLogError("BattleManager.Instanceがnullです");
-            }
-
-            DebugLog($"戦闘初期化完了: {setupData.questId}");
+            // 修正: 非同期でキャラクターデータ配布を開始
+            StartCoroutine(WaitForDataAndDistribute(setupData));
         }
         catch (Exception e)
         {
             DebugLogError($"戦闘初期化処理エラー: {e.Message}");
-        }
-    }
-
-    /// <summary>
-    /// 修正: キャラクターデータを各UIコンポーネントに配布
-    /// </summary>
-    private void DistributeCharacterDataToComponents(BattleSetupData setupData)
-    {
-        try
-        {
-            DebugLog("キャラクターデータ配布開始");
-
-            // PlayerBattleUIにプレイヤーデータを設定
-            if (playerBattleUI != null && currentPlayerData != null)
-            {
-                playerBattleUI.OnBattleStart(setupData);
-                playerBattleUI.UpdatePlayerData(currentPlayerData);
-                DebugLog($"PlayerBattleUIにデータ設定: {currentPlayerData.characterName}");
-            }
-            else
-            {
-                DebugLogError($"PlayerBattleUI設定失敗: playerBattleUI={playerBattleUI != null}, currentPlayerData={currentPlayerData != null}");
-            }
-
-            // MonsterAreaManagerにモンスターデータを設定
-            if (monsterAreaManager != null && currentEnemyData != null && currentEnemyData.Count > 0)
-            {
-                monsterAreaManager.OnBattleStart(setupData);
-                // 修正: 直接モンスターデータを渡す
-                monsterAreaManager.UpdateMonstersData(currentEnemyData);
-                DebugLog($"MonsterAreaManagerにデータ設定: {currentEnemyData.Count}体");
-            }
-            else
-            {
-                DebugLogError($"MonsterAreaManager設定失敗: monsterAreaManager={monsterAreaManager != null}, currentEnemyData={currentEnemyData?.Count ?? 0}");
-            }
-
-            // 他のUIコンポーネントにも基本的な戦闘開始通知
-            battleInfoUI?.OnBattleStart(setupData);
-            skillInfoUI?.OnBattleStart(setupData);
-            battleLogUI?.OnBattleStart(setupData);
-
-            DebugLog("キャラクターデータ配布完了");
-        }
-        catch (Exception e)
-        {
-            DebugLogError($"キャラクターデータ配布エラー: {e.Message}");
         }
     }
 
@@ -368,6 +306,198 @@ public class BattleUI : MonoBehaviour
     {
         DebugLogError($"戦闘エラー: {errorMessage}");
         // エラー後は強制的にホーム画面に戻る等の処理を実装
+    }
+
+    #endregion
+
+    #region 修正: 非同期データ配布処理
+
+    /// <summary>
+    /// 修正: データ準備完了を待機してからキャラクターデータを配布
+    /// </summary>
+    private IEnumerator WaitForDataAndDistribute(BattleSetupData setupData)
+    {
+        DebugLog("データ準備完了待機開始");
+
+        float elapsed = 0f;
+        int retryCount = 0;
+
+        while (elapsed < uiSetupTimeout && retryCount < maxDataDistributionRetries)
+        {
+            // BattleManagerからキャラクターデータを取得を試行
+            if (BattleManager.Instance != null)
+            {
+                var allCharacters = BattleManager.Instance.GetAllCharacters();
+
+                if (allCharacters != null && allCharacters.Count > 0)
+                {
+                    DebugLog($"キャラクターデータ取得成功: {allCharacters.Count}体");
+
+                    // データ配布を実行
+                    yield return StartCoroutine(DistributeCharacterDataAsync(allCharacters, setupData));
+
+                    // 配布結果を確認
+                    if (isDataDistributionComplete)
+                    {
+                        DebugLog("データ配布完了 - UI準備完了通知");
+                        NotifyUISetupComplete();
+                        yield break;
+                    }
+                    else
+                    {
+                        retryCount++;
+                        DebugLogError($"データ配布失敗 - リトライ {retryCount}/{maxDataDistributionRetries}");
+                    }
+                }
+                else
+                {
+                    DebugLog($"キャラクターデータ未準備 - 待機中... ({elapsed:F1}秒)");
+                }
+            }
+
+            elapsed += uiSetupCheckInterval;
+            yield return new WaitForSeconds(uiSetupCheckInterval);
+        }
+
+        if (elapsed >= uiSetupTimeout || retryCount >= maxDataDistributionRetries)
+        {
+            DebugLogError($"データ配布タイムアウトまたは最大リトライ到達: 経過時間={elapsed:F1}秒, リトライ={retryCount}");
+            if (BattleManager.Instance != null)
+            {
+                BattleManager.Instance.ForceEndBattle();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 修正: 非同期キャラクターデータ配布
+    /// </summary>
+    private IEnumerator DistributeCharacterDataAsync(System.Collections.Generic.List<BattleCharacterData> allCharacters, BattleSetupData setupData)
+    {
+        DebugLog("非同期キャラクターデータ配布開始");
+
+        if (allCharacters == null || allCharacters.Count == 0)
+        {
+            DebugLogError("配布対象のキャラクターデータが空です");
+            isDataDistributionComplete = false;
+            yield break;
+        }
+
+        // プレイヤーデータと敵データを分離
+        currentPlayerData = allCharacters.Find(c => c.isPlayer);
+        currentEnemyData = allCharacters.FindAll(c => !c.isPlayer);
+
+        DebugLog($"データ分離完了: プレイヤー={currentPlayerData?.characterName ?? "null"}, 敵={currentEnemyData?.Count ?? 0}体");
+
+        // 修正: PlayerBattleUIにデータ設定
+        bool playerUISuccess = false;
+        if (playerBattleUI != null && currentPlayerData != null)
+        {
+            playerBattleUI.OnBattleStart(setupData);
+            yield return new WaitForSeconds(0.1f); // UI準備時間
+
+            playerBattleUI.UpdatePlayerData(currentPlayerData);
+            playerUISuccess = true;
+            DebugLog($"PlayerBattleUIデータ設定完了: {currentPlayerData.characterName}");
+        }
+        else
+        {
+            DebugLogError($"PlayerBattleUIデータ設定失敗: playerBattleUI={playerBattleUI != null}, currentPlayerData={currentPlayerData != null}");
+        }
+
+        // 修正: MonsterAreaManagerにデータ設定（UI作成も含む）
+        bool monsterUISuccess = false;
+        if (monsterAreaManager != null && currentEnemyData != null && currentEnemyData.Count > 0)
+        {
+            monsterAreaManager.OnBattleStart(setupData);
+            yield return new WaitForSeconds(0.1f); // UI準備時間
+
+            monsterAreaManager.UpdateMonstersData(currentEnemyData);
+
+            // 修正: UI作成完了を確認
+            yield return StartCoroutine(WaitForMonsterUISetup());
+
+            if (monsterAreaManager.IsUISetupComplete())
+            {
+                monsterUISuccess = true;
+                DebugLog($"MonsterAreaManagerデータ設定完了: {currentEnemyData.Count}体");
+            }
+            else
+            {
+                DebugLogError("MonsterAreaManagerのUI設定が完了していません");
+            }
+        }
+        else
+        {
+            DebugLogError($"MonsterAreaManagerデータ設定失敗: monsterAreaManager={monsterAreaManager != null}, currentEnemyData={currentEnemyData?.Count ?? 0}");
+        }
+
+        // 他のUIコンポーネントにも基本的な戦闘開始通知
+        battleInfoUI?.OnBattleStart(setupData);
+        skillInfoUI?.OnBattleStart(setupData);
+        battleLogUI?.OnBattleStart(setupData);
+
+        // 修正: 成功判定
+        bool overallSuccess = playerUISuccess && monsterUISuccess;
+
+        if (overallSuccess)
+        {
+            isDataDistributionComplete = true;
+            DebugLog("全キャラクターデータ配布完了");
+        }
+        else
+        {
+            isDataDistributionComplete = false;
+            DebugLogError($"データ配布部分失敗: プレイヤーUI={playerUISuccess}, モンスターUI={monsterUISuccess}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: モンスターUI作成完了待機
+    /// </summary>
+    private IEnumerator WaitForMonsterUISetup()
+    {
+        float elapsed = 0f;
+        float timeout = 2f; // モンスターUI作成のタイムアウト
+
+        while (elapsed < timeout)
+        {
+            if (monsterAreaManager != null && monsterAreaManager.IsUISetupComplete())
+            {
+                DebugLog($"モンスターUI作成完了確認: {elapsed:F2}秒で完了");
+                yield break;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        DebugLogError($"モンスターUI作成タイムアウト: {timeout}秒");
+    }
+
+    /// <summary>
+    /// 修正: UI準備完了通知
+    /// </summary>
+    private void NotifyUISetupComplete()
+    {
+        try
+        {
+            isUISetupComplete = true;
+            DebugLog("=== UI準備完了通知 ===");
+
+            // BattleManagerに準備完了を通知（将来的な拡張用）
+            // 現在はログ出力のみ
+
+            DebugLog($"最終状態確認:");
+            DebugLog($"- プレイヤーデータ: {currentPlayerData?.characterName ?? "null"}");
+            DebugLog($"- 敵データ数: {currentEnemyData?.Count ?? 0}");
+            DebugLog($"- データ配布完了: {isDataDistributionComplete}");
+            DebugLog($"- UI設定完了: {isUISetupComplete}");
+        }
+        catch (Exception e)
+        {
+            DebugLogError($"UI準備完了通知エラー: {e.Message}");
+        }
     }
 
     #endregion
@@ -616,6 +746,14 @@ public class BattleUI : MonoBehaviour
     public System.Collections.Generic.List<BattleCharacterData> GetCurrentEnemyData()
     {
         return currentEnemyData;
+    }
+
+    /// <summary>
+    /// 修正: UI準備完了状態確認
+    /// </summary>
+    public bool IsUISetupComplete()
+    {
+        return isUISetupComplete && isDataDistributionComplete;
     }
 
     #endregion
