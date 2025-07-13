@@ -20,7 +20,7 @@ public class BattleTestUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI speedText;
 
     [Header("Test Settings")]
-    [SerializeField] private int testQuestId = 1;
+    [SerializeField] private int testQuestId = 2;
 
     private BattleManager battleManager;
     private int currentSpeedIndex = 0;
@@ -388,7 +388,6 @@ public class BattleTestUI : MonoBehaviour
             Debug.Log($"[BattleTestUI] === 戦闘進行状況 ===");
             Debug.Log($"[BattleTestUI] 戦闘状態: {battleManager.CurrentState}");
             Debug.Log($"[BattleTestUI] 現在ターン: {battleManager.GetCurrentTurnNumber()}");
-            Debug.Log($"[BattleTestUI] 戦闘経過時間: {battleManager.GetBattleElapsedTime():F1}秒");
 
             // キャラクター状況確認
             var playerChar = battleManager.GetPlayerCharacter();
@@ -786,4 +785,152 @@ public class BattleTestUI : MonoBehaviour
         Debug.Log($"[ManualCalc] - 風属性: +{totalStats.windOffence}");
         Debug.Log($"[ManualCalc] - 土属性: +{totalStats.earthOffence}");
     }
+
+    /// <summary>
+    /// テスト用メソッド：クエストデータの詳細確認
+    /// </summary>
+    [ContextMenu("クエストデータ詳細確認")]
+    public void DumpQuestDataDetails()
+    {
+        Debug.Log($"=== クエストデータ詳細確認 (現在のテストID: {testQuestId}) ===");
+
+        try
+        {
+            // 現在のテストクエストの詳細確認
+            var questData = QuestDataManager.Instance.GetQuestData(testQuestId);
+            if (questData != null)
+            {
+                Debug.Log($"選択されたクエスト:");
+                Debug.Log($"  ID: {questData.questId}");
+                Debug.Log($"  名前: {questData.questName}");
+                Debug.Log($"  spawnMonsterId1: {questData.spawnMonsterId1}");
+                Debug.Log($"  spawnMonsterId2: {questData.spawnMonsterId2}");
+                Debug.Log($"  spawnMonsterId3: {questData.spawnMonsterId3}");
+
+                // GetSpawnMonsterIds()の結果確認
+                var monsterIds = questData.GetSpawnMonsterIds();
+                Debug.Log($"  GetSpawnMonsterIds()結果: [{string.Join(", ", monsterIds)}]");
+            }
+            else
+            {
+                Debug.LogError($"クエストID {testQuestId} のデータが見つかりません");
+            }
+
+            Debug.Log("");
+            Debug.Log("=== 全クエストの比較 ===");
+
+            // 複数のクエストを比較確認
+            for (int questId = 1; questId <= 10; questId++)
+            {
+                var quest = QuestDataManager.Instance.GetQuestData(questId);
+                if (quest != null)
+                {
+                    var monsters = quest.GetSpawnMonsterIds();
+                    Debug.Log($"Quest {questId}: {quest.questName}");
+                    Debug.Log($"  Raw IDs: [{quest.spawnMonsterId1}, {quest.spawnMonsterId2}, {quest.spawnMonsterId3}]");
+                    Debug.Log($"  Filtered: [{string.Join(", ", monsters)}]");
+
+                    // 各モンスターの名前も確認
+                    foreach (var monsterId in monsters)
+                    {
+                        var monsterData = QuestDataManager.Instance.GetMonsterData(monsterId);
+                        if (monsterData != null)
+                        {
+                            Debug.Log($"    Monster {monsterId}: {monsterData.monsterName}");
+                        }
+                        else
+                        {
+                            Debug.LogError($"    Monster {monsterId}: データが見つかりません");
+                        }
+                    }
+                    Debug.Log("");
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"クエストデータ確認エラー: {e.Message}");
+            Debug.LogError($"スタックトレース: {e.StackTrace}");
+        }
+
+        Debug.Log("=== クエストデータ詳細確認終了 ===");
+    }
+
+
+    /// <summary>
+    /// テスト用メソッド：BattleSetupDataの詳細確認
+    /// </summary>
+    [ContextMenu("BattleSetupData詳細確認")]
+    public void DumpBattleSetupData()
+    {
+        Debug.Log($"=== BattleSetupData詳細確認 ===");
+
+        try
+        {
+            var userData = SaveDataManager.Instance.CurrentSaveData;
+            var questData = QuestDataManager.Instance.GetQuestData(testQuestId);
+
+            if (userData == null)
+            {
+                Debug.LogError("UserSaveDataがnullです");
+                return;
+            }
+
+            if (questData == null)
+            {
+                Debug.LogError($"QuestMasterData (ID: {testQuestId}) がnullです");
+                return;
+            }
+
+            // BattleSetupData作成前のデータ確認
+            Debug.Log("=== 作成前のデータ確認 ===");
+            Debug.Log($"QuestID: {questData.questId}");
+            Debug.Log($"Quest名: {questData.questName}");
+
+            var rawMonsterIds = questData.GetSpawnMonsterIds();
+            Debug.Log($"Quest出現モンスターID: [{string.Join(", ", rawMonsterIds)}]");
+
+            // BattleSetupData作成
+            Debug.Log("=== BattleSetupData作成中 ===");
+            var battleSetup = BattleSetupData.CreateFromUserData(userData, questData);
+
+            if (battleSetup != null)
+            {
+                Debug.Log("BattleSetupData作成成功");
+                Debug.Log($"  questId: {battleSetup.questId}");
+                Debug.Log($"  questName: {battleSetup.questName}");
+                Debug.Log($"  spawnMonsterIds: [{string.Join(", ", battleSetup.spawnMonsterIds)}]");
+                Debug.Log($"  spawnMonsterIds.Count: {battleSetup.spawnMonsterIds.Count}");
+
+                // 各モンスターIDの詳細確認
+                for (int i = 0; i < battleSetup.spawnMonsterIds.Count; i++)
+                {
+                    int monsterId = battleSetup.spawnMonsterIds[i];
+                    var monsterData = QuestDataManager.Instance.GetMonsterData(monsterId);
+                    if (monsterData != null)
+                    {
+                        Debug.Log($"    Monster[{i}]: ID={monsterId}, Name={monsterData.monsterName}");
+                    }
+                    else
+                    {
+                        Debug.LogError($"    Monster[{i}]: ID={monsterId}, データが見つかりません");
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogError("BattleSetupDataの作成に失敗しました");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"BattleSetupData確認エラー: {e.Message}");
+            Debug.LogError($"スタックトレース: {e.StackTrace}");
+        }
+
+        Debug.Log("=== BattleSetupData詳細確認終了 ===");
+    }
+
+
+
 }

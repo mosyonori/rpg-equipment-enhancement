@@ -2056,7 +2056,7 @@ MonoBehaviour:
   playerHPText: {fileID: 599953418}
   enemyHPText: {fileID: 28430706}
   speedText: {fileID: 1882538314}
-  testQuestId: 1
+  testQuestId: 2
 --- !u!1 &1151388911
 GameObject:
   m_ObjectHideFlags: 0
@@ -2249,6 +2249,9 @@ MonoBehaviour:
   enableDebugLog: 1
   battleSpeedMultiplier: 1
   isPaused: 0
+  uiReadyTimeout: 10
+  uiReadyCheckInterval: 0.2
+  battleStartDelay: 1
 --- !u!4 &1744592845
 Transform:
   m_ObjectHideFlags: 0

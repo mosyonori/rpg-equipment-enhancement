@@ -54,8 +54,8 @@ public class BattleManager : MonoBehaviour
     private BattleCalculationManager battleCalculationManager;
     private BattleTurnManager battleTurnManager;
 
-    // 修正: UI層参照追加
-    private BattleUI battleUI;
+    // 修正: UI層参照をコメントアウト（一時的）
+    // private BattleUI battleUI;
 
     #region Unity Lifecycle
 
@@ -191,13 +191,13 @@ public class BattleManager : MonoBehaviour
             return false;
         }
 
-        // 修正: BattleUIの取得を新しいAPIに変更
-        battleUI = FindAnyObjectByType<BattleUI>();
-        if (battleUI == null)
-        {
-            Log("BattleUIが見つかりません");
-            return false;
-        }
+        // 修正: BattleUI関連のチェックを一時的にコメントアウト
+        // battleUI = FindAnyObjectByType<BattleUI>(); 
+        // if (battleUI == null)
+        // {
+        //     Log("BattleUIが見つかりません");
+        //     return false;
+        // }
 
         Log("全ての依存関係が満たされています");
         return true;
@@ -486,15 +486,6 @@ public class BattleManager : MonoBehaviour
     public int GetCurrentTurnNumber()
     {
         return currentTurnNumber;
-    }
-
-    /// <summary>
-    /// 戦闘経過時間を取得
-    /// </summary>
-    public float GetBattleElapsedTime()
-    {
-        return CurrentState != BattleState.Idle ?
-            (float)(DateTime.Now - battleStartTime).TotalSeconds : 0f;
     }
 
     #endregion
@@ -899,12 +890,13 @@ public class BattleManager : MonoBehaviour
                 hasEnemies = allCharacters.Any(c => !c.isPlayer && c.isAlive);
             }
 
-            // 修正: UI準備完了確認
-            if (battleUI != null && battleUI.IsInitialized())
-            {
-                // UI層のデータ設定完了を確認
-                uiReady = battleUI.IsUISetupComplete();
-            }
+            // 修正: UI関連のチェックを一時的にコメントアウト
+            // if (battleUI != null && battleUI.IsInitialized())
+            // {
+            //     // UI層のデータ設定完了を確認
+            //     uiReady = battleUI.IsUISetupComplete();
+            // }
+            uiReady = true; // 
 
             Log($"準備状況チェック: データ有効={hasValidData}, プレイヤー={hasPlayer}, 敵={hasEnemies}, UI準備={uiReady}");
 
@@ -1048,7 +1040,6 @@ public class BattleManager : MonoBehaviour
         currentBattleResult.isVictory = isVictory;
         currentBattleResult.endReason = endReason;
         currentBattleResult.totalTurns = currentTurnNumber;
-        currentBattleResult.battleDuration = GetBattleElapsedTime();
 
         // 統計情報集計
         var playerChar = GetPlayerCharacter();
@@ -1206,7 +1197,6 @@ public class BattleManager : MonoBehaviour
         Log($"現在の戦闘状態: {CurrentState}");
         Log($"キャラクター数: {allCharacters?.Count ?? 0}");
         Log($"現在ターン: {currentTurnNumber}");
-        Log($"戦闘時間: {GetBattleElapsedTime():F1}秒");
     }
 
     [ContextMenu("戦闘を強制終了")]

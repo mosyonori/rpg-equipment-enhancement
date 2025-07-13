@@ -1,101 +1,132 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// í“¬’†‚ÌƒLƒƒƒ‰ƒNƒ^[ó‘Ôƒf[ƒ^
-/// ƒvƒŒƒCƒ„[Eƒ‚ƒ“ƒXƒ^[‹¤’Ê‚Åg—p
+/// æˆ¦é—˜ä¸­ã®ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼çŠ¶æ…‹ãƒ‡ãƒ¼ã‚¿
+/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ»ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼å…±é€šã§ä½¿ç”¨
+/// ãƒ‡ãƒ¼ã‚¿ä¿æŒå°‚ç”¨ã‚¯ãƒ©ã‚¹ï¼ˆãƒ‡ãƒ¼ã‚¿ã‚¢ã‚¯ã‚»ã‚¹çµ±ä¸€åŸå‰‡ã«æº–æ‹ ï¼‰
 /// </summary>
 [System.Serializable]
 public class BattleCharacterData
 {
-    [Header("Šî–{î•ñ")]
-    public string characterId;              // ƒLƒƒƒ‰ƒNƒ^[¯•ÊID
-    public string characterName;            // ƒLƒƒƒ‰ƒNƒ^[–¼
-    public bool isPlayer;                   // ƒvƒŒƒCƒ„[ƒLƒƒƒ‰ƒNƒ^[‚©
-    public bool isAlive;                    // ¶‘¶ƒtƒ‰ƒO
-    public int characterLevel;              // š’Ç‰Á: ƒLƒƒƒ‰ƒNƒ^[ƒŒƒxƒ‹
-    public Sprite characterSprite;          // ƒLƒƒƒ‰ƒNƒ^[‰æ‘œi’Ç‰Áj
+    [Header("åŸºæœ¬æƒ…å ±")]
+    public string characterId;              // ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼è­˜åˆ¥ID
+    public string characterName;            // ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼å
+    public bool isPlayer;                   // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‹
+    public bool isAlive;                    // ç”Ÿå­˜ãƒ•ãƒ©ã‚°
+    public int characterLevel;              // ğŸ“è¿½åŠ : ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ãƒ¬ãƒ™ãƒ«
+    public Sprite characterSprite;          // ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ç”»åƒï¼ˆè¿½åŠ ï¼‰
 
-    [Header("Œ»İƒXƒe[ƒ^ƒX")]
-    public int currentHp;                   // Œ»İHP
-    public int maxHp;                       // Å‘åHP
-    public int currentMp;                   // Œ»İMPi«—ˆŠg’£—pj
-    public int maxMp;                       // Å‘åMPi«—ˆŠg’£—pj
+    [Header("å€‹ä½“è­˜åˆ¥ãƒ»è¡¨ç¤ºåˆ¶å¾¡")]
+    public string instanceId;               // å€‹ä½“è­˜åˆ¥ID (ä¾‹: "monster_1_001")
+    public string displayName;              // è¡¨ç¤ºç”¨åå‰ (ä¾‹: "ã‚¹ãƒ©ã‚¤ãƒ A")
+    public int positionIndex;               // é…ç½®ä½ç½®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ (0, 1, 2...)
+    public Vector3 battlePosition;          // æˆ¦é—˜ç”»é¢ã§ã®é…ç½®åº§æ¨™
 
-    [Header("Šî–{”\—Í’l")]
-    public int offense;                     // UŒ‚—Í
-    public int defense;                     // –hŒä—Í
-    public int speed;                       // ‘¬“x
-    public int criticalRate;                // ƒNƒŠƒeƒBƒJƒ‹—¦
-    public int criticalDamageRate;          // ƒNƒŠƒeƒBƒJƒ‹ƒ_ƒ[ƒW—¦
+    [Header("ãƒ“ã‚¸ãƒ¥ã‚¢ãƒ«ãƒ»ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³")]
+    public string iconPath;                 // ã‚¢ã‚¤ã‚³ãƒ³ãƒªã‚½ãƒ¼ã‚¹ãƒ‘ã‚¹
+    public string animationPath;            // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒªã‚½ãƒ¼ã‚¹ãƒ‘ã‚¹
 
-    [Header("‘®«UŒ‚—Í")]
-    public int fireOffence;                 // ‰Î‘®«UŒ‚—Í
-    public int waterOffence;                // …‘®«UŒ‚—Í
-    public int windOffence;                 // •—‘®«UŒ‚—Í
-    public int earthOffence;                // “y‘®«UŒ‚—Í
+    [Header("ç¾åœ¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹")]
+    public int currentHp;                   // ç¾åœ¨HP
+    public int maxHp;                       // æœ€å¤§HP
+    public int currentMp;                   // ç¾åœ¨MPï¼ˆå°†æ¥æ‹¡å¼µç”¨ï¼‰
+    public int maxMp;                       // æœ€å¤§MPï¼ˆå°†æ¥æ‹¡å¼µç”¨ï¼‰
 
-    [Header("ƒLƒƒƒ‰ƒNƒ^[‘®«")]
-    public AttributeType characterAttribute; // ƒLƒƒƒ‰ƒNƒ^[©g‚Ì‘®«
+    [Header("åŸºæœ¬èƒ½åŠ›å€¤")]
+    public int offense;                     // æ”»æ’ƒåŠ›
+    public int defense;                     // é˜²å¾¡åŠ›
+    public int speed;                       // é€Ÿåº¦
+    public int criticalRate;                // ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ç‡
+    public int criticalDamageRate;          // ã‚¯ãƒªãƒ†ã‚£ã‚«ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸ç‡
 
-    [Header("g—p‰Â”\ƒXƒLƒ‹")]
-    public List<BattleSkillData> availableSkills; // g—p‰Â”\ƒXƒLƒ‹ƒŠƒXƒg
+    [Header("å±æ€§æ”»æ’ƒåŠ›")]
+    public int fireOffence;                 // ç«å±æ€§æ”»æ’ƒåŠ›
+    public int waterOffence;                // æ°´å±æ€§æ”»æ’ƒåŠ›
+    public int windOffence;                 // é¢¨å±æ€§æ”»æ’ƒåŠ›
+    public int earthOffence;                // åœŸå±æ€§æ”»æ’ƒåŠ›
 
-    [Header("ó‘ÔŒø‰Ê")]
-    public List<StatusEffectData> statusEffects;  // Œ»İ‚Ìó‘ÔŒø‰ÊƒŠƒXƒg
 
-    [Header("í“¬“Œv")]
-    public int damageDealt;                 // —^‚¦‚½ƒ_ƒ[ƒW—İŒv
-    public int damageReceived;              // ó‚¯‚½ƒ_ƒ[ƒW—İŒv
-    public int skillsUsed;                  // g—pƒXƒLƒ‹‰ñ”
 
-    [Header("Šù‘¶ƒf[ƒ^QÆ—p")]
-    public int masterDataId;                // CharacterMasterData or MonsterMasterData ‚ÌID
+    [Header("ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼å±æ€§")]
+    public AttributeType characterAttribute; // ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼è‡ªèº«ã®å±æ€§
+
+    [Header("ä½¿ç”¨å¯èƒ½ã‚¹ã‚­ãƒ«")]
+    public List<BattleSkillData> availableSkills; // ä½¿ç”¨å¯èƒ½ã‚¹ã‚­ãƒ«ãƒªã‚¹ãƒˆ
+
+    [Header("çŠ¶æ…‹åŠ¹æœ")]
+    public List<StatusEffectData> statusEffects;  // ç¾åœ¨ã®çŠ¶æ…‹åŠ¹æœãƒªã‚¹ãƒˆ
+
+    [Header("æˆ¦é—˜çµ±è¨ˆ")]
+    public int damageDealt;                 // ä¸ãˆãŸãƒ€ãƒ¡ãƒ¼ã‚¸ç´¯è¨ˆ
+    public int damageReceived;              // å—ã‘ãŸãƒ€ãƒ¡ãƒ¼ã‚¸ç´¯è¨ˆ
+    public int skillsUsed;                  // ä½¿ç”¨ã‚¹ã‚­ãƒ«å›æ•°
+
+    [Header("å‚ç…§ãƒ‡ãƒ¼ã‚¿ç”¨")]
+    public int masterDataId;                // CharacterMasterData or MonsterMasterData ã®ID
 
     /// <summary>
-    /// ƒfƒtƒHƒ‹ƒgƒRƒ“ƒXƒgƒ‰ƒNƒ^
+    /// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
     /// </summary>
     public BattleCharacterData()
     {
         availableSkills = new List<BattleSkillData>();
         statusEffects = new List<StatusEffectData>();
         isAlive = true;
-        characterLevel = 1; // š’Ç‰Á: ƒfƒtƒHƒ‹ƒgƒŒƒxƒ‹
+        characterLevel = 1; // ğŸ“è¿½åŠ : ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ¬ãƒ™ãƒ«
+
+        // ğŸ“è¿½åŠ : æ–°ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®åˆæœŸåŒ–
+        instanceId = "";
+        displayName = "";
+        positionIndex = 0;
+        battlePosition = Vector3.zero;
+        iconPath = "";
+        animationPath = "";
     }
 
     /// <summary>
-    /// C³: CharacterMasterData ‚©‚ç BattleCharacterData ‚ğì¬
-    /// ³‚µ‚¢ƒvƒƒpƒeƒB–¼‚ğg—p
+    /// ä¿®æ­£: CharacterMasterData ã‹ã‚‰ BattleCharacterData ã‚’ä½œæˆ
+    /// æ­£ã—ã„ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£åã‚’ä½¿ç”¨
     /// </summary>
     public static BattleCharacterData CreateFromCharacterMaster(CharacterMasterData masterData, EquipmentTotalStats equipmentStats)
     {
         var battleChar = new BattleCharacterData
         {
             characterId = "player",
-            characterName = masterData.CharacterName, // šC³: ‘å•¶š
+            characterName = masterData.CharacterName, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
             isPlayer = true,
             isAlive = true,
-            characterLevel = 1, // ƒfƒtƒHƒ‹ƒgƒŒƒxƒ‹iŒã‚ÅBattleManager‚Åİ’èj
-            masterDataId = masterData.CharacterId, // šC³: ‘å•¶š
-            characterSprite = masterData.CharacterIcon, // š’Ç‰Á: ƒAƒCƒRƒ“İ’è
+            characterLevel = 1, // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ¬ãƒ™ãƒ«ï¼ˆå¾Œã§BattleManagerã§è¨­å®šï¼‰
+            masterDataId = masterData.CharacterId, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
+            characterSprite = masterData.CharacterIcon, // ğŸ“è¿½åŠ : ã‚¢ã‚¤ã‚³ãƒ³è¨­å®š
 
-            // ‘•”õ‚İƒXƒe[ƒ^ƒXİ’è
-            maxHp = masterData.Hp + equipmentStats.hp, // šC³: ‘å•¶š
+            // ğŸ“è¿½åŠ : å€‹ä½“è­˜åˆ¥ãƒ»è¡¨ç¤ºåˆ¶å¾¡ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç”¨ï¼‰
+            instanceId = "player_001",
+            displayName = masterData.CharacterName,
+            positionIndex = 0,
+            battlePosition = Vector3.zero,
+
+            // ğŸ“è¿½åŠ : ãƒ“ã‚¸ãƒ¥ã‚¢ãƒ«ãƒ»ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ï¼ˆç©ºã§åˆæœŸåŒ–ã€Managerå±¤ã§è¨­å®šï¼‰
+            iconPath = "",
+            animationPath = "",
+
+            // è£…å‚™è¾¼ã¿ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¨­å®š
+            maxHp = masterData.Hp + equipmentStats.hp, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
             currentHp = masterData.Hp + equipmentStats.hp,
-            offense = masterData.Offense + equipmentStats.offense, // šC³: ‘å•¶š
-            defense = masterData.Defense + equipmentStats.defense, // šC³: ‘å•¶š
-            speed = masterData.Speed + equipmentStats.speed, // šC³: ‘å•¶š
-            criticalRate = masterData.CriticalRate + equipmentStats.criticalRate, // šC³: ‘å•¶š
-            criticalDamageRate = masterData.CriticalDamageRate + equipmentStats.criticalDamageRate, // šC³: ‘å•¶š
+            offense = masterData.Offense + equipmentStats.offense, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
+            defense = masterData.Defense + equipmentStats.defense, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
+            speed = masterData.Speed + equipmentStats.speed, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
+            criticalRate = masterData.CriticalRate + equipmentStats.criticalRate, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
+            criticalDamageRate = masterData.CriticalDamageRate + equipmentStats.criticalDamageRate, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
 
-            // ‘®«UŒ‚—Í
-            fireOffence = masterData.FireOffence + equipmentStats.fireOffence, // šC³: ‘å•¶š
-            waterOffence = masterData.WaterOffence + equipmentStats.waterOffence, // šC³: ‘å•¶š
-            windOffence = masterData.WindOffence + equipmentStats.windOffence, // šC³: ‘å•¶š
-            earthOffence = masterData.EarthOffence + equipmentStats.earthOffence, // šC³: ‘å•¶š
+            // å±æ€§æ”»æ’ƒåŠ›
+            fireOffence = masterData.FireOffence + equipmentStats.fireOffence, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
+            waterOffence = masterData.WaterOffence + equipmentStats.waterOffence, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
+            windOffence = masterData.WindOffence + equipmentStats.windOffence, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
+            earthOffence = masterData.EarthOffence + equipmentStats.earthOffence, // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
 
-            // ƒLƒƒƒ‰ƒNƒ^[‘®«i‘®«UŒ‚—Í‚©‚ç”»’èj
+            // ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼å±æ€§ï¼ˆå±æ€§æ”»æ’ƒåŠ›ã‹ã‚‰åˆ¤å®šï¼‰
             characterAttribute = GetDominantAttribute(
                 masterData.FireOffence + equipmentStats.fireOffence,
                 masterData.WaterOffence + equipmentStats.waterOffence,
@@ -104,42 +135,42 @@ public class BattleCharacterData
             )
         };
 
-        // ƒXƒLƒ‹İ’è
+        // ã‚¹ã‚­ãƒ«è¨­å®š
         battleChar.availableSkills = new List<BattleSkillData>();
 
-        // ƒfƒtƒHƒ‹ƒgƒXƒLƒ‹
-        if (masterData.DefaultSkillId > 0) // šC³: ‘å•¶š
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚¹ã‚­ãƒ«
+        if (masterData.DefaultSkillId > 0) // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
         {
             battleChar.availableSkills.Add(new BattleSkillData
             {
                 skillId = masterData.DefaultSkillId,
-                skillName = "ƒfƒtƒHƒ‹ƒgƒXƒLƒ‹",
+                skillName = "ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚¹ã‚­ãƒ«",
                 currentCoolTime = 0,
                 maxCoolTime = 0,
                 isUsable = true
             });
         }
 
-        // g—pƒXƒLƒ‹1
-        if (masterData.UsedSkill1 > 0) // šC³: ‘å•¶š
+        // ä½¿ç”¨ã‚¹ã‚­ãƒ«1
+        if (masterData.UsedSkill1 > 0) // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
         {
             battleChar.availableSkills.Add(new BattleSkillData
             {
                 skillId = masterData.UsedSkill1,
-                skillName = $"ƒXƒLƒ‹1_{masterData.UsedSkill1}",
+                skillName = $"ã‚¹ã‚­ãƒ«1_{masterData.UsedSkill1}",
                 currentCoolTime = 0,
                 maxCoolTime = 3,
                 isUsable = true
             });
         }
 
-        // g—pƒXƒLƒ‹2
-        if (masterData.UsedSkill2 > 0) // šC³: ‘å•¶š
+        // ä½¿ç”¨ã‚¹ã‚­ãƒ«2
+        if (masterData.UsedSkill2 > 0) // ğŸ“ä¿®æ­£: å¤§æ–‡å­—
         {
             battleChar.availableSkills.Add(new BattleSkillData
             {
                 skillId = masterData.UsedSkill2,
-                skillName = $"ƒXƒLƒ‹2_{masterData.UsedSkill2}",
+                skillName = $"ã‚¹ã‚­ãƒ«2_{masterData.UsedSkill2}",
                 currentCoolTime = 0,
                 maxCoolTime = 5,
                 isUsable = true
@@ -150,23 +181,51 @@ public class BattleCharacterData
         return battleChar;
     }
 
-
     /// <summary>
-    /// Šù‘¶MonsterMasterData ‚©‚ç BattleCharacterData ‚ğì¬
+    /// ğŸ“ä¿®æ­£: MonsterMasterData ã‹ã‚‰ BattleCharacterData ã‚’ä½œæˆ
+    /// ãƒ‡ãƒ¼ã‚¿ä¿æŒã®ã¿ã€ãƒªã‚½ãƒ¼ã‚¹èª­ã¿è¾¼ã¿ã¯Managerå±¤ã§å®Ÿè¡Œ
     /// </summary>
-    public static BattleCharacterData CreateFromMonsterMaster(MonsterMasterData masterData)
+    /// <param name="masterData">ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒã‚¹ã‚¿ãƒ¼ãƒ‡ãƒ¼ã‚¿</param>
+    /// <param name="instanceId">å€‹ä½“è­˜åˆ¥ID</param>
+    /// <param name="displayName">è¡¨ç¤ºç”¨åå‰</param>
+    /// <param name="positionIndex">é…ç½®ä½ç½®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹</param>
+    /// <param name="sprite">èª­ã¿è¾¼ã¿æ¸ˆã¿Spriteï¼ˆManagerå±¤ã§å–å¾—ï¼‰</param>
+    /// <returns>ä½œæˆã•ã‚ŒãŸBattleCharacterData</returns>
+    public static BattleCharacterData CreateFromMonsterMaster(
+        MonsterMasterData masterData,
+        string instanceId = null,
+        string displayName = null,
+        int positionIndex = 0,
+        Sprite sprite = null)
     {
+        if (masterData == null)
+        {
+            Debug.LogError("[BattleCharacterData] MonsterMasterDataãŒnullã§ã™");
+            return null;
+        }
+
         var battleChar = new BattleCharacterData
         {
+            // åŸºæœ¬æƒ…å ±
             characterId = $"monster_{masterData.monsterId}",
             characterName = masterData.monsterName,
             isPlayer = false,
             isAlive = true,
-            characterLevel = 1, // š’Ç‰Á: ƒ‚ƒ“ƒXƒ^[‚ÍƒŒƒxƒ‹1ŒÅ’è
+            characterLevel = 1,
             masterDataId = masterData.monsterId,
-            characterSprite = null, // •K—v‚É‰‚¶‚Äİ’è
+            characterSprite = sprite, // ğŸ“ä¿®æ­£: Managerå±¤ã§èª­ã¿è¾¼ã¾ã‚ŒãŸSpriteã‚’è¨­å®š
 
-            // ƒXƒe[ƒ^ƒXİ’è
+            // ğŸ“è¿½åŠ : å€‹ä½“è­˜åˆ¥ãƒ»è¡¨ç¤ºåˆ¶å¾¡
+            instanceId = instanceId ?? $"monster_{masterData.monsterId}_{DateTime.Now.Ticks}",
+            displayName = displayName ?? masterData.monsterName,
+            positionIndex = positionIndex,
+            battlePosition = Vector3.zero,
+
+            // ğŸ“è¿½åŠ : ãƒ“ã‚¸ãƒ¥ã‚¢ãƒ«ãƒ»ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ï¼ˆãƒ‘ã‚¹ã®ã¿ä¿æŒã€èª­ã¿è¾¼ã¿ã¯Managerå±¤ï¼‰
+            iconPath = masterData.monsterIconPath,
+            animationPath = masterData.monsterAnimationPath,
+
+            // ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹è¨­å®š
             maxHp = masterData.hp,
             currentHp = masterData.hp,
             offense = masterData.offense,
@@ -175,17 +234,22 @@ public class BattleCharacterData
             criticalRate = masterData.criticalRate,
             criticalDamageRate = masterData.criticalDamageRate,
 
-            // ‘®«UŒ‚—Í
+            // å±æ€§æ”»æ’ƒåŠ›
             fireOffence = masterData.fireOffence,
             waterOffence = masterData.waterOffence,
             windOffence = masterData.windOffence,
             earthOffence = masterData.earthOffence,
 
-            // ƒ‚ƒ“ƒXƒ^[‘®«
-            characterAttribute = masterData.attributeType
+            // ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼å±æ€§
+            characterAttribute = masterData.attributeType,
+
+            // æˆ¦é—˜çµ±è¨ˆåˆæœŸåŒ–
+            damageDealt = 0,
+            damageReceived = 0,
+            skillsUsed = 0
         };
 
-        // ƒXƒLƒ‹İ’è
+        // ã‚¹ã‚­ãƒ«è¨­å®š
         battleChar.availableSkills = new List<BattleSkillData>();
         var monsterSkills = masterData.GetUsedSkills();
         foreach (var skillId in monsterSkills)
@@ -193,19 +257,21 @@ public class BattleCharacterData
             battleChar.availableSkills.Add(new BattleSkillData
             {
                 skillId = skillId,
-                skillName = $"ƒ‚ƒ“ƒXƒ^[ƒXƒLƒ‹_{skillId}",
+                skillName = $"ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã‚¹ã‚­ãƒ«_{skillId}",
                 currentCoolTime = 0,
-                maxCoolTime = 3, // ƒfƒtƒHƒ‹ƒgCT
+                maxCoolTime = 3,
                 isUsable = true
             });
         }
 
         battleChar.statusEffects = new List<StatusEffectData>();
+
+        Debug.Log($"[BattleCharacterData] ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ä½œæˆå®Œäº†: {battleChar.displayName} (ID: {battleChar.instanceId})");
         return battleChar;
     }
 
     /// <summary>
-    /// HPŠ„‡‚ğæ“¾
+    /// HPå‰²åˆã‚’å–å¾—
     /// </summary>
     public float GetHpRatio()
     {
@@ -213,7 +279,7 @@ public class BattleCharacterData
     }
 
     /// <summary>
-    /// HP–ƒ^ƒ“‚©ƒ`ƒFƒbƒN
+    /// HPæº€ã‚¿ãƒ³ã‹ãƒã‚§ãƒƒã‚¯
     /// </summary>
     public bool IsHpFull()
     {
@@ -221,7 +287,7 @@ public class BattleCharacterData
     }
 
     /// <summary>
-    /// €–S”»’è
+    /// æ­»äº¡åˆ¤å®š
     /// </summary>
     public bool IsDead()
     {
@@ -229,13 +295,13 @@ public class BattleCharacterData
     }
 
     /// <summary>
-    /// s“®‰Â”\‚©ƒ`ƒFƒbƒN
+    /// è¡Œå‹•å¯èƒ½ã‹ãƒã‚§ãƒƒã‚¯
     /// </summary>
     public bool CanAct()
     {
         if (IsDead()) return false;
 
-        // ƒXƒ^ƒ““™‚Ìs“®‘jŠQŒø‰Ê‚ğƒ`ƒFƒbƒN
+        // ã‚¹ã‚¿ãƒ³ç­‰ã®è¡Œå‹•é˜»å®³åŠ¹æœã‚’ãƒã‚§ãƒƒã‚¯
         foreach (var effect in statusEffects)
         {
             if (effect.preventAction) return false;
@@ -245,7 +311,7 @@ public class BattleCharacterData
     }
 
     /// <summary>
-    /// Å‚à‚‚¢‘®«UŒ‚—Í‚ğæ“¾
+    /// æœ€ã‚‚é«˜ã„å±æ€§æ”»æ’ƒåŠ›ã‚’å–å¾—
     /// </summary>
     public int GetHighestElementalAttack()
     {
@@ -253,7 +319,7 @@ public class BattleCharacterData
     }
 
     /// <summary>
-    /// Å‚à‚‚¢‘®«UŒ‚—Í‚Ì‘®«ƒ^ƒCƒv‚ğæ“¾
+    /// æœ€ã‚‚é«˜ã„å±æ€§æ”»æ’ƒåŠ›ã®å±æ€§ã‚¿ã‚¤ãƒ—ã‚’å–å¾—
     /// </summary>
     public AttributeType GetHighestElementalAttackType()
     {
@@ -269,7 +335,25 @@ public class BattleCharacterData
     }
 
     /// <summary>
-    /// ‘®«UŒ‚—Í‚©‚çå—v‘®«‚ğ”»’è
+    /// ğŸ“è¿½åŠ : å€‹ä½“ã®è¡¨ç¤ºåã‚’å–å¾—ï¼ˆãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ä»˜ãï¼‰
+    /// </summary>
+    /// <returns>è¡¨ç¤ºç”¨ã®åå‰</returns>
+    public string GetDisplayName()
+    {
+        return !string.IsNullOrEmpty(displayName) ? displayName : characterName;
+    }
+
+    /// <summary>
+    /// ğŸ“è¿½åŠ : ãƒãƒˆãƒ«ãƒã‚¸ã‚·ãƒ§ãƒ³ã‚’è¨­å®š
+    /// </summary>
+    /// <param name="position">æˆ¦é—˜é…ç½®åº§æ¨™</param>
+    public void SetBattlePosition(Vector3 position)
+    {
+        battlePosition = position;
+    }
+
+    /// <summary>
+    /// å±æ€§æ”»æ’ƒåŠ›ã‹ã‚‰å„ªå‹¢å±æ€§ã‚’åˆ¤å®š
     /// </summary>
     private static AttributeType GetDominantAttribute(int fire, int water, int wind, int earth)
     {

@@ -18,14 +18,14 @@ MonoBehaviour:
   description: "\u30D5\u30A1\u30A4\u30A2\u30B9\u30E9\u30A4\u30E0\u3092\u8A0E\u4F10\u3057\u3088\u3046"
   questType: 0
   needLevel: 2
-  requiredClearQuest: 1
+  requiredClearQuest: -1
   requiredStamina: 1
   recommendedPower: 150
   dailyClearLimit: -1
   isRepeatable: 1
   turnLimit: 30
   spawnMonsterId1: 2
-  spawnMonsterId2: -1
+  spawnMonsterId2: 2
   spawnMonsterId3: -1
   rewardExp: 20
   rewardGold: 200

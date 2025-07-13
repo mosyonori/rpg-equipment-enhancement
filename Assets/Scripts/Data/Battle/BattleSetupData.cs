@@ -11,6 +11,7 @@ public class BattleSetupData
 {
     [Header("クエスト情報")]
     public int questId;                     // 選択されたクエストID
+    public string questName;               // クエスト名
     public int turnLimit;                   // ターン制限（-1=無制限）
     public List<int> spawnMonsterIds;       // 出現モンスターIDリスト
 
