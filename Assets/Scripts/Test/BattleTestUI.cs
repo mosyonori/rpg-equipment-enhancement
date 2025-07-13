@@ -6,7 +6,7 @@ using TMPro;
 
 /// <summary>
 /// 戦闘システムの動作確認用の簡易テストUI
-/// コンソールログで戦闘フローを確認するためのクラス
+/// 修正版：BattleManagerの非同期初期化に対応
 /// </summary>
 public class BattleTestUI : MonoBehaviour
 {
@@ -21,21 +21,30 @@ public class BattleTestUI : MonoBehaviour
 
     [Header("Test Settings")]
     [SerializeField] private int testQuestId = 2;
+    [SerializeField] private float initializationTimeout = 15.0f;  // 📝追加: 初期化待機タイムアウト
 
     private BattleManager battleManager;
     private int currentSpeedIndex = 0;
     private float[] speedOptions = { 1f, 2f, 4f };
+    private Coroutine initializationCheckCoroutine;  // 📝追加: 初期化チェック用コルーチン
 
     void Start()
     {
         InitializeUI();
-        SetupEventListeners();
-        Debug.Log("[BattleTestUI] 戦闘テストUI初期化完了");
+        // 📝修正: SetupEventListenersをコルーチンで実行
+        StartCoroutine(WaitForManagersAndSetupEvents());
+        Debug.Log("[BattleTestUI] 戦闘テストUI初期化開始");
     }
 
     void OnDestroy()
     {
         CleanupEventListeners();
+
+        // 📝追加: コルーチンのクリーンアップ
+        if (initializationCheckCoroutine != null)
+        {
+            StopCoroutine(initializationCheckCoroutine);
+        }
     }
 
     /// <summary>
@@ -63,7 +72,8 @@ public class BattleTestUI : MonoBehaviour
         if (startBattleButton != null)
         {
             startBattleButton.onClick.AddListener(StartBattleTest);
-            startBattleButton.interactable = true;
+            // 📝修正: 初期化完了まで無効化
+            startBattleButton.interactable = false;
         }
 
         if (speedToggleButton != null)
@@ -74,7 +84,111 @@ public class BattleTestUI : MonoBehaviour
     }
 
     /// <summary>
-    /// BattleManagerのイベント登録
+    /// 📝新規追加: Managerの初期化を待ってからイベント設定
+    /// </summary>
+    private IEnumerator WaitForManagersAndSetupEvents()
+    {
+        Debug.Log("[BattleTestUI] Manager初期化待機開始");
+
+        float elapsed = 0f;
+        bool managersReady = false;
+
+        // UI状態更新
+        if (battleStateText != null)
+            battleStateText.text = "Manager初期化待機中...";
+
+        while (elapsed < initializationTimeout && !managersReady)
+        {
+            managersReady = CheckAllManagersReady();
+
+            if (managersReady)
+            {
+                Debug.Log("[BattleTestUI] 全Manager初期化完了");
+                break;
+            }
+
+            // 進行状況をUIに表示
+            if (battleStateText != null)
+                battleStateText.text = $"初期化中... ({elapsed:F1}s)";
+
+            elapsed += Time.deltaTime;
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        if (managersReady)
+        {
+            SetupEventListeners();
+
+            // UI状態更新
+            if (battleStateText != null)
+                battleStateText.text = "戦闘待機中";
+
+            if (startBattleButton != null)
+                startBattleButton.interactable = true;
+
+            Debug.Log("[BattleTestUI] 戦闘テストUI初期化完了");
+        }
+        else
+        {
+            Debug.LogError($"[BattleTestUI] Manager初期化がタイムアウトしました ({initializationTimeout}秒)");
+
+            if (battleStateText != null)
+                battleStateText.text = "初期化失敗";
+        }
+    }
+
+    /// <summary>
+    /// 📝新規追加: 全Managerの準備状況をチェック
+    /// </summary>
+    private bool CheckAllManagersReady()
+    {
+        // BattleManager確認
+        if (BattleManager.Instance == null || !BattleManager.Instance.IsInitialized)
+        {
+            return false;
+        }
+
+        // SaveDataManager確認
+        if (SaveDataManager.Instance == null || !SaveDataManager.Instance.IsDataLoaded)
+        {
+            return false;
+        }
+
+        // QuestDataManager確認
+        if (QuestDataManager.Instance == null || !QuestDataManager.Instance.IsDataLoaded)
+        {
+            return false;
+        }
+
+        // MasterDataManager確認
+        if (MasterDataManager.Instance == null || !MasterDataManager.Instance.IsDataLoaded)
+        {
+            return false;
+        }
+
+        // BattleTurnManager確認
+        if (BattleTurnManager.Instance == null)
+        {
+            return false;
+        }
+
+        // BattleCalculationManager確認
+        if (BattleCalculationManager.Instance == null)
+        {
+            return false;
+        }
+
+        // 📝追加: BattleMonsterManager確認
+        if (BattleMonsterManager.Instance == null)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 📝修正: BattleManagerのイベント登録（初期化完了後に実行）
     /// </summary>
     private void SetupEventListeners()
     {
@@ -107,6 +221,14 @@ public class BattleTestUI : MonoBehaviour
             BattleManager.OnBattleCompleted += OnBattleCompleted;
             Debug.Log("[BattleTestUI] OnBattleCompletedイベント登録完了");
 
+            // 📝追加: BattleManagerの初期化完了イベント
+            BattleManager.OnBattleInitialized += OnBattleInitialized;
+            Debug.Log("[BattleTestUI] OnBattleInitializedイベント登録完了");
+
+            // 📝追加: エラーイベント
+            BattleManager.OnBattleError += OnBattleError;
+            Debug.Log("[BattleTestUI] OnBattleErrorイベント登録完了");
+
             Debug.Log("[BattleTestUI] BattleManagerイベント登録完了");
         }
         catch (System.Exception e)
@@ -125,10 +247,12 @@ public class BattleTestUI : MonoBehaviour
         BattleManager.OnCharacterTurnStart -= OnCharacterTurnStart;
         BattleManager.OnActionExecuted -= OnActionExecuted;
         BattleManager.OnBattleCompleted -= OnBattleCompleted;
+        BattleManager.OnBattleInitialized -= OnBattleInitialized;  // 📝追加
+        BattleManager.OnBattleError -= OnBattleError;  // 📝追加
     }
 
     /// <summary>
-    /// 戦闘開始テスト
+    /// 📝修正: 戦闘開始テスト（初期化状態チェック追加）
     /// </summary>
     private void StartBattleTest()
     {
@@ -136,6 +260,20 @@ public class BattleTestUI : MonoBehaviour
 
         try
         {
+            // 📝追加: BattleManager初期化状態確認
+            if (battleManager == null || !battleManager.IsInitialized)
+            {
+                Debug.LogError("[BattleTestUI] BattleManagerが初期化されていません");
+
+                // 📝追加: 初期化待機を再実行
+                if (initializationCheckCoroutine != null)
+                {
+                    StopCoroutine(initializationCheckCoroutine);
+                }
+                initializationCheckCoroutine = StartCoroutine(WaitForInitializationAndRetry());
+                return;
+            }
+
             // 詳細なnullチェック
             Debug.Log("[BattleTestUI] SaveDataManagerインスタンス確認中...");
             if (SaveDataManager.Instance == null)
@@ -169,13 +307,6 @@ public class BattleTestUI : MonoBehaviour
             }
             Debug.Log($"[BattleTestUI] QuestMasterData取得成功: {questData.questName}");
 
-            Debug.Log("[BattleTestUI] BattleManager確認中...");
-            if (battleManager == null)
-            {
-                Debug.LogError("[BattleTestUI] battleManagerがnullです");
-                return;
-            }
-
             Debug.Log("[BattleTestUI] 戦闘開始処理実行中...");
             bool battleStarted = battleManager.StartBattle(userData, questData);
 
@@ -202,7 +333,41 @@ public class BattleTestUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 📝新規追加: 初期化待機してからリトライ
+    /// </summary>
+    private IEnumerator WaitForInitializationAndRetry()
+    {
+        Debug.Log("[BattleTestUI] BattleManager初期化完了を待機してリトライします");
 
+        if (battleStateText != null)
+            battleStateText.text = "BattleManager初期化待機中...";
+
+        float elapsed = 0f;
+        while (elapsed < initializationTimeout)
+        {
+            if (battleManager != null && battleManager.IsInitialized)
+            {
+                Debug.Log("[BattleTestUI] BattleManager初期化完了 - 戦闘開始をリトライ");
+
+                if (battleStateText != null)
+                    battleStateText.text = "戦闘待機中";
+
+                if (startBattleButton != null)
+                    startBattleButton.interactable = true;
+
+                yield break;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        Debug.LogError("[BattleTestUI] BattleManager初期化待機がタイムアウトしました");
+
+        if (battleStateText != null)
+            battleStateText.text = "初期化タイムアウト";
+    }
 
     /// <summary>
     /// 戦闘速度切り替え
@@ -250,6 +415,41 @@ public class BattleTestUI : MonoBehaviour
                 if (startBattleButton != null) startBattleButton.interactable = true;
                 break;
         }
+    }
+
+    /// <summary>
+    /// 📝新規追加: 戦闘初期化完了イベントハンドラ
+    /// </summary>
+    private void OnBattleInitialized(BattleSetupData setupData)
+    {
+        Debug.Log($"[BattleTestUI] 戦闘初期化完了: {setupData.questName}");
+        Debug.Log($"[BattleTestUI] 出現モンスター数: {setupData.spawnMonsterIds?.Count ?? 0}");
+
+        if (setupData.spawnMonsterIds != null)
+        {
+            foreach (var monsterId in setupData.spawnMonsterIds)
+            {
+                var monster = QuestDataManager.Instance?.GetMonsterData(monsterId);
+                if (monster != null)
+                {
+                    Debug.Log($"[BattleTestUI] 出現モンスター: {monster.monsterName} (ID: {monsterId})");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 📝新規追加: 戦闘エラーイベントハンドラ
+    /// </summary>
+    private void OnBattleError(string errorMessage)
+    {
+        Debug.LogError($"[BattleTestUI] 戦闘エラー: {errorMessage}");
+
+        if (battleStateText != null)
+            battleStateText.text = $"エラー: {errorMessage}";
+
+        if (startBattleButton != null)
+            startBattleButton.interactable = true;
     }
 
     /// <summary>
@@ -329,11 +529,20 @@ public class BattleTestUI : MonoBehaviour
             playerHPText.text = $"プレイヤーHP: {playerCharacter.currentHp}/{playerCharacter.maxHp}";
         }
 
-        // 敵HP表示（最初の敵のみ）
+        // 敵HP表示（複数敵対応）
         if (enemyHPText != null && enemyCharacters != null && enemyCharacters.Count > 0)
         {
-            var enemy = enemyCharacters[0];
-            enemyHPText.text = $"敵HP: {enemy.currentHp}/{enemy.maxHp}";
+            if (enemyCharacters.Count == 1)
+            {
+                var enemy = enemyCharacters[0];
+                enemyHPText.text = $"敵HP: {enemy.currentHp}/{enemy.maxHp}";
+            }
+            else
+            {
+                // 📝修正: 複数敵の場合は生存数を表示
+                var aliveEnemies = enemyCharacters.FindAll(e => e.isAlive);
+                enemyHPText.text = $"敵: {aliveEnemies.Count}/{enemyCharacters.Count}体生存";
+            }
         }
     }
 
@@ -377,7 +586,7 @@ public class BattleTestUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 戦闘進行状況をデバッグ出力
+    /// 📝修正: 戦闘進行状況をデバッグ出力（BattleMonsterManager対応）
     /// </summary>
     private void DebugBattleProgress()
     {
@@ -406,7 +615,9 @@ public class BattleTestUI : MonoBehaviour
             {
                 foreach (var enemy in enemies)
                 {
-                    Debug.Log($"[BattleTestUI] 敵: {enemy.characterName} HP:{enemy.currentHp}/{enemy.maxHp} 生存:{enemy.isAlive}");
+                    // 📝修正: displayNameとinstanceIdも表示
+                    string displayInfo = !string.IsNullOrEmpty(enemy.displayName) ? enemy.displayName : enemy.characterName;
+                    Debug.Log($"[BattleTestUI] 敵: {displayInfo} (ID:{enemy.characterId}) HP:{enemy.currentHp}/{enemy.maxHp} 生存:{enemy.isAlive}");
                 }
             }
             else
@@ -430,7 +641,8 @@ public class BattleTestUI : MonoBehaviour
                 var currentActor = BattleTurnManager.Instance.GetCurrentActor();
                 if (currentActor != null)
                 {
-                    Debug.Log($"[BattleTestUI] 現在の行動者: {currentActor.characterName}");
+                    string actorDisplayInfo = !string.IsNullOrEmpty(currentActor.displayName) ? currentActor.displayName : currentActor.characterName;
+                    Debug.Log($"[BattleTestUI] 現在の行動者: {actorDisplayInfo} (ID:{currentActor.characterId})");
                 }
                 else
                 {
@@ -440,6 +652,18 @@ public class BattleTestUI : MonoBehaviour
             else
             {
                 Debug.LogError("[BattleTestUI] BattleTurnManager.Instanceがnullです");
+            }
+
+            // 📝追加: BattleMonsterManagerの状態確認
+            if (BattleMonsterManager.Instance != null)
+            {
+                var allMonsters = BattleMonsterManager.Instance.GetAllMonsters();
+                var aliveMonsters = BattleMonsterManager.Instance.GetAliveMonsters();
+                Debug.Log($"[BattleTestUI] BattleMonsterManager - 総モンスター数: {allMonsters.Count}, 生存数: {aliveMonsters.Count}");
+            }
+            else
+            {
+                Debug.LogWarning("[BattleTestUI] BattleMonsterManager.Instanceがnullです");
             }
 
             Debug.Log($"[BattleTestUI] === 戦闘進行状況終了 ===");
@@ -474,7 +698,7 @@ public class BattleTestUI : MonoBehaviour
     }
 
     /// <summary>
-    /// テスト用メソッド：戦闘システム状態を詳細出力
+    /// 📝修正: 戦闘システム状態を詳細出力（BattleMonsterManager対応）
     /// </summary>
     [ContextMenu("戦闘システム状態確認")]
     public void DumpBattleSystemState()
@@ -511,6 +735,18 @@ public class BattleTestUI : MonoBehaviour
         else
         {
             Debug.LogError("✗ BattleCalculationManager: Instanceがnull");
+        }
+
+        // 📝追加: BattleMonsterManager確認
+        if (BattleMonsterManager.Instance != null)
+        {
+            var allMonsters = BattleMonsterManager.Instance.GetAllMonsters();
+            var aliveMonsters = BattleMonsterManager.Instance.GetAliveMonsters();
+            Debug.Log($"✓ BattleMonsterManager: 総モンスター数={allMonsters.Count}, 生存数={aliveMonsters.Count}");
+        }
+        else
+        {
+            Debug.LogError("✗ BattleMonsterManager: Instanceがnull");
         }
 
         // SaveDataManager確認
@@ -567,7 +803,7 @@ public class BattleTestUI : MonoBehaviour
     }
 
     /// <summary>
-    /// テスト用メソッド：プレイヤーステータス詳細確認
+    /// 📝修正: プレイヤーステータス詳細確認（BattleMonsterManager対応）
     /// </summary>
     [ContextMenu("プレイヤーステータス確認")]
     public void DumpPlayerStats()
@@ -787,6 +1023,75 @@ public class BattleTestUI : MonoBehaviour
     }
 
     /// <summary>
+    /// 📝新規追加: モンスター詳細確認テスト
+    /// </summary>
+    [ContextMenu("モンスター詳細確認")]
+    public void DumpMonsterDetails()
+    {
+        Debug.Log("=== モンスター詳細確認 ===");
+
+        try
+        {
+            // BattleManagerからモンスター情報取得
+            if (battleManager != null)
+            {
+                var enemies = battleManager.GetEnemyCharacters();
+                Debug.Log($"[MonsterTest] BattleManagerから取得した敵数: {enemies?.Count ?? 0}");
+
+                if (enemies != null)
+                {
+                    foreach (var enemy in enemies)
+                    {
+                        Debug.Log($"[MonsterTest] 敵情報:");
+                        Debug.Log($"  characterId: {enemy.characterId}");
+                        Debug.Log($"  instanceId: {enemy.instanceId}");
+                        Debug.Log($"  characterName: {enemy.characterName}");
+                        Debug.Log($"  displayName: {enemy.displayName}");
+                        Debug.Log($"  positionIndex: {enemy.positionIndex}");
+                        Debug.Log($"  HP: {enemy.currentHp}/{enemy.maxHp}");
+                        Debug.Log($"  生存: {enemy.isAlive}");
+                        Debug.Log($"  battlePosition: {enemy.battlePosition}");
+                        Debug.Log("");
+                    }
+                }
+            }
+
+            // BattleMonsterManagerから情報取得
+            if (BattleMonsterManager.Instance != null)
+            {
+                var allMonsters = BattleMonsterManager.Instance.GetAllMonsters();
+                var aliveMonsters = BattleMonsterManager.Instance.GetAliveMonsters();
+
+                Debug.Log($"[MonsterManager] BattleMonsterManagerから取得:");
+                Debug.Log($"  総モンスター数: {allMonsters.Count}");
+                Debug.Log($"  生存モンスター数: {aliveMonsters.Count}");
+
+                foreach (var monster in allMonsters)
+                {
+                    Debug.Log($"[MonsterManager] モンスター情報:");
+                    Debug.Log($"  characterId: {monster.characterId}");
+                    Debug.Log($"  instanceId: {monster.instanceId}");
+                    Debug.Log($"  displayName: {monster.displayName}");
+                    Debug.Log($"  masterDataId: {monster.masterDataId}");
+                    Debug.Log($"  生存: {monster.isAlive}");
+                    Debug.Log("");
+                }
+            }
+            else
+            {
+                Debug.LogError("[MonsterManager] BattleMonsterManager.Instanceがnullです");
+            }
+
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[MonsterTest] モンスター確認エラー: {e.Message}");
+        }
+
+        Debug.Log("=== モンスター詳細確認終了 ===");
+    }
+
+    /// <summary>
     /// テスト用メソッド：クエストデータの詳細確認
     /// </summary>
     [ContextMenu("クエストデータ詳細確認")]
@@ -855,7 +1160,6 @@ public class BattleTestUI : MonoBehaviour
 
         Debug.Log("=== クエストデータ詳細確認終了 ===");
     }
-
 
     /// <summary>
     /// テスト用メソッド：BattleSetupDataの詳細確認
@@ -930,7 +1234,4 @@ public class BattleTestUI : MonoBehaviour
 
         Debug.Log("=== BattleSetupData詳細確認終了 ===");
     }
-
-
-
 }

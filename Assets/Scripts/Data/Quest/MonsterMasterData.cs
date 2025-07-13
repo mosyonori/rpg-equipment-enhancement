@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-
 /// <summary>
 /// モンスターマスターデータ
 /// CSVから読み込んだモンスター情報を管理するScriptableObject
@@ -273,33 +271,8 @@ public class MonsterMasterData : ScriptableObject
         return hp > 0 && GetAvailableSkillCount() > 0;
     }
 
-    /// <summary>
-    /// 属性相性によるダメージ倍率を取得
-    /// 簡易的な属性相性システム（実際のゲームロジックに応じて調整）
-    /// </summary>
-    /// <param name="attackerAttribute">攻撃者の属性</param>
-    /// <returns>ダメージ倍率</returns>
-    public float GetAttributeDamageMultiplier(AttributeType attackerAttribute)
-    {
-        if (attackerAttribute == AttributeType.None || attributeType == AttributeType.None)
-            return 1.0f;
-
-        // 簡易的な属性相性（火→風、風→土、土→水、水→火）
-        return (attackerAttribute, attributeType) switch
-        {
-            (AttributeType.Fire, AttributeType.Wind) => 1.5f,    // 火は風に強い
-            (AttributeType.Wind, AttributeType.Earth) => 1.5f,   // 風は土に強い
-            (AttributeType.Earth, AttributeType.Water) => 1.5f,  // 土は水に強い
-            (AttributeType.Water, AttributeType.Fire) => 1.5f,   // 水は火に強い
-
-            (AttributeType.Wind, AttributeType.Fire) => 0.75f,   // 風は火に弱い
-            (AttributeType.Earth, AttributeType.Wind) => 0.75f,  // 土は風に弱い
-            (AttributeType.Water, AttributeType.Earth) => 0.75f, // 水は土に弱い
-            (AttributeType.Fire, AttributeType.Water) => 0.75f,  // 火は水に弱い
-
-            _ => 1.0f // 同属性または相性なしは等倍
-        };
-    }
+    // NOTE: 属性相性によるダメージ倍率計算は削除
+    // → BattleCalculationManager で実装するように変更
 
 #if UNITY_EDITOR
     /// <summary>

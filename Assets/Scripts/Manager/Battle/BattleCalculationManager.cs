@@ -90,8 +90,8 @@ public class BattleCalculationManager : MonoBehaviour
         damageData.attributeMultiplier = attributeMultiplier;
         damageData.effectiveness = GetDamageEffectiveness(attributeMultiplier);
 
-        // 基本ダメージ計算（戦闘画面フローの仕様に従う）
-        int baseDamage = CalculateBaseDamage(
+        // 基本ダメージ計算（新仕様に従う）
+        int baseDamage = CalculateBaseDamageNew(
             attackerStats,
             defenderStats,
             attackAttribute,
@@ -103,21 +103,22 @@ public class BattleCalculationManager : MonoBehaviour
         damageData.defenderDefense = defenderStats.defense;
         damageData.skillMultiplier = skill?.damageMultiplier ?? 1.0f;
 
+        // ランダム補正適用（0.9~1.1倍）
+        float randomMultiplier = UnityEngine.Random.Range(randomDamageMin, randomDamageMax);
+        damageData.randomMultiplier = randomMultiplier;
+        baseDamage = Mathf.RoundToInt(baseDamage * randomMultiplier);
+
         // クリティカル判定
         bool isCritical = CalculateCritical(attackerStats.criticalRate);
         damageData.isCritical = isCritical;
 
         if (isCritical)
         {
+            // クリティカルダメージレート計算（基準値100からの倍率）
             float criticalMultiplier = attackerStats.criticalDamageRate / 100.0f;
             damageData.criticalMultiplier = criticalMultiplier;
             baseDamage = Mathf.RoundToInt(baseDamage * criticalMultiplier);
         }
-
-        // ランダム補正適用
-        float randomMultiplier = UnityEngine.Random.Range(randomDamageMin, randomDamageMax);
-        damageData.randomMultiplier = randomMultiplier;
-        baseDamage = Mathf.RoundToInt(baseDamage * randomMultiplier);
 
         // 最小ダメージ保証
         damageData.finalDamage = Mathf.Max(minDamage, baseDamage);
@@ -237,11 +238,11 @@ public class BattleCalculationManager : MonoBehaviour
             return false;
         }
 
-        // モンスタータイプ判定（プレイヤーの場合は通常扱い）
+        // モンスタータイプ判定（プレイヤーの場合は対象外）
         bool isBossTarget = false;
         if (!target.isPlayer)
         {
-            // BattleCharacterDataのcharacterIdからモンスターIDを抽出
+            // BattleCharacterDataのcharacterIdからモンスターIDを推定
             if (target.characterId.StartsWith("monster_"))
             {
                 string monsterIdStr = target.characterId.Replace("monster_", "");
@@ -368,12 +369,12 @@ public class BattleCalculationManager : MonoBehaviour
             return 1.0f;
         }
 
-        // MonsterMasterDataの属性相性計算を参考
+        // 属性相性を取得
         return GetAttributeCompatibility(attackAttribute, defenderAttribute);
     }
 
     /// <summary>
-    /// 属性相性を取得（MonsterMasterDataの仕様に準拠）
+    /// 属性相性を取得（新仕様の計算で使用）
     /// </summary>
     private float GetAttributeCompatibility(AttributeType attackerAttribute, AttributeType defenderAttribute)
     {
@@ -397,9 +398,14 @@ public class BattleCalculationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 基本ダメージを計算（戦闘画面フローの仕様）
+    /// 基本ダメージを計算（新仕様）
+    /// ダメージ計算式:
+    /// - 無属性: d=((a*s1)-(b*s2))*sp
+    /// - 属性攻撃（有利）: d=((ea+a)*s1)*sp （防御力無視）
+    /// - 属性攻撃（通常）: d=(((ea*s1)/2+(a*s1))-(b*s2))*sp
+    /// - 属性攻撃（不利）: d=(((ea*s1)/5+(a*s1))-(b*s2))*sp
     /// </summary>
-    private int CalculateBaseDamage(
+    private int CalculateBaseDamageNew(
         EffectiveStats attackerStats,
         EffectiveStats defenderStats,
         AttributeType attackAttribute,
@@ -408,10 +414,16 @@ public class BattleCalculationManager : MonoBehaviour
     {
         int damage;
 
+        // a*s1 = 攻撃力 * 状態効果倍率
+        float attackPowerWithEffect = attackerStats.offense * attackerStats.offenseMultiplier;
+
+        // b*s2 = 防御力 * 状態効果倍率
+        float defensePowerWithEffect = defenderStats.defense * defenderStats.defenseMultiplier;
+
         if (attackAttribute == AttributeType.None)
         {
             // 無属性攻撃: d=((a*s1)-(b*s2))*sp
-            damage = Mathf.RoundToInt(((attackerStats.offense) - (defenderStats.defense)) * skillMultiplier);
+            damage = Mathf.RoundToInt((attackPowerWithEffect - defensePowerWithEffect) * skillMultiplier);
         }
         else
         {
@@ -421,17 +433,19 @@ public class BattleCalculationManager : MonoBehaviour
             if (Mathf.Approximately(attributeMultiplier, superEffectiveMultiplier))
             {
                 // 属性攻撃（有利）: d=((ea+a)*s1)*sp （防御力無視）
-                damage = Mathf.RoundToInt(((elementalAttack + attackerStats.offense)) * skillMultiplier);
+                damage = Mathf.RoundToInt(((elementalAttack + attackerStats.offense) * attackerStats.offenseMultiplier) * skillMultiplier);
             }
             else if (Mathf.Approximately(attributeMultiplier, notVeryEffectiveMultiplier))
             {
                 // 属性攻撃（不利）: d=(((ea*s1)/5+(a*s1))-(b*s2))*sp
-                damage = Mathf.RoundToInt((((elementalAttack) / 5.0f + (attackerStats.offense)) - (defenderStats.defense)) * skillMultiplier);
+                float elementalPart = (elementalAttack * attackerStats.offenseMultiplier) / 5.0f;
+                damage = Mathf.RoundToInt((elementalPart + attackPowerWithEffect - defensePowerWithEffect) * skillMultiplier);
             }
             else
             {
                 // 属性攻撃（通常）: d=(((ea*s1)/2+(a*s1))-(b*s2))*sp
-                damage = Mathf.RoundToInt((((elementalAttack) / 2.0f + (attackerStats.offense)) - (defenderStats.defense)) * skillMultiplier);
+                float elementalPart = (elementalAttack * attackerStats.offenseMultiplier) / 2.0f;
+                damage = Mathf.RoundToInt((elementalPart + attackPowerWithEffect - defensePowerWithEffect) * skillMultiplier);
             }
         }
 
@@ -467,7 +481,10 @@ public class BattleCalculationManager : MonoBehaviour
             fireOffense = character.fireOffence,
             waterOffense = character.waterOffence,
             windOffense = character.windOffence,
-            earthOffense = character.earthOffence
+            earthOffense = character.earthOffence,
+            // 初期倍率は1.0
+            offenseMultiplier = 1.0f,
+            defenseMultiplier = 1.0f
         };
 
         // 状態効果を適用（BattleDataManager経由）
@@ -498,6 +515,10 @@ public class BattleCalculationManager : MonoBehaviour
                 ref stats.waterOffense,
                 ref stats.windOffense,
                 ref stats.earthOffense);
+
+            // 倍率効果を適用（新仕様対応）
+            stats.offenseMultiplier *= effect.offenseMultiplier;
+            stats.defenseMultiplier *= effect.defenseMultiplier;
         }
     }
 
@@ -556,6 +577,32 @@ public class BattleCalculationManager : MonoBehaviour
         Debug.Log($"不利属性倍率: {notVeryEffectiveMultiplier:F2}");
         Debug.Log($"デバッグログ: {(enableDebugLog ? "有効" : "無効")}");
     }
+
+    [ContextMenu("新ダメージ計算式テスト")]
+    private void TestNewDamageCalculation()
+    {
+        Debug.Log("=== 新ダメージ計算式テスト ===");
+
+        // テスト用の仮想ステータス
+        var attackerStats = new EffectiveStats
+        {
+            offense = 100,
+            fireOffense = 50,
+            offenseMultiplier = 1.2f // 攻撃力20%上昇
+        };
+
+        var defenderStats = new EffectiveStats
+        {
+            defense = 80,
+            defenseMultiplier = 0.8f // 防御力20%低下
+        };
+
+        // 各パターンをテスト
+        Debug.Log($"無属性攻撃: {CalculateBaseDamageNew(attackerStats, defenderStats, AttributeType.None, 1.0f, 1.0f)}");
+        Debug.Log($"属性攻撃（有利）: {CalculateBaseDamageNew(attackerStats, defenderStats, AttributeType.Fire, superEffectiveMultiplier, 1.0f)}");
+        Debug.Log($"属性攻撃（通常）: {CalculateBaseDamageNew(attackerStats, defenderStats, AttributeType.Fire, 1.0f, 1.0f)}");
+        Debug.Log($"属性攻撃（不利）: {CalculateBaseDamageNew(attackerStats, defenderStats, AttributeType.Fire, notVeryEffectiveMultiplier, 1.0f)}");
+    }
 #endif
 
     #endregion
@@ -563,6 +610,7 @@ public class BattleCalculationManager : MonoBehaviour
 
 /// <summary>
 /// 状態効果適用済みの実効ステータス
+/// 新仕様に対応して倍率フィールドを追加
 /// </summary>
 public struct EffectiveStats
 {
@@ -574,4 +622,8 @@ public struct EffectiveStats
     public int waterOffense;
     public int windOffense;
     public int earthOffense;
+
+    // 新仕様対応：状態効果による倍率
+    public float offenseMultiplier;   // s1: 攻撃力倍率
+    public float defenseMultiplier;   // s2: 防御力倍率
 }

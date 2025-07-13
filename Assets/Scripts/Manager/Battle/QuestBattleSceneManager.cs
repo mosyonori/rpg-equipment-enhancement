@@ -521,17 +521,6 @@ public class QuestBattleSceneManager : MonoBehaviour
 
     #region 公開メソッド
 
-    /// <summary>
-    /// 現在の戦闘状況を取得
-    /// </summary>
-    public string GetCurrentBattleStatus()
-    {
-        if (battleManager == null) return "BattleManager未初期化";
-
-        return $"戦闘状態: {battleManager.CurrentState}, " +
-               $"ターン: {battleManager.GetCurrentTurnNumber()}, " +
-               $"経過時間: {battleManager.GetBattleElapsedTime():F1}秒";
-    }
 
     /// <summary>
     /// 戦闘を強制終了してホームに戻る
@@ -572,13 +561,6 @@ public class QuestBattleSceneManager : MonoBehaviour
 
     #region エディター用ツール
 
-#if UNITY_EDITOR
-    [ContextMenu("現在の戦闘状況を確認")]
-    private void CheckCurrentBattleStatus()
-    {
-        Log(GetCurrentBattleStatus());
-    }
-
     [ContextMenu("ホーム画面に強制復帰")]
     private void EditorForceReturnToHome()
     {
@@ -591,7 +573,6 @@ public class QuestBattleSceneManager : MonoBehaviour
         int questId = QuestSelectionData.GetSelectedQuestId();
         Log($"選択されたクエストID: {questId}");
     }
-#endif
 
     #endregion
 }
