@@ -9,8 +9,8 @@ using TMPro;
 /// - プレイヤー名・画像表示
 /// - HPBarUI統合とHP表示
 /// - 戦闘不能状態の視覚表現
-/// - 行動者ハイライト表示
-/// データアクセス統一ルール: UI層専用コンポーネント（BattleCharacterDataを受け取り表示のみ）
+/// - 状態効果表示制御
+/// データアクセス統一ルール: UI層指定用コンポーネント（BattleCharacterDataを受け取り表示のみ）
 /// </summary>
 public class PlayerBattleUI : MonoBehaviour
 {
@@ -58,20 +58,14 @@ public class PlayerBattleUI : MonoBehaviour
     [Header("HPバー")]
     [SerializeField] private HPBarUI hpBarUI;
 
-    [Header("強調表示")]
-    [SerializeField] private Image highlightFrame;
-    [SerializeField] private CanvasGroup playerUICanvasGroup;
+    [Header("状態効果表示")]
+    [SerializeField] private StatusEffectUI statusEffectUI;
 
     [Header("戦闘不能表示")]
     [SerializeField] private GameObject deadOverlay;
     [SerializeField] private Image deadOverlayImage;
     [SerializeField] private TextMeshProUGUI deadStatusText;
-
-    [Header("強調表示設定")]
-    [SerializeField] private Color highlightColor = Color.yellow;
-    [SerializeField] private Color normalColor = Color.white;
-    [SerializeField] private float highlightAlpha = 0.8f;
-    [SerializeField] private float normalAlpha = 0.3f;
+    [SerializeField] private CanvasGroup playerUICanvasGroup;
 
     [Header("戦闘不能設定")]
     [SerializeField] private Color deadOverlayColor = new Color(0, 0, 0, 0.7f);
@@ -80,7 +74,6 @@ public class PlayerBattleUI : MonoBehaviour
     // 現在の状態
     private BattleCharacterData currentCharacterData;
     private bool isInitialized = false;
-    private bool isHighlighted = false;
     private bool isDead = false;
 
     // 元の色・透明度保存
@@ -103,14 +96,14 @@ public class PlayerBattleUI : MonoBehaviour
     public BattleCharacterData CurrentCharacterData => currentCharacterData;
 
     /// <summary>
-    /// 強調表示状態
-    /// </summary>
-    public bool IsHighlighted => isHighlighted;
-
-    /// <summary>
     /// 戦闘不能状態
     /// </summary>
     public bool IsDead => isDead;
+
+    /// <summary>
+    /// HPBarUIコンポーネントへの参照（デバッグ・テスト用）
+    /// </summary>
+    public HPBarUI HPBarUI => hpBarUI;
 
     #endregion
 
@@ -152,7 +145,7 @@ public class PlayerBattleUI : MonoBehaviour
                 return;
             }
 
-            // オプションコンポーネント確認
+            // オプショナルコンポーネント確認
             if (playerNameText == null)
             {
                 LogWarning("playerNameTextが設定されていません");
@@ -166,6 +159,11 @@ public class PlayerBattleUI : MonoBehaviour
             if (playerUICanvasGroup == null)
             {
                 LogWarning("playerUICanvasGroupが設定されていません");
+            }
+
+            if (statusEffectUI == null)
+            {
+                LogWarning("statusEffectUIが設定されていません（状態効果表示が無効になります）");
             }
 
             Log("コンポーネント検証完了");
@@ -188,14 +186,16 @@ public class PlayerBattleUI : MonoBehaviour
             // 元の色・透明度を保存
             SaveOriginalAppearance();
 
-            // 強調表示フレーム初期化
-            InitializeHighlightFrame();
-
             // 戦闘不能オーバーレイ初期化
             InitializeDeadOverlay();
 
+            // 状態効果UI初期化
+            InitializeStatusEffectUI();
+
+            // HPBarUIの有効化を確実にする
+            EnsureHPBarUIActive();
+
             // 初期状態設定
-            SetHighlight(false);
             SetDeadState(false);
 
             isInitialized = true;
@@ -238,27 +238,6 @@ public class PlayerBattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 強調表示フレーム初期化
-    /// </summary>
-    private void InitializeHighlightFrame()
-    {
-        try
-        {
-            if (highlightFrame != null)
-            {
-                highlightFrame.color = new Color(highlightColor.r, highlightColor.g, highlightColor.b, normalAlpha);
-                highlightFrame.gameObject.SetActive(false);
-            }
-
-            Log("強調表示フレーム初期化完了");
-        }
-        catch (Exception e)
-        {
-            LogError($"強調表示フレーム初期化エラー: {e.Message}");
-        }
-    }
-
-    /// <summary>
     /// 戦闘不能オーバーレイ初期化
     /// </summary>
     private void InitializeDeadOverlay()
@@ -288,6 +267,80 @@ public class PlayerBattleUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 状態効果UI初期化
+    /// </summary>
+    private void InitializeStatusEffectUI()
+    {
+        try
+        {
+            if (statusEffectUI != null)
+            {
+                // 状態効果UIの初期状態は空で設定
+                statusEffectUI.ClearStatusEffects();
+                Log("状態効果UI初期化完了");
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"状態効果UI初期化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: HPBarUIが確実にアクティブになるようにする
+    /// </summary>
+    private void EnsureHPBarUIActive()
+    {
+        try
+        {
+            if (hpBarUI == null)
+            {
+                LogError("hpBarUIがnullです");
+                return;
+            }
+
+            // HPBarUI自体をアクティブ化
+            if (!hpBarUI.gameObject.activeInHierarchy)
+            {
+                Log("HPBarUIが非アクティブのため、有効化します");
+                hpBarUI.gameObject.SetActive(true);
+            }
+
+            // HPBarUIのコンポーネントも有効化
+            if (!hpBarUI.enabled)
+            {
+                Log("HPBarUIコンポーネントが無効のため、有効化します");
+                hpBarUI.enabled = true;
+            }
+
+            // 親オブジェクトも確認して有効化
+            Transform current = hpBarUI.transform.parent;
+            while (current != null && current != this.transform)
+            {
+                if (!current.gameObject.activeInHierarchy)
+                {
+                    Log($"HPBarUIの親オブジェクト({current.name})を有効化します");
+                    current.gameObject.SetActive(true);
+                }
+                current = current.parent;
+            }
+
+            // 自分自身も確認
+            if (!gameObject.activeInHierarchy)
+            {
+                Log("PlayerBattleUI自体が非アクティブのため、有効化します");
+                gameObject.SetActive(true);
+            }
+
+            Log("HPBarUI有効化確認完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"HPBarUI有効化確認エラー: {e.Message}");
+        }
+    }
+
     #endregion
 
     #region 公開メソッド - キャラクターデータ設定
@@ -314,9 +367,13 @@ public class PlayerBattleUI : MonoBehaviour
         {
             currentCharacterData = characterData;
 
+            // 修正: HPBarUIの状態を確実にチェック
+            EnsureHPBarUIActive();
+
             // UI更新
             UpdatePlayerInfo();
             UpdateHPDisplay();
+            UpdateStatusEffects();
             UpdateDeadState();
 
             Log($"キャラクターデータ設定完了: {characterData.characterName}");
@@ -344,8 +401,14 @@ public class PlayerBattleUI : MonoBehaviour
             // データ更新
             currentCharacterData = characterData;
 
+            // 修正: HP更新前にHPBarUIの状態確認
+            EnsureHPBarUIActive();
+
             // HP表示更新
             UpdateHPDisplay();
+
+            // 状態効果更新
+            UpdateStatusEffects();
 
             // 戦闘不能状態更新
             UpdateDeadState();
@@ -361,35 +424,6 @@ public class PlayerBattleUI : MonoBehaviour
     #endregion
 
     #region 公開メソッド - 表示制御
-
-    /// <summary>
-    /// 強調表示設定（行動者表示用）
-    /// </summary>
-    /// <param name="highlight">強調表示するか</param>
-    public void SetHighlight(bool highlight)
-    {
-        try
-        {
-            isHighlighted = highlight;
-
-            // 強調表示フレーム制御
-            if (highlightFrame != null)
-            {
-                highlightFrame.gameObject.SetActive(highlight);
-
-                if (highlight)
-                {
-                    highlightFrame.color = new Color(highlightColor.r, highlightColor.g, highlightColor.b, highlightAlpha);
-                }
-            }
-
-            Log($"強調表示設定: {highlight}");
-        }
-        catch (Exception e)
-        {
-            LogError($"強調表示設定エラー: {e.Message}");
-        }
-    }
 
     /// <summary>
     /// 戦闘不能状態設定
@@ -453,9 +487,14 @@ public class PlayerBattleUI : MonoBehaviour
     {
         try
         {
-            if (hpBarUI != null)
+            // 修正: HPBarUIの有効性確認
+            if (hpBarUI != null && hpBarUI.gameObject.activeInHierarchy)
             {
                 hpBarUI.PlayDamageFlash(damageAmount);
+            }
+            else
+            {
+                LogWarning("HPBarUIが非アクティブのため、ダメージ演出をスキップします");
             }
 
             Log($"ダメージ演出再生: {damageAmount}");
@@ -474,9 +513,14 @@ public class PlayerBattleUI : MonoBehaviour
     {
         try
         {
-            if (hpBarUI != null)
+            // 修正: HPBarUIの有効性確認
+            if (hpBarUI != null && hpBarUI.gameObject.activeInHierarchy)
             {
                 hpBarUI.PlayHealFlash(healAmount);
+            }
+            else
+            {
+                LogWarning("HPBarUIが非アクティブのため、回復演出をスキップします");
             }
 
             Log($"回復演出再生: {healAmount}");
@@ -521,20 +565,61 @@ public class PlayerBattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// HP表示更新
+    /// 修正: HP表示更新
     /// </summary>
     private void UpdateHPDisplay()
     {
         try
         {
-            if (hpBarUI != null && currentCharacterData != null)
+            if (currentCharacterData == null) return;
+
+            if (hpBarUI != null)
             {
-                hpBarUI.UpdateFromCharacterData(currentCharacterData);
+                // HPBarUIの状態を再確認
+                if (!hpBarUI.gameObject.activeInHierarchy)
+                {
+                    LogWarning("HP更新時にHPBarUIが非アクティブでした。再度有効化を試行します");
+                    EnsureHPBarUIActive();
+                }
+
+                // HPBarUIが有効な場合のみ更新
+                if (hpBarUI.gameObject.activeInHierarchy)
+                {
+                    hpBarUI.UpdateFromCharacterData(currentCharacterData);
+                    Log($"HP表示更新完了: {currentCharacterData.currentHp}/{currentCharacterData.maxHp}");
+                }
+                else
+                {
+                    LogError("HPBarUIの有効化に失敗しました");
+                }
+            }
+            else
+            {
+                LogError("hpBarUIがnullです");
             }
         }
         catch (Exception e)
         {
             LogError($"HP表示更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 状態効果更新
+    /// </summary>
+    private void UpdateStatusEffects()
+    {
+        try
+        {
+            if (statusEffectUI != null && currentCharacterData != null)
+            {
+                statusEffectUI.UpdateFromCharacterData(currentCharacterData);
+                Log($"状態効果更新: {currentCharacterData.statusEffects?.Count ?? 0}個の効果");
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"状態効果更新エラー: {e.Message}");
         }
     }
 
@@ -603,9 +688,14 @@ public class PlayerBattleUI : MonoBehaviour
     {
         try
         {
+            // 状態効果UIクリア
+            if (statusEffectUI != null)
+            {
+                statusEffectUI.ClearStatusEffects();
+            }
+
             // 現在の状態をリセット
             currentCharacterData = null;
-            isHighlighted = false;
             isDead = false;
 
             Log("プレイヤーUIクリーンアップ完了");
@@ -628,14 +718,25 @@ public class PlayerBattleUI : MonoBehaviour
     {
         Log("=== PlayerBattleUI状態情報 ===");
         Log($"初期化完了: {isInitialized}");
-        Log($"強調表示中: {isHighlighted}");
         Log($"戦闘不能状態: {isDead}");
+        Log($"GameObjectアクティブ: {gameObject.activeInHierarchy}");
+        Log($"HPBarUIアクティブ: {(hpBarUI != null ? hpBarUI.gameObject.activeInHierarchy.ToString() : "null")}");
 
         if (currentCharacterData != null)
         {
             Log($"キャラクター名: {currentCharacterData.characterName}");
             Log($"HP: {currentCharacterData.currentHp}/{currentCharacterData.maxHp}");
             Log($"生存状態: {currentCharacterData.isAlive}");
+            Log($"状態効果数: {currentCharacterData.statusEffects?.Count ?? 0}");
+
+            if (currentCharacterData.statusEffects != null && currentCharacterData.statusEffects.Count > 0)
+            {
+                Log("状態効果詳細:");
+                foreach (var effect in currentCharacterData.statusEffects)
+                {
+                    Log($"  - {effect.effectName} (残り{effect.remainingTurns}ターン)");
+                }
+            }
         }
         else
         {
@@ -646,13 +747,13 @@ public class PlayerBattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// デバッグ用：強調表示テスト
+    /// デバッグ用：HPBarUI有効化テスト
     /// </summary>
-    [ContextMenu("デバッグ：強調表示テスト")]
-    public void DebugTestHighlight()
+    [ContextMenu("デバッグ：HPBarUI有効化テスト")]
+    public void DebugEnsureHPBarUIActive()
     {
-        Log("デバッグ：強調表示テスト実行");
-        SetHighlight(!isHighlighted);
+        Log("デバッグ：HPBarUI有効化テスト実行");
+        EnsureHPBarUIActive();
     }
 
     /// <summary>
@@ -702,10 +803,52 @@ public class PlayerBattleUI : MonoBehaviour
             isPlayer = true,
             isAlive = true,
             currentHp = 80,
-            maxHp = 100
+            maxHp = 100,
+            statusEffects = new System.Collections.Generic.List<StatusEffectData>
+            {
+                new StatusEffectData
+                {
+                    effectId = 3,
+                    effectName = "攻撃力上昇",
+                    remainingTurns = 3,
+                    displayPriority = 100,
+                    colorCode = "#ff6347",
+                    offenseMultiplier = 1.5f,
+                    isPositive = true
+                },
+                new StatusEffectData
+                {
+                    effectId = 8,
+                    effectName = "持続回復",
+                    remainingTurns = 5,
+                    displayPriority = 100,
+                    colorCode = "#ff6347",
+                    turnStartHealPercent = 10,
+                    isPositive = true
+                }
+            }
         };
 
         SetCharacterData(testCharacter);
+    }
+
+    /// <summary>
+    /// デバッグ用：状態効果テスト
+    /// </summary>
+    [ContextMenu("デバッグ：状態効果表示テスト")]
+    public void DebugTestStatusEffects()
+    {
+        Log("デバッグ：状態効果表示テスト実行");
+
+        if (statusEffectUI != null)
+        {
+            // StatusEffectUIのデバッグメソッドを呼び出し
+            statusEffectUI.DebugAddTestEffects();
+        }
+        else
+        {
+            LogWarning("StatusEffectUIが設定されていないため、テストを実行できません");
+        }
     }
 
     /// <summary>
@@ -719,7 +862,7 @@ public class PlayerBattleUI : MonoBehaviour
         Log($"playerIconImage: {(playerIconImage != null ? "接続済み" : "未接続")}");
         Log($"playerPortraitImage: {(playerPortraitImage != null ? "接続済み" : "未接続")}");
         Log($"hpBarUI: {(hpBarUI != null ? "接続済み" : "未接続")}");
-        Log($"highlightFrame: {(highlightFrame != null ? "接続済み" : "未接続")}");
+        Log($"statusEffectUI: {(statusEffectUI != null ? "接続済み" : "未接続")}");
         Log($"playerUICanvasGroup: {(playerUICanvasGroup != null ? "接続済み" : "未接続")}");
         Log($"deadOverlay: {(deadOverlay != null ? "接続済み" : "未接続")}");
         Log("=============================");

@@ -91,6 +91,7 @@
     <Compile Include="Assets\Scripts\UI\Skill\SkillSelectionPopup.cs" />
     <Compile Include="Assets\Scripts\Data\Quest\QuestReward.cs" />
     <Compile Include="Assets\Scripts\UI\Battle\RewardUI.cs" />
+    <Compile Include="Assets\Scripts\UI\Battle\StatusEffectSlot.cs" />
     <Compile Include="Assets\Scripts\SceneChange\TransitionUIController.cs" />
     <Compile Include="Assets\Scripts\UI\Enhance\ItemSelectionSlotUI.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_ExampleScript_01.cs" />

@@ -10,8 +10,9 @@ using TMPro;
 /// - モンスター画像表示
 /// - HPBarUI統合とHP表示
 /// - 戦闘不能状態の視覚表現
-/// - 1体のモンスター表示に特化（複数体管理はBattleUIが担当）
-/// データアクセス統一ルール: UI層専用コンポーネント（BattleCharacterDataを受け取り表示のみ）
+/// - 状態効果表示制御
+/// - 1体のモンスター表示に特化（複数体管理はBattleUIが全担）
+/// データアクセス統一ルール: UI層指定用コンポーネント（BattleCharacterDataを受け取り表示のみ）
 /// </summary>
 public class MonsterBattleUI : MonoBehaviour
 {
@@ -58,6 +59,9 @@ public class MonsterBattleUI : MonoBehaviour
 
     [Header("HPバー")]
     [SerializeField] private HPBarUI hpBarUI;
+
+    [Header("状態効果表示")]
+    [SerializeField] private StatusEffectUI statusEffectUI;
 
     [Header("戦闘不能表示")]
     [SerializeField] private GameObject deadOverlay;
@@ -162,7 +166,7 @@ public class MonsterBattleUI : MonoBehaviour
                 return;
             }
 
-            // オプションコンポーネント確認
+            // オプショナルコンポーネント確認
             if (monsterNameText == null)
             {
                 LogWarning("monsterNameTextが設定されていません");
@@ -176,6 +180,11 @@ public class MonsterBattleUI : MonoBehaviour
             if (monsterUICanvasGroup == null)
             {
                 LogWarning("monsterUICanvasGroupが設定されていません");
+            }
+
+            if (statusEffectUI == null)
+            {
+                LogWarning("statusEffectUIが設定されていません（状態効果表示が無効になります）");
             }
 
             Log("コンポーネント検証完了");
@@ -200,6 +209,9 @@ public class MonsterBattleUI : MonoBehaviour
 
             // 戦闘不能オーバーレイ初期化
             InitializeDeadOverlay();
+
+            // 状態効果UI初期化
+            InitializeStatusEffectUI();
 
             // 初期状態設定
             SetDeadState(false);
@@ -273,6 +285,26 @@ public class MonsterBattleUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 状態効果UI初期化
+    /// </summary>
+    private void InitializeStatusEffectUI()
+    {
+        try
+        {
+            if (statusEffectUI != null)
+            {
+                // 状態効果UIの初期状態は空で設定
+                statusEffectUI.ClearStatusEffects();
+                Log("状態効果UI初期化完了");
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"状態効果UI初期化エラー: {e.Message}");
+        }
+    }
+
     #endregion
 
     #region 公開メソッド - キャラクターデータ設定
@@ -302,6 +334,7 @@ public class MonsterBattleUI : MonoBehaviour
             // UI更新
             UpdateMonsterInfo();
             UpdateHPDisplay();
+            UpdateStatusEffects();
             UpdateDeadState();
 
             Log($"キャラクターデータ設定完了: {DisplayName} (ID: {CharacterId}, InstanceID: {InstanceId})");
@@ -338,6 +371,9 @@ public class MonsterBattleUI : MonoBehaviour
 
             // HP表示更新
             UpdateHPDisplay();
+
+            // 状態効果更新
+            UpdateStatusEffects();
 
             // 戦闘不能状態更新
             UpdateDeadState();
@@ -547,6 +583,25 @@ public class MonsterBattleUI : MonoBehaviour
     }
 
     /// <summary>
+    /// 状態効果更新
+    /// </summary>
+    private void UpdateStatusEffects()
+    {
+        try
+        {
+            if (statusEffectUI != null && currentCharacterData != null)
+            {
+                statusEffectUI.UpdateFromCharacterData(currentCharacterData);
+                Log($"状態効果更新: {currentCharacterData.statusEffects?.Count ?? 0}個の効果");
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"状態効果更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
     /// 戦闘不能状態更新
     /// </summary>
     private void UpdateDeadState()
@@ -611,6 +666,12 @@ public class MonsterBattleUI : MonoBehaviour
     {
         try
         {
+            // 状態効果UIクリア
+            if (statusEffectUI != null)
+            {
+                statusEffectUI.ClearStatusEffects();
+            }
+
             // 現在の状態をリセット
             currentCharacterData = null;
             isDead = false;
@@ -647,6 +708,16 @@ public class MonsterBattleUI : MonoBehaviour
             Log($"HP: {currentCharacterData.currentHp}/{currentCharacterData.maxHp}");
             Log($"生存状態: {currentCharacterData.isAlive}");
             Log($"プレイヤーフラグ: {currentCharacterData.isPlayer}");
+            Log($"状態効果数: {currentCharacterData.statusEffects?.Count ?? 0}");
+
+            if (currentCharacterData.statusEffects != null && currentCharacterData.statusEffects.Count > 0)
+            {
+                Log("状態効果詳細:");
+                foreach (var effect in currentCharacterData.statusEffects)
+                {
+                    Log($"  - {effect.effectName} (残り{effect.remainingTurns}ターン)");
+                }
+            }
         }
         else
         {
@@ -705,10 +776,52 @@ public class MonsterBattleUI : MonoBehaviour
             isPlayer = false,
             isAlive = true,
             currentHp = 60,
-            maxHp = 80
+            maxHp = 80,
+            statusEffects = new System.Collections.Generic.List<StatusEffectData>
+            {
+                new StatusEffectData
+                {
+                    effectId = 1,
+                    effectName = "攻撃力低下",
+                    remainingTurns = 2,
+                    displayPriority = 100,
+                    colorCode = "#4169e1",
+                    offenseMultiplier = 0.7f,
+                    isPositive = false
+                },
+                new StatusEffectData
+                {
+                    effectId = 7,
+                    effectName = "毒",
+                    remainingTurns = 3,
+                    displayPriority = 100,
+                    colorCode = "#4169e1",
+                    turnStartDamagePercent = 5,
+                    isPositive = false
+                }
+            }
         };
 
         SetCharacterData(testMonster);
+    }
+
+    /// <summary>
+    /// デバッグ用：状態効果テスト
+    /// </summary>
+    [ContextMenu("デバッグ：状態効果表示テスト")]
+    public void DebugTestStatusEffects()
+    {
+        Log("デバッグ：状態効果表示テスト実行");
+
+        if (statusEffectUI != null)
+        {
+            // StatusEffectUIのデバッグメソッドを呼び出し
+            statusEffectUI.DebugAddTestEffects();
+        }
+        else
+        {
+            LogWarning("StatusEffectUIが設定されていないため、テストを実行できません");
+        }
     }
 
     /// <summary>
@@ -722,6 +835,7 @@ public class MonsterBattleUI : MonoBehaviour
         Log($"monsterIconImage: {(monsterIconImage != null ? "接続済み" : "未接続")}");
         Log($"monsterPortraitImage: {(monsterPortraitImage != null ? "接続済み" : "未接続")}");
         Log($"hpBarUI: {(hpBarUI != null ? "接続済み" : "未接続")}");
+        Log($"statusEffectUI: {(statusEffectUI != null ? "接続済み" : "未接続")}");
         Log($"monsterUICanvasGroup: {(monsterUICanvasGroup != null ? "接続済み" : "未接続")}");
         Log($"deadOverlay: {(deadOverlay != null ? "接続済み" : "未接続")}");
         Log("=============================");
@@ -743,7 +857,7 @@ public class MonsterBattleUI : MonoBehaviour
         Log($"CharacterIDマッチ: {MatchesCharacterId(currentCharacterData.characterId)}");
         Log($"InstanceIDマッチ: {MatchesInstanceId(currentCharacterData.instanceId)}");
         Log($"CharacterDataマッチ: {MatchesCharacterData(currentCharacterData)}");
-        Log($"誤IDテスト: {MatchesCharacterId("wrong_id")}");
+        Log($"間違いIDテスト: {MatchesCharacterId("wrong_id")}");
         Log("==================");
     }
 

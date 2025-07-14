@@ -56,7 +56,7 @@ public class BattleManager : MonoBehaviour
     private BattleMonsterManager battleMonsterManager;  // 📝追加: BattleMonsterManager
 
     // 修正: UI層参照のコメントアウト（一時的）
-    // private BattleUI battleUI;
+    private BattleUI battleUI;
 
     #region Unity Lifecycle
 
@@ -145,7 +145,7 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 修正: 依存する全Managerの存在確認
+    /// 修正: 依存する全Managerの存在確認（BattleUI復活版）
     /// </summary>
     private bool CheckDependencies()
     {
@@ -192,7 +192,7 @@ public class BattleManager : MonoBehaviour
             return false;
         }
 
-        // 📝追加: BattleMonsterManagerの確認
+        // BattleMonsterManagerの確認
         battleMonsterManager = BattleMonsterManager.Instance;
         if (battleMonsterManager == null)
         {
@@ -200,13 +200,20 @@ public class BattleManager : MonoBehaviour
             return false;
         }
 
-        // 修正: BattleUI関連のチェックを一時的にコメントアウト
-        // battleUI = FindAnyObjectByType<BattleUI>(); 
-        // if (battleUI == null)
-        // {
-        //     Log("BattleUIが見つかりません");
-        //     return false;
-        // }
+        // 修正: BattleUI関連のチェックを復活
+        battleUI = FindAnyObjectByType<BattleUI>();
+        if (battleUI == null)
+        {
+            Log("BattleUIが見つかりません");
+            return false;
+        }
+
+        // BattleUIの初期化確認
+        if (!battleUI.IsInitialized)
+        {
+            Log("BattleUIが初期化されていません");
+            return false;
+        }
 
         Log("全ての依存関係が満たされています");
         return true;
@@ -907,7 +914,7 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 修正: 戦闘準備完了まで待機
+    /// 修正: 戦闘準備完了まで待機（BattleUI確認復活版）
     /// </summary>
     private IEnumerator WaitForBattleReady()
     {
@@ -917,7 +924,7 @@ public class BattleManager : MonoBehaviour
 
         while (elapsed < uiReadyTimeout)
         {
-            // 修正: より確実な条件チェック
+            // データの有効性チェック
             bool hasValidData = allCharacters != null && allCharacters.Count > 0;
             bool hasPlayer = false;
             bool hasEnemies = false;
@@ -925,18 +932,16 @@ public class BattleManager : MonoBehaviour
 
             if (hasValidData)
             {
-                // 修正: 直接リストから確認
                 hasPlayer = allCharacters.Any(c => c.isPlayer && c.isAlive);
                 hasEnemies = allCharacters.Any(c => !c.isPlayer && c.isAlive);
             }
 
-            // 修正: UI関連のチェックを一時的にコメントアウト
-            // if (battleUI != null && battleUI.IsInitialized())
-            // {
-            //     // UI層のデータ設定完了を確認
-            //     uiReady = battleUI.IsUISetupComplete();
-            // }
-            uiReady = true; // 
+            // 修正: BattleUIの準備完了確認を復活
+            if (battleUI != null && battleUI.IsInitialized)
+            {
+                // UI層のデータ設定完了を確認
+                uiReady = battleUI.IsUISetupComplete;
+            }
 
             Log($"準備状況チェック: データ有効={hasValidData}, プレイヤー={hasPlayer}, 敵={hasEnemies}, UI準備={uiReady}");
 

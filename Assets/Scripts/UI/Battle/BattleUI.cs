@@ -1,11 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 戦闘画面全体の統括制御・Manager層との連携窓口
+/// 戦闘画面全体の統合制御・Manager層との連携窓口
 /// 責任範囲：
 /// - 戦闘画面全体のUI制御
 /// - Manager層からのイベント受信
@@ -29,6 +30,7 @@ public class BattleUI : MonoBehaviour
     [Header("キャラクター表示UI")]
     [SerializeField] private PlayerBattleUI playerBattleUI;
     [SerializeField] private Transform monsterUIParent;
+    [SerializeField] private GameObject monsterBattleUIPrefab;
     private List<MonsterBattleUI> monsterBattleUIs;
 
     [Header("戦闘情報・制御UI")]
@@ -169,7 +171,7 @@ public class BattleUI : MonoBehaviour
     #region 初期化
 
     /// <summary>
-    /// UI基本初期化
+    /// 修正: UI基本初期化（CanvasGroup表示問題修正）
     /// </summary>
     private void InitializeUI()
     {
@@ -191,19 +193,291 @@ public class BattleUI : MonoBehaviour
             if (battleCanvasGroup == null)
                 battleCanvasGroup = GetComponent<CanvasGroup>();
 
-            // 初期状態設定
+            // 修正: 初期状態を表示状態に変更
             if (battleCanvasGroup != null)
             {
-                battleCanvasGroup.alpha = 0f;
-                battleCanvasGroup.interactable = false;
-                battleCanvasGroup.blocksRaycasts = false;
+                battleCanvasGroup.alpha = 1f;           // 修正: 1fに変更（非表示問題解決）
+                battleCanvasGroup.interactable = true;   // 修正: trueに変更
+                battleCanvasGroup.blocksRaycasts = true; // 修正: trueに変更
+                Log("CanvasGroup初期設定完了: Alpha=1.0, Interactable=true");
             }
+
+            // UIコンポーネントの有効化確認
+            ValidateAndActivateUIComponents();
 
             Log("UI基本初期化完了");
         }
         catch (Exception e)
         {
             LogError($"UI基本初期化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: UIコンポーネントの有効化確認（強化版）
+    /// </summary>
+    private void ValidateAndActivateUIComponents()
+    {
+        Log("UIコンポーネント有効化確認開始");
+
+        try
+        {
+            // 自分自身のCanvas・CanvasGroupを確認
+            EnsureBattleUIActive();
+
+            // PlayerBattleUIの確認・有効化
+            EnsurePlayerBattleUIActive();
+
+            // BattleInfoUIの確認・有効化
+            EnsureBattleInfoUIActive();
+
+            // MonsterUIParentの確認・有効化
+            EnsureMonsterUIParentActive();
+
+            Log("UIコンポーネント有効化確認完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"UIコンポーネント有効化確認エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: BattleUI自体の有効化確認
+    /// </summary>
+    private void EnsureBattleUIActive()
+    {
+        try
+        {
+            // BattleUI自体の有効化
+            if (!gameObject.activeInHierarchy)
+            {
+                Log("BattleUI自体が非アクティブのため、有効化します");
+                gameObject.SetActive(true);
+            }
+
+            // Canvas有効化
+            if (battleCanvas != null && !battleCanvas.gameObject.activeInHierarchy)
+            {
+                Log("BattleCanvas が非アクティブのため、有効化します");
+                battleCanvas.gameObject.SetActive(true);
+            }
+
+            // CanvasGroup設定
+            if (battleCanvasGroup != null)
+            {
+                if (!battleCanvasGroup.gameObject.activeInHierarchy)
+                {
+                    Log("BattleCanvasGroup が非アクティブのため、有効化します");
+                    battleCanvasGroup.gameObject.SetActive(true);
+                }
+            }
+
+            Log("BattleUI基本コンポーネント有効化完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"BattleUI基本コンポーネント有効化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: PlayerBattleUIとその子コンポーネントの有効化確認
+    /// </summary>
+    private void EnsurePlayerBattleUIActive()
+    {
+        try
+        {
+            if (playerBattleUI == null)
+            {
+                LogError("playerBattleUIがnullです");
+                return;
+            }
+
+            // PlayerBattleUI自体の有効化
+            if (!playerBattleUI.gameObject.activeInHierarchy)
+            {
+                Log("PlayerBattleUIが非アクティブのため、有効化します");
+                playerBattleUI.gameObject.SetActive(true);
+            }
+
+            // PlayerBattleUIコンポーネント有効化
+            if (!playerBattleUI.enabled)
+            {
+                Log("PlayerBattleUIコンポーネントが無効のため、有効化します");
+                playerBattleUI.enabled = true;
+            }
+
+            // HPBarUIコンポーネントの確認
+            EnsurePlayerHPBarUIActive();
+
+            // StatusEffectUIコンポーネントの確認
+            EnsurePlayerStatusEffectUIActive();
+
+            Log("PlayerBattleUI有効化完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"PlayerBattleUI有効化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: Player用HPBarUIの徹底的な有効化確認
+    /// </summary>
+    private void EnsurePlayerHPBarUIActive()
+    {
+        try
+        {
+            if (playerBattleUI == null) return;
+
+            // GetComponentsInChildrenで全てのHPBarUIを取得（非アクティブも含む）
+            HPBarUI[] hpBarUIs = playerBattleUI.GetComponentsInChildren<HPBarUI>(true);
+
+            if (hpBarUIs.Length == 0)
+            {
+                LogWarning("PlayerBattleUI配下にHPBarUIが見つかりません");
+                return;
+            }
+
+            foreach (var hpBarUI in hpBarUIs)
+            {
+                if (hpBarUI == null) continue;
+
+                // HPBarUI GameObjectの有効化
+                if (!hpBarUI.gameObject.activeInHierarchy)
+                {
+                    Log($"Player HPBarUI({hpBarUI.name})が非アクティブのため、有効化します");
+                    hpBarUI.gameObject.SetActive(true);
+                }
+
+                // HPBarUIコンポーネントの有効化
+                if (!hpBarUI.enabled)
+                {
+                    Log($"Player HPBarUIコンポーネント({hpBarUI.name})が無効のため、有効化します");
+                    hpBarUI.enabled = true;
+                }
+
+                // HPBarUIの親階層を再帰的に有効化
+                EnsureParentHierarchyActive(hpBarUI.transform, playerBattleUI.transform);
+            }
+
+            Log("Player HPBarUI有効化完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"Player HPBarUI有効化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: Player用StatusEffectUIの有効化確認
+    /// </summary>
+    private void EnsurePlayerStatusEffectUIActive()
+    {
+        try
+        {
+            if (playerBattleUI == null) return;
+
+            StatusEffectUI[] statusEffectUIs = playerBattleUI.GetComponentsInChildren<StatusEffectUI>(true);
+
+            foreach (var statusEffectUI in statusEffectUIs)
+            {
+                if (statusEffectUI == null) continue;
+
+                if (!statusEffectUI.gameObject.activeInHierarchy)
+                {
+                    Log($"Player StatusEffectUI({statusEffectUI.name})が非アクティブのため、有効化します");
+                    statusEffectUI.gameObject.SetActive(true);
+                }
+
+                if (!statusEffectUI.enabled)
+                {
+                    Log($"Player StatusEffectUIコンポーネント({statusEffectUI.name})が無効のため、有効化します");
+                    statusEffectUI.enabled = true;
+                }
+            }
+
+            Log("Player StatusEffectUI有効化完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"Player StatusEffectUI有効化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: BattleInfoUIの有効化確認
+    /// </summary>
+    private void EnsureBattleInfoUIActive()
+    {
+        try
+        {
+            if (battleInfoUI != null && !battleInfoUI.gameObject.activeInHierarchy)
+            {
+                Log("BattleInfoUIが非アクティブのため、有効化します");
+                battleInfoUI.gameObject.SetActive(true);
+            }
+
+            if (battleInfoUI != null && !battleInfoUI.enabled)
+            {
+                Log("BattleInfoUIコンポーネントが無効のため、有効化します");
+                battleInfoUI.enabled = true;
+            }
+
+            Log("BattleInfoUI有効化完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"BattleInfoUI有効化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: MonsterUIParentの有効化確認
+    /// </summary>
+    private void EnsureMonsterUIParentActive()
+    {
+        try
+        {
+            if (monsterUIParent != null && !monsterUIParent.gameObject.activeInHierarchy)
+            {
+                Log("MonsterUIParentが非アクティブのため、有効化します");
+                monsterUIParent.gameObject.SetActive(true);
+            }
+
+            Log("MonsterUIParent有効化完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"MonsterUIParent有効化エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: 親階層を再帰的に有効化する汎用メソッド
+    /// </summary>
+    /// <param name="child">子オブジェクトのTransform</param>
+    /// <param name="stopAt">停止するTransform（通常は最上位UI）</param>
+    private void EnsureParentHierarchyActive(Transform child, Transform stopAt)
+    {
+        try
+        {
+            Transform current = child.parent;
+
+            while (current != null && current != stopAt)
+            {
+                if (!current.gameObject.activeInHierarchy)
+                {
+                    Log($"親オブジェクト({current.name})を有効化します");
+                    current.gameObject.SetActive(true);
+                }
+                current = current.parent;
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"親階層有効化エラー: {e.Message}");
         }
     }
 
@@ -247,8 +521,8 @@ public class BattleUI : MonoBehaviour
         // 子UIコンポーネント初期化
         yield return StartCoroutine(InitializeChildUIComponents());
 
-        // UI表示
-        yield return StartCoroutine(ShowBattleUI());
+        // 修正: UI表示処理を削除（既に表示状態で初期化済み）
+        // yield return StartCoroutine(ShowBattleUI());
 
         isInitialized = true;
         isUISetupComplete = true;
@@ -273,46 +547,40 @@ public class BattleUI : MonoBehaviour
 
         try
         {
-            // PlayerBattleUI初期化
+            // PlayerBattleUI初期化確認
             if (playerBattleUI != null)
             {
-                // 将来の実装：playerBattleUI.Initialize();
-                Log("PlayerBattleUI初期化完了");
+                Log("PlayerBattleUI初期化確認完了");
             }
 
-            // BattleInfoUI初期化
+            // BattleInfoUI初期化確認
             if (battleInfoUI != null)
             {
-                // 将来の実装：battleInfoUI.Initialize();
-                Log("BattleInfoUI初期化完了");
+                Log("BattleInfoUI初期化確認完了");
             }
 
-            // BattleSpeedUI初期化
+            // BattleSpeedUI初期化確認
             if (battleSpeedUI != null)
             {
-                // 将来の実装：battleSpeedUI.Initialize();
-                Log("BattleSpeedUI初期化完了");
+                Log("BattleSpeedUI初期化確認完了");
             }
 
-            // DamageTextUI初期化
+            // DamageTextUI初期化確認
             if (damageTextUI != null)
             {
-                // 将来の実装：damageTextUI.Initialize();
-                Log("DamageTextUI初期化完了");
+                Log("DamageTextUI初期化確認完了");
             }
 
-            // BattleResultUI初期化
+            // BattleResultUI初期化確認
             if (battleResultUI != null)
             {
-                // 将来の実装：battleResultUI.Initialize();
-                Log("BattleResultUI初期化完了");
+                Log("BattleResultUI初期化確認完了");
             }
 
-            // RewardUI初期化
+            // RewardUI初期化確認
             if (rewardUI != null)
             {
-                // 将来の実装：rewardUI.Initialize();
-                Log("RewardUI初期化完了");
+                Log("RewardUI初期化確認完了");
             }
 
             Log("子UIコンポーネント初期化完了");
@@ -426,15 +694,35 @@ public class BattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 戦闘初期化完了イベントハンドラ
+    /// 修正: 戦闘初期化完了イベントハンドラ
     /// </summary>
     private void OnBattleInitialized(BattleSetupData setupData)
     {
-        Log($"戦闘初期化完了: {setupData.questName}");
+        Log($"戦闘初期化完了: {setupData?.questName ?? "クエスト名不明"}");
 
         try
         {
+            // 修正: setupDataの詳細確認
+            if (setupData == null)
+            {
+                LogError("BattleSetupDataがnullです");
+                return;
+            }
+
+            Log($"受信したBattleSetupData詳細:");
+            Log($"  questName: '{setupData.questName}'");
+            Log($"  questId: {setupData.questId}");
+            Log($"  turnLimit: {setupData.turnLimit}");
+            Log($"  spawnMonsterIds数: {setupData.spawnMonsterIds?.Count ?? 0}");
+
             currentBattleSetup = setupData;
+
+            // 修正: questNameが空の場合の対処
+            if (string.IsNullOrEmpty(setupData.questName))
+            {
+                LogWarning("questNameが空のため、デフォルト名を設定します");
+                setupData.questName = "戦闘中";
+            }
 
             // BattleInfoUI更新
             UpdateBattleInfo();
@@ -462,8 +750,8 @@ public class BattleUI : MonoBehaviour
             // ターン情報更新
             UpdateBattleInfo();
 
-            // キャラクターUIハイライト
-            HighlightCurrentActor(character);
+            // キャラクターUI更新（HP・状態異常含む）
+            UpdateCharacterDisplay(character);
 
             Log("ターン開始UI反映完了");
         }
@@ -485,8 +773,8 @@ public class BattleUI : MonoBehaviour
             // ダメージ表示
             ShowDamageDisplay(action);
 
-            // HPバー更新
-            UpdateCharacterHPBars();
+            // 全キャラクターのHP・状態異常更新
+            UpdateAllCharacterDisplays();
 
             Log("行動実行UI反映完了");
         }
@@ -535,35 +823,15 @@ public class BattleUI : MonoBehaviour
     #region UI表示制御
 
     /// <summary>
-    /// 戦闘UI表示
+    /// 修正: 戦闘UI表示（削除 - 初期化時点で表示済み）
     /// </summary>
     private IEnumerator ShowBattleUI()
     {
         Log("戦闘UI表示開始");
 
-        if (battleCanvasGroup != null)
-        {
-            isTransitionInProgress = true;
-
-            float elapsed = 0f;
-            float startAlpha = battleCanvasGroup.alpha;
-
-            while (elapsed < uiTransitionDuration)
-            {
-                elapsed += Time.deltaTime;
-                float progress = elapsed / uiTransitionDuration;
-                battleCanvasGroup.alpha = Mathf.Lerp(startAlpha, 1f, progress);
-                yield return null;
-            }
-
-            battleCanvasGroup.alpha = 1f;
-            battleCanvasGroup.interactable = true;
-            battleCanvasGroup.blocksRaycasts = true;
-
-            isTransitionInProgress = false;
-        }
-
-        Log("戦闘UI表示完了");
+        // 修正: 既に表示状態で初期化されているため、追加の表示処理は不要
+        Log("戦闘UI表示完了（初期化時点で表示済み）");
+        yield return null;
     }
 
     /// <summary>
@@ -653,8 +921,8 @@ public class BattleUI : MonoBehaviour
             // 戦闘情報更新
             UpdateBattleInfo();
 
-            // キャラクターHP更新
-            UpdateCharacterHPBars();
+            // 全キャラクターHP・状態異常更新
+            UpdateAllCharacterDisplays();
         }
         catch (Exception e)
         {
@@ -671,8 +939,9 @@ public class BattleUI : MonoBehaviour
 
         try
         {
-            // 将来の実装：battleInfoUI.UpdateTurnInfo(battleManager.GetCurrentTurnNumber());
-            // 将来の実装：battleInfoUI.UpdateQuestInfo(currentBattleSetup);
+            // BattleInfoUIは自動でBattleManagerのイベントを受信するため、
+            // ここでは特別な処理は不要
+            Log("戦闘情報更新確認");
         }
         catch (Exception e)
         {
@@ -681,56 +950,101 @@ public class BattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// キャラクターHPバー更新
+    /// 全キャラクター表示更新
     /// </summary>
-    private void UpdateCharacterHPBars()
+    private void UpdateAllCharacterDisplays()
     {
         try
         {
-            // プレイヤーHP更新
+            // プレイヤー更新
+            UpdatePlayerDisplay();
+
+            // モンスター更新
+            UpdateMonsterDisplays();
+
+            Log("全キャラクター表示更新完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"全キャラクター表示更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// プレイヤー表示更新
+    /// </summary>
+    private void UpdatePlayerDisplay()
+    {
+        try
+        {
             if (playerBattleUI != null && battleManager != null)
             {
                 var playerCharacter = battleManager.GetPlayerCharacter();
                 if (playerCharacter != null)
                 {
-                    // 将来の実装：playerBattleUI.UpdateHP(playerCharacter);
-                }
-            }
-
-            // モンスターHP更新
-            foreach (var monsterUI in monsterBattleUIs)
-            {
-                if (monsterUI != null)
-                {
-                    // 将来の実装：monsterUI.UpdateHP();
+                    playerBattleUI.UpdateFromCharacterData(playerCharacter);
                 }
             }
         }
         catch (Exception e)
         {
-            LogError($"キャラクターHPバー更新エラー: {e.Message}");
+            LogError($"プレイヤー表示更新エラー: {e.Message}");
         }
     }
 
     /// <summary>
-    /// 現在行動者ハイライト
+    /// モンスター表示更新
     /// </summary>
-    private void HighlightCurrentActor(BattleCharacterData character)
+    private void UpdateMonsterDisplays()
     {
         try
         {
-            if (character.isPlayer && playerBattleUI != null)
+            if (battleManager == null) return;
+
+            var enemyCharacters = battleManager.GetEnemyCharacters();
+            if (enemyCharacters == null) return;
+
+            // 各モンスターUIを対応するキャラクターデータで更新
+            foreach (var enemy in enemyCharacters)
             {
-                // 将来の実装：playerBattleUI.SetHighlight(true);
+                if (monsterUIMap.TryGetValue(enemy.characterId, out MonsterBattleUI monsterUI))
+                {
+                    monsterUI.UpdateFromCharacterData(enemy);
+                }
             }
-            else if (!character.isPlayer && monsterUIMap.ContainsKey(character.characterId))
-            {
-                // 将来の実装：monsterUIMap[character.characterId].SetHighlight(true);
-            }
+
+            Log($"モンスター表示更新: {enemyCharacters.Count}体");
         }
         catch (Exception e)
         {
-            LogError($"現在行動者ハイライトエラー: {e.Message}");
+            LogError($"モンスター表示更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 特定キャラクター表示更新
+    /// </summary>
+    /// <param name="characterData">更新対象キャラクター</param>
+    private void UpdateCharacterDisplay(BattleCharacterData characterData)
+    {
+        try
+        {
+            if (characterData == null) return;
+
+            if (characterData.isPlayer && playerBattleUI != null)
+            {
+                playerBattleUI.UpdateFromCharacterData(characterData);
+            }
+            else if (!characterData.isPlayer && monsterUIMap.TryGetValue(characterData.characterId, out MonsterBattleUI monsterUI))
+            {
+                monsterUI.UpdateFromCharacterData(characterData);
+            }
+
+            Log($"キャラクター表示更新: {characterData.characterName}");
+        }
+        catch (Exception e)
+        {
+            LogError($"キャラクター表示更新エラー: {e.Message}");
         }
     }
 
@@ -753,7 +1067,7 @@ public class BattleUI : MonoBehaviour
             var playerCharacter = battleManager.GetPlayerCharacter();
             if (playerCharacter != null && playerBattleUI != null)
             {
-                // 将来の実装：playerBattleUI.SetCharacterData(playerCharacter);
+                playerBattleUI.SetCharacterData(playerCharacter);
                 Log("プレイヤーUI設定完了");
             }
 
@@ -770,7 +1084,7 @@ public class BattleUI : MonoBehaviour
     }
 
     /// <summary>
-    /// モンスターUI作成
+    /// 修正: モンスターUI作成（HPBarUI有効化強化版）
     /// </summary>
     private void CreateMonsterUIs(List<BattleCharacterData> enemies)
     {
@@ -781,24 +1095,135 @@ public class BattleUI : MonoBehaviour
             // 既存モンスターUIクリア
             ClearMonsterUIs();
 
+            Log($"モンスターUI作成開始: {enemies.Count}体");
+
+            // プレハブが設定されているかチェック
+            if (monsterBattleUIPrefab == null)
+            {
+                LogError("monsterBattleUIPrefabが設定されていません。Inspectorで設定してください。");
+                return;
+            }
+
             // 新規モンスターUI作成
             foreach (var enemy in enemies)
             {
-                // 将来の実装：MonsterBattleUIプレハブからインスタンス作成
-                // GameObject monsterUIObject = Instantiate(monsterBattleUIPrefab, monsterUIParent);
-                // MonsterBattleUI monsterUI = monsterUIObject.GetComponent<MonsterBattleUI>();
-                // monsterUI.SetCharacterData(enemy);
-                // monsterBattleUIs.Add(monsterUI);
-                // monsterUIMap[enemy.characterId] = monsterUI;
+                try
+                {
+                    // モンスターUIプレハブからインスタンス作成
+                    GameObject monsterUIObject = Instantiate(monsterBattleUIPrefab, monsterUIParent);
+                    MonsterBattleUI monsterUI = monsterUIObject.GetComponent<MonsterBattleUI>();
 
-                Log($"モンスターUI作成: {enemy.characterName}");
+                    if (monsterUI == null)
+                    {
+                        LogError("MonsterBattleUIコンポーネントがプレハブに含まれていません");
+                        Destroy(monsterUIObject);
+                        continue;
+                    }
+
+                    // モンスターUIにデータ設定
+                    monsterUI.SetCharacterData(enemy);
+
+                    // 修正: MonsterUI配下のHPBarUIを徹底的に有効化
+                    EnsureMonsterHPBarUIActive(monsterUI, enemy);
+
+                    // 修正: MonsterUI配下のStatusEffectUIを有効化
+                    EnsureMonsterStatusEffectUIActive(monsterUI, enemy);
+
+                    // リストとマップに追加
+                    monsterBattleUIs.Add(monsterUI);
+                    monsterUIMap[enemy.characterId] = monsterUI;
+
+                    Log($"モンスターUI作成完了: {enemy.characterName} (ID: {enemy.characterId})");
+                }
+                catch (Exception e)
+                {
+                    LogError($"個別モンスターUI作成エラー ({enemy.characterName}): {e.Message}");
+                }
             }
 
-            Log($"モンスターUI作成完了: {enemies.Count}体");
+            Log($"モンスターUI作成完了: {monsterBattleUIs.Count}体");
         }
         catch (Exception e)
         {
             LogError($"モンスターUI作成エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: Monster用HPBarUIの徹底的な有効化
+    /// </summary>
+    private void EnsureMonsterHPBarUIActive(MonsterBattleUI monsterUI, BattleCharacterData enemy)
+    {
+        try
+        {
+            if (monsterUI == null) return;
+
+            // GetComponentsInChildrenで全てのHPBarUIを取得
+            HPBarUI[] hpBarUIs = monsterUI.GetComponentsInChildren<HPBarUI>(true);
+
+            foreach (var hpBarUI in hpBarUIs)
+            {
+                if (hpBarUI == null) continue;
+
+                // HPBarUI GameObjectの有効化
+                if (!hpBarUI.gameObject.activeInHierarchy)
+                {
+                    Log($"Monster HPBarUI({enemy.characterName})が非アクティブのため、有効化します");
+                    hpBarUI.gameObject.SetActive(true);
+                }
+
+                // HPBarUIコンポーネントの有効化
+                if (!hpBarUI.enabled)
+                {
+                    Log($"Monster HPBarUIコンポーネント({enemy.characterName})が無効のため、有効化します");
+                    hpBarUI.enabled = true;
+                }
+
+                // 親階層の有効化
+                EnsureParentHierarchyActive(hpBarUI.transform, monsterUI.transform);
+            }
+
+            Log($"Monster HPBarUI有効化完了: {enemy.characterName}");
+        }
+        catch (Exception e)
+        {
+            LogError($"Monster HPBarUI有効化エラー ({enemy.characterName}): {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 修正: Monster用StatusEffectUIの有効化
+    /// </summary>
+    private void EnsureMonsterStatusEffectUIActive(MonsterBattleUI monsterUI, BattleCharacterData enemy)
+    {
+        try
+        {
+            if (monsterUI == null) return;
+
+            StatusEffectUI[] statusEffectUIs = monsterUI.GetComponentsInChildren<StatusEffectUI>(true);
+
+            foreach (var statusEffectUI in statusEffectUIs)
+            {
+                if (statusEffectUI == null) continue;
+
+                if (!statusEffectUI.gameObject.activeInHierarchy)
+                {
+                    Log($"Monster StatusEffectUI({enemy.characterName})が非アクティブのため、有効化します");
+                    statusEffectUI.gameObject.SetActive(true);
+                }
+
+                if (!statusEffectUI.enabled)
+                {
+                    Log($"Monster StatusEffectUIコンポーネント({enemy.characterName})が無効のため、有効化します");
+                    statusEffectUI.enabled = true;
+                }
+            }
+
+            Log($"Monster StatusEffectUI有効化完了: {enemy.characterName}");
+        }
+        catch (Exception e)
+        {
+            LogError($"Monster StatusEffectUI有効化エラー ({enemy.characterName}): {e.Message}");
         }
     }
 
@@ -843,8 +1268,9 @@ public class BattleUI : MonoBehaviour
         {
             foreach (var damage in action.damageResults)
             {
-                // 将来の実装：damageTextUI.ShowDamage(damage);
-                Log($"ダメージ表示: {damage.targetName}に{damage.finalDamage}ダメージ");
+                // DamageTextUIはBattleManagerのイベントを自動受信するため、
+                // ここでは特別な処理は不要
+                Log($"ダメージ表示確認: {damage.targetName}に{damage.finalDamage}ダメージ");
             }
         }
         catch (Exception e)
@@ -862,14 +1288,16 @@ public class BattleUI : MonoBehaviour
         {
             if (battleResultUI != null)
             {
-                // 将来の実装：battleResultUI.ShowResult(result);
-                Log("戦闘結果UI表示");
+                // BattleResultUIはBattleManagerのイベントを自動受信するため、
+                // ここでは特別な処理は不要
+                Log("戦闘結果UI表示確認");
             }
 
             if (rewardUI != null && result.isVictory)
             {
-                // 将来の実装：rewardUI.ShowRewards(result);
-                Log("報酬UI表示");
+                // RewardUIもBattleManagerのイベントを自動受信するため、
+                // ここでは特別な処理は不要
+                Log("報酬UI表示確認");
             }
         }
         catch (Exception e)
@@ -952,6 +1380,96 @@ public class BattleUI : MonoBehaviour
         catch (Exception e)
         {
             LogError($"戦闘再開エラー: {e.Message}");
+        }
+    }
+
+    #endregion
+
+    #region 公開メソッド - 状態異常制御
+
+    /// <summary>
+    /// 全キャラクターの状態異常を強制更新
+    /// </summary>
+    public void ForceUpdateAllStatusEffects()
+    {
+        try
+        {
+            Log("全キャラクター状態異常強制更新開始");
+
+            // プレイヤー状態異常更新
+            if (playerBattleUI != null && battleManager != null)
+            {
+                var playerCharacter = battleManager.GetPlayerCharacter();
+                if (playerCharacter != null)
+                {
+                    playerBattleUI.UpdateFromCharacterData(playerCharacter);
+                }
+            }
+
+            // モンスター状態異常更新
+            if (battleManager != null)
+            {
+                var enemyCharacters = battleManager.GetEnemyCharacters();
+                if (enemyCharacters != null)
+                {
+                    foreach (var enemy in enemyCharacters)
+                    {
+                        if (monsterUIMap.TryGetValue(enemy.characterId, out MonsterBattleUI monsterUI))
+                        {
+                            monsterUI.UpdateFromCharacterData(enemy);
+                        }
+                    }
+                }
+            }
+
+            Log("全キャラクター状態異常強制更新完了");
+        }
+        catch (Exception e)
+        {
+            LogError($"状態異常強制更新エラー: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 特定キャラクターの状態異常を更新
+    /// </summary>
+    /// <param name="characterId">更新対象のキャラクターID</param>
+    public void UpdateCharacterStatusEffects(string characterId)
+    {
+        try
+        {
+            if (battleManager == null) return;
+
+            // プレイヤーかチェック
+            var playerCharacter = battleManager.GetPlayerCharacter();
+            if (playerCharacter != null && playerCharacter.characterId == characterId)
+            {
+                if (playerBattleUI != null)
+                {
+                    playerBattleUI.UpdateFromCharacterData(playerCharacter);
+                    Log($"プレイヤー状態異常更新: {characterId}");
+                }
+                return;
+            }
+
+            // モンスターかチェック
+            if (monsterUIMap.TryGetValue(characterId, out MonsterBattleUI monsterUI))
+            {
+                var enemyCharacters = battleManager.GetEnemyCharacters();
+                if (enemyCharacters != null)
+                {
+                    var enemy = enemyCharacters.FirstOrDefault(e => e.characterId == characterId);
+                    if (enemy != null)
+                    {
+                        monsterUI.UpdateFromCharacterData(enemy);
+                        Log($"モンスター状態異常更新: {characterId}");
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            LogError($"特定キャラクター状態異常更新エラー: {e.Message}");
         }
     }
 
@@ -1047,5 +1565,121 @@ public class BattleUI : MonoBehaviour
             LogError($"アニメーション停止エラー: {e.Message}");
         }
     }
+
+    #endregion
+
+    #region デバッグ用公開メソッド
+
+    /// <summary>
+    /// デバッグ用：現在の状態情報を出力
+    /// </summary>
+    [ContextMenu("デバッグ：状態情報出力")]
+    public void DebugDumpState()
+    {
+        Log("=== BattleUI状態情報 ===");
+        Log($"初期化完了: {isInitialized}");
+        Log($"UIセットアップ完了: {isUISetupComplete}");
+        Log($"現在の戦闘速度: {currentBattleSpeed}x");
+        Log($"一時停止状態: {isPaused}");
+        Log($"イベント購読状態: {isEventSubscribed}");
+        Log($"トランジション進行中: {isTransitionInProgress}");
+
+        Log($"プレイヤーUI: {(playerBattleUI != null ? "設定済み" : "未設定")}");
+        Log($"モンスターUI数: {monsterBattleUIs?.Count ?? 0}体");
+        Log($"モンスターUIマップ: {monsterUIMap?.Count ?? 0}エントリ");
+
+        if (currentBattleSetup != null)
+        {
+            Log($"現在のクエスト: {currentBattleSetup.questName}");
+        }
+        else
+        {
+            Log("現在のクエスト: なし");
+        }
+
+        Log($"アクティブアニメーション: {activeAnimations?.Count ?? 0}個");
+        Log($"実行中コルーチン: {runningCoroutines?.Count ?? 0}個");
+        Log($"フレーム更新回数: {frameUpdateCount}");
+        Log($"最後のエラー: {(string.IsNullOrEmpty(lastErrorMessage) ? "なし" : lastErrorMessage)}");
+
+        Log("=======================");
+    }
+
+    /// <summary>
+    /// デバッグ用：UIコンポーネント接続確認
+    /// </summary>
+    [ContextMenu("デバッグ：UIコンポーネント接続確認")]
+    public void DebugCheckUIComponents()
+    {
+        Log("=== UIコンポーネント接続確認 ===");
+        Log($"battleCanvas: {(battleCanvas != null ? "接続済み" : "未接続")}");
+        Log($"battleCanvasGroup: {(battleCanvasGroup != null ? "接続済み" : "未接続")}");
+        Log($"playerBattleUI: {(playerBattleUI != null ? "接続済み" : "未接続")}");
+        Log($"monsterUIParent: {(monsterUIParent != null ? "接続済み" : "未接続")}");
+        Log($"monsterBattleUIPrefab: {(monsterBattleUIPrefab != null ? "接続済み" : "未接続")}");
+        Log($"battleInfoUI: {(battleInfoUI != null ? "接続済み" : "未接続")}");
+        Log($"battleSpeedUI: {(battleSpeedUI != null ? "接続済み" : "未接続")}");
+        Log($"damageTextUI: {(damageTextUI != null ? "接続済み" : "未接続")}");
+        Log($"battleResultUI: {(battleResultUI != null ? "接続済み" : "未接続")}");
+        Log($"rewardUI: {(rewardUI != null ? "接続済み" : "未接続")}");
+
+        // BattleManager接続確認
+        Log($"BattleManager: {(battleManager != null ? "接続済み" : "未接続")}");
+        if (battleManager != null)
+        {
+            Log($"BattleManager初期化: {battleManager.IsInitialized}");
+        }
+
+        Log("===============================");
+    }
+
+    /// <summary>
+    /// デバッグ用：CanvasGroup状態確認
+    /// </summary>
+    [ContextMenu("デバッグ：CanvasGroup状態確認")]
+    public void DebugCheckCanvasGroupState()
+    {
+        if (battleCanvasGroup != null)
+        {
+            Log($"CanvasGroup Alpha: {battleCanvasGroup.alpha}");
+            Log($"CanvasGroup Interactable: {battleCanvasGroup.interactable}");
+            Log($"CanvasGroup BlocksRaycasts: {battleCanvasGroup.blocksRaycasts}");
+            Log($"CanvasGroup GameObject Active: {battleCanvasGroup.gameObject.activeInHierarchy}");
+        }
+        else
+        {
+            Log("CanvasGroupが設定されていません");
+        }
+    }
+
+    /// <summary>
+    /// デバッグ用：UI強制表示
+    /// </summary>
+    [ContextMenu("デバッグ：UI強制表示")]
+    public void DebugForceShowUI()
+    {
+        if (battleCanvasGroup != null)
+        {
+            battleCanvasGroup.alpha = 1f;
+            battleCanvasGroup.interactable = true;
+            battleCanvasGroup.blocksRaycasts = true;
+            Log("UI強制表示完了");
+        }
+        else
+        {
+            Log("CanvasGroupが設定されていないため、強制表示できません");
+        }
+    }
+
+    /// <summary>
+    /// デバッグ用：全状態異常更新テスト
+    /// </summary>
+    [ContextMenu("デバッグ：状態異常更新テスト")]
+    public void DebugTestStatusEffectUpdate()
+    {
+        Log("デバッグ：状態異常更新テスト実行");
+        ForceUpdateAllStatusEffects();
+    }
+
+    #endregion
 }
-#endregion

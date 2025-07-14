@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// バフ・デバフ状態の視覚的表現
+/// バフ・デバフ状況の統合的表示
 /// 責任範囲：
 /// - 状態異常アイコン表示
 /// - 残りターン数表示
@@ -123,7 +123,7 @@ public class StatusEffectUI : MonoBehaviour
     #region 初期化
 
     /// <summary>
-    /// コンポーネント検証
+    /// 修正: コンポーネント検証（安全性向上）
     /// </summary>
     private void ValidateComponents()
     {
@@ -132,13 +132,13 @@ public class StatusEffectUI : MonoBehaviour
             // 必須コンポーネント確認
             if (effectListParent == null)
             {
-                LogError("effectListParentが設定されていません");
-                return;
+                LogError("effectListParent が設定されていません。自動的に自身のTransformを使用します。");
+                effectListParent = this.transform;
             }
 
             if (effectSlotPrefab == null)
             {
-                LogError("effectSlotPrefabが設定されていません");
+                LogError("effectSlotPrefab が設定されていません。Inspectorで設定してください。");
                 return;
             }
 
@@ -146,7 +146,7 @@ public class StatusEffectUI : MonoBehaviour
             var slotComponent = effectSlotPrefab.GetComponent<StatusEffectSlot>();
             if (slotComponent == null)
             {
-                LogError("effectSlotPrefabにStatusEffectSlotコンポーネントがありません");
+                LogError("effectSlotPrefab にStatusEffectSlotコンポーネントがありません");
             }
 
             Log("コンポーネント検証完了");
@@ -186,13 +186,17 @@ public class StatusEffectUI : MonoBehaviour
     }
 
     /// <summary>
-    /// レイアウト設定
+    /// 修正: レイアウト設定（エラー対策）
     /// </summary>
     private void SetupLayout()
     {
         try
         {
-            if (effectListParent == null) return;
+            if (effectListParent == null)
+            {
+                LogError("effectListParent が null のため、レイアウト設定をスキップします");
+                return;
+            }
 
             // 既存のLayoutGroupを削除
             var existingLayouts = effectListParent.GetComponents<LayoutGroup>();
@@ -258,10 +262,10 @@ public class StatusEffectUI : MonoBehaviour
 
     #endregion
 
-    #region 公開メソッド - 状態効果更新
+    #region 公開メソッド - 状態異常更新
 
     /// <summary>
-    /// キャラクターデータから状態効果更新
+    /// キャラクターデータから状態異常更新
     /// </summary>
     /// <param name="characterData">キャラクターデータ</param>
     public void UpdateFromCharacterData(BattleCharacterData characterData)
@@ -275,23 +279,23 @@ public class StatusEffectUI : MonoBehaviour
         try
         {
             UpdateStatusEffects(characterData.statusEffects);
-            Log($"キャラクターデータから状態効果更新: {characterData.characterName}");
+            Log($"キャラクターデータから状態異常更新: {characterData.characterName}");
         }
         catch (Exception e)
         {
-            LogError($"キャラクターデータからの状態効果更新エラー: {e.Message}");
+            LogError($"キャラクターデータからの状態異常更新エラー: {e.Message}");
         }
     }
 
     /// <summary>
-    /// 状態効果リスト更新
+    /// 修正: 状態異常リスト更新（安全性向上）
     /// </summary>
-    /// <param name="statusEffects">状態効果データリスト</param>
+    /// <param name="statusEffects">状態異常データリスト</param>
     public void UpdateStatusEffects(List<StatusEffectData> statusEffects)
     {
         try
         {
-            // nullや空リストの処理
+            // null や空リストの処理
             if (statusEffects == null)
             {
                 statusEffects = new List<StatusEffectData>();
@@ -310,7 +314,7 @@ public class StatusEffectUI : MonoBehaviour
                 currentEffects = validEffects;
                 RefreshEffectDisplay();
 
-                Log($"状態効果更新: {validEffects.Count}個の効果を表示");
+                Log($"状態異常更新: {validEffects.Count}個の効果を表示");
             }
 
             // 表示状態更新
@@ -319,26 +323,37 @@ public class StatusEffectUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"状態効果更新エラー: {e.Message}");
+            LogError($"状態異常更新エラー: {e.Message}");
         }
     }
 
     /// <summary>
-    /// 状態効果クリア
+    /// 修正: 状態異常クリア（安全性向上）
     /// </summary>
     public void ClearStatusEffects()
     {
         try
         {
-            currentEffects?.Clear();
+            Log("状態異常クリア開始");
+
+            // currentEffectsが null でないことを確認
+            if (currentEffects == null)
+            {
+                currentEffects = new List<StatusEffectData>();
+            }
+            else
+            {
+                currentEffects.Clear();
+            }
+
             RefreshEffectDisplay();
             SetVisible(showWhenEmpty);
 
-            Log("状態効果クリア完了");
+            Log("状態異常クリア完了");
         }
         catch (Exception e)
         {
-            LogError($"状態効果クリアエラー: {e.Message}");
+            LogError($"効果スロットクリアエラー: {e.Message}");
         }
     }
 
@@ -354,8 +369,11 @@ public class StatusEffectUI : MonoBehaviour
     {
         try
         {
-            gameObject.SetActive(visible);
-            Log($"StatusEffectUI表示切替: {visible}");
+            if (gameObject != null)
+            {
+                gameObject.SetActive(visible);
+                Log($"StatusEffectUI表示切替: {visible}");
+            }
         }
         catch (Exception e)
         {
@@ -415,25 +433,30 @@ public class StatusEffectUI : MonoBehaviour
     #region 内部メソッド - 表示更新
 
     /// <summary>
-    /// 効果表示更新
+    /// 修正: 効果表示更新（安全性向上）
     /// </summary>
     private void RefreshEffectDisplay()
     {
         try
         {
+            Log("効果表示更新開始");
+
             // 既存スロットをクリア
             ClearEffectSlots();
 
-            // 現在の効果に基づいてスロット作成
-            if (currentEffects != null)
+            // 現在の効果に応じてスロット作成
+            if (currentEffects != null && currentEffects.Count > 0)
             {
                 foreach (var effect in currentEffects)
                 {
-                    CreateEffectSlot(effect);
+                    if (effect != null)
+                    {
+                        CreateEffectSlot(effect);
+                    }
                 }
             }
 
-            Log($"効果表示更新完了: {effectSlots.Count}個のスロット作成");
+            Log($"効果表示更新完了: {effectSlots?.Count ?? 0}個のスロット作成");
         }
         catch (Exception e)
         {
@@ -442,14 +465,18 @@ public class StatusEffectUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 効果スロット作成
+    /// 修正: 効果スロット作成（安全性向上）
     /// </summary>
-    /// <param name="effectData">状態効果データ</param>
+    /// <param name="effectData">状態異常データ</param>
     private void CreateEffectSlot(StatusEffectData effectData)
     {
         try
         {
-            if (effectSlotPrefab == null || effectListParent == null) return;
+            if (effectSlotPrefab == null || effectListParent == null || effectData == null)
+            {
+                LogWarning("効果スロット作成に必要な要素が不足しています");
+                return;
+            }
 
             // スロットインスタンス作成
             GameObject slotObject = Instantiate(effectSlotPrefab, effectListParent);
@@ -458,7 +485,10 @@ public class StatusEffectUI : MonoBehaviour
             if (slot == null)
             {
                 LogError("StatusEffectSlotコンポーネントが見つかりません");
-                Destroy(slotObject);
+                if (slotObject != null)
+                {
+                    Destroy(slotObject);
+                }
                 return;
             }
 
@@ -473,6 +503,10 @@ public class StatusEffectUI : MonoBehaviour
             slot.SetEffectData(effectData, GetEffectColor(effectData));
 
             // リストに追加
+            if (effectSlots == null)
+            {
+                effectSlots = new List<StatusEffectSlot>();
+            }
             effectSlots.Add(slot);
 
             Log($"効果スロット作成: {effectData.effectName} (残り{effectData.remainingTurns}ターン)");
@@ -484,20 +518,27 @@ public class StatusEffectUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 効果スロットクリア
+    /// 修正: 効果スロットクリア（安全性向上）
     /// </summary>
     private void ClearEffectSlots()
     {
         try
         {
-            foreach (var slot in effectSlots)
+            if (effectSlots != null)
             {
-                if (slot != null)
+                foreach (var slot in effectSlots)
                 {
-                    Destroy(slot.gameObject);
+                    if (slot != null && slot.gameObject != null)
+                    {
+                        Destroy(slot.gameObject);
+                    }
                 }
+                effectSlots.Clear();
             }
-            effectSlots.Clear();
+            else
+            {
+                effectSlots = new List<StatusEffectSlot>();
+            }
 
             Log("効果スロットクリア完了");
         }
@@ -510,12 +551,14 @@ public class StatusEffectUI : MonoBehaviour
     /// <summary>
     /// 効果の色取得
     /// </summary>
-    /// <param name="effectData">状態効果データ</param>
+    /// <param name="effectData">状態異常データ</param>
     /// <returns>効果の色</returns>
     private Color GetEffectColor(StatusEffectData effectData)
     {
         try
         {
+            if (effectData == null) return defaultDebuffColor;
+
             // colorCodeが設定されている場合はそちらを使用
             if (!string.IsNullOrEmpty(effectData.colorCode))
             {
@@ -525,7 +568,7 @@ public class StatusEffectUI : MonoBehaviour
                 }
             }
 
-            // 効果タイプに基づいてデフォルト色を返す
+            // 効果タイプに応じてデフォルト色を返す
             return IsBuffEffect(effectData) ? defaultBuffColor : defaultDebuffColor;
         }
         catch (Exception e)
@@ -538,12 +581,14 @@ public class StatusEffectUI : MonoBehaviour
     /// <summary>
     /// バフ効果かどうか判定
     /// </summary>
-    /// <param name="effectData">状態効果データ</param>
+    /// <param name="effectData">状態異常データ</param>
     /// <returns>バフ効果かどうか</returns>
     private bool IsBuffEffect(StatusEffectData effectData)
     {
         try
         {
+            if (effectData == null) return false;
+
             // 基本的な判定ロジック
             // 攻撃力・防御力・回復効果がプラスならバフ
             bool hasPositiveEffect = effectData.offenseMultiplier > 1.0f ||
@@ -666,7 +711,8 @@ public class StatusEffectUI : MonoBehaviour
                 remainingTurns = 3,
                 displayPriority = 100,
                 colorCode = "#ff6347",
-                offenseMultiplier = 1.5f
+                offenseMultiplier = 1.5f,
+                isPositive = true
             },
             new StatusEffectData
             {
@@ -675,16 +721,18 @@ public class StatusEffectUI : MonoBehaviour
                 remainingTurns = 2,
                 displayPriority = 100,
                 colorCode = "#4169e1",
-                offenseMultiplier = 0.7f
+                offenseMultiplier = 0.7f,
+                isPositive = false
             },
             new StatusEffectData
             {
                 effectId = 8,
-                effectName = "継続回復",
+                effectName = "持続回復",
                 remainingTurns = 5,
                 displayPriority = 100,
                 colorCode = "#ff6347",
-                turnStartHealPercent = 10
+                turnStartHealPercent = 10,
+                isPositive = true
             }
         };
 
@@ -699,16 +747,6 @@ public class StatusEffectUI : MonoBehaviour
     {
         Log("デバッグ：効果クリア実行");
         ClearStatusEffects();
-    }
-
-    /// <summary>
-    /// デバッグ用：レイアウト切替
-    /// </summary>
-    [ContextMenu("デバッグ：レイアウト切替")]
-    public void DebugToggleLayout()
-    {
-        Log("デバッグ：レイアウト切替実行");
-        SetLayoutHorizontal(!useHorizontalLayout);
     }
 
     /// <summary>
@@ -731,64 +769,4 @@ public class StatusEffectUI : MonoBehaviour
     }
 
     #endregion
-}
-
-/// <summary>
-/// 個別の状態効果スロット
-/// StatusEffectSlotコンポーネントが必要
-/// </summary>
-[System.Serializable]
-public class StatusEffectSlot : MonoBehaviour
-{
-    [Header("スロットコンポーネント")]
-    [SerializeField] private Image effectIcon;
-    [SerializeField] private Image effectBackground;
-    [SerializeField] private TextMeshProUGUI turnCountText;
-
-    private StatusEffectData currentEffectData;
-
-    /// <summary>
-    /// 効果データ設定
-    /// </summary>
-    /// <param name="effectData">状態効果データ</param>
-    /// <param name="effectColor">効果の色</param>
-    public void SetEffectData(StatusEffectData effectData, Color effectColor)
-    {
-        currentEffectData = effectData;
-
-        // 背景色設定
-        if (effectBackground != null)
-        {
-            effectBackground.color = effectColor;
-        }
-
-        // ターン数表示
-        if (turnCountText != null)
-        {
-            turnCountText.text = effectData.remainingTurns.ToString();
-        }
-
-        // アイコン設定（将来実装）
-        // if (effectIcon != null)
-        // {
-        //     effectIcon.sprite = GetEffectIconSprite(effectData.effectId);
-        // }
-    }
-
-    /// <summary>
-    /// ターン数更新
-    /// </summary>
-    /// <param name="remainingTurns">残りターン数</param>
-    public void UpdateTurnCount(int remainingTurns)
-    {
-        if (turnCountText != null)
-        {
-            turnCountText.text = remainingTurns.ToString();
-        }
-
-        if (currentEffectData != null)
-        {
-            currentEffectData.remainingTurns = remainingTurns;
-        }
-    }
 }

@@ -251,7 +251,7 @@ public class HPBarUI : MonoBehaviour
     /// HPをアニメーション付きで変更
     /// </summary>
     /// <param name="newCurrentHp">新しい現在HP</param>
-    /// <param name="newMaxHp">新しい最大HP（省略時は現在の最大HPを使用）</param>
+    /// <param name="newMaxHp">新しい最大HP（省略時は現在の最大HPを継続）</param>
     public void SetHPAnimated(int newCurrentHp, int? newMaxHp = null)
     {
         try
@@ -266,6 +266,22 @@ public class HPBarUI : MonoBehaviour
 
             int targetCurrentHp = Mathf.Max(0, newCurrentHp);
 
+            // 修正: GameObjectがアクティブでない場合の対応
+            if (!gameObject.activeInHierarchy)
+            {
+                LogWarning("HPBarUIが非アクティブのため、即座にHP値を設定します");
+                SetHPImmediate(targetCurrentHp, targetMaxHp);
+                return;
+            }
+
+            // 修正: MonoBehaviourが無効化されている場合の対応
+            if (!enabled)
+            {
+                LogWarning("HPBarUIが無効化されているため、即座にHP値を設定します");
+                SetHPImmediate(targetCurrentHp, targetMaxHp);
+                return;
+            }
+
             // アニメーション実行
             if (hpAnimationCoroutine != null)
             {
@@ -279,6 +295,18 @@ public class HPBarUI : MonoBehaviour
         catch (Exception e)
         {
             LogError($"HPアニメーション設定エラー: {e.Message}");
+            // エラー時は即座に設定してフォールバック
+            try
+            {
+                int targetMaxHp = newMaxHp ?? this.maxHP;
+                int targetCurrentHp = Mathf.Max(0, newCurrentHp);
+                SetHPImmediate(targetCurrentHp, targetMaxHp);
+                LogWarning("エラーのためHPを即座に設定しました");
+            }
+            catch (Exception fallbackError)
+            {
+                LogError($"フォールバック設定もエラー: {fallbackError.Message}");
+            }
         }
     }
 
@@ -317,6 +345,13 @@ public class HPBarUI : MonoBehaviour
     {
         try
         {
+            // 修正: GameObject状態チェック
+            if (!CanPlayFlashAnimation())
+            {
+                LogWarning("ダメージフラッシュ演出をスキップ（非アクティブまたは無効）");
+                return;
+            }
+
             if (flashAnimationCoroutine != null)
             {
                 StopCoroutine(flashAnimationCoroutine);
@@ -339,6 +374,13 @@ public class HPBarUI : MonoBehaviour
     {
         try
         {
+            // 修正: GameObject状態チェック
+            if (!CanPlayFlashAnimation())
+            {
+                LogWarning("回復フラッシュ演出をスキップ（非アクティブまたは無効）");
+                return;
+            }
+
             if (flashAnimationCoroutine != null)
             {
                 StopCoroutine(flashAnimationCoroutine);
@@ -424,17 +466,17 @@ public class HPBarUI : MonoBehaviour
     /// <summary>
     /// アニメーション速度設定
     /// </summary>
-    /// <param name="duration">アニメーション時間（秒）</param>
+    /// <param name="duration">アニメーション期間（秒）</param>
     public void SetAnimationDuration(float duration)
     {
         try
         {
             hpChangeAnimationDuration = Mathf.Max(0.1f, duration);
-            Log($"アニメーション時間設定: {hpChangeAnimationDuration}秒");
+            Log($"アニメーション期間設定: {hpChangeAnimationDuration}秒");
         }
         catch (Exception e)
         {
-            LogError($"アニメーション時間設定エラー: {e.Message}");
+            LogError($"アニメーション期間設定エラー: {e.Message}");
         }
     }
 
@@ -522,6 +564,18 @@ public class HPBarUI : MonoBehaviour
 
     #endregion
 
+    #region 内部メソッド - アニメーション判定
+
+    /// <summary>
+    /// 修正: フラッシュアニメーションが実行可能かチェック
+    /// </summary>
+    private bool CanPlayFlashAnimation()
+    {
+        return gameObject.activeInHierarchy && enabled && hpBarFillImage != null;
+    }
+
+    #endregion
+
     #region アニメーション
 
     /// <summary>
@@ -539,6 +593,13 @@ public class HPBarUI : MonoBehaviour
 
         while (elapsed < hpChangeAnimationDuration)
         {
+            // 修正: アニメーション中にGameObjectが非アクティブになった場合の対応
+            if (!gameObject.activeInHierarchy || !enabled)
+            {
+                LogWarning("アニメーション中にGameObjectが非アクティブになったため、最終値を即座に設定します");
+                break;
+            }
+
             elapsed += Time.deltaTime;
             float progress = elapsed / hpChangeAnimationDuration;
 
@@ -597,6 +658,12 @@ public class HPBarUI : MonoBehaviour
         // フェードイン（元の色→フラッシュ色）
         while (elapsed < duration * 0.3f)
         {
+            // 修正: アニメーション中の状態チェック
+            if (!gameObject.activeInHierarchy || !enabled || hpBarFillImage == null)
+            {
+                yield break;
+            }
+
             elapsed += Time.deltaTime;
             float progress = elapsed / (duration * 0.3f);
 
@@ -616,6 +683,12 @@ public class HPBarUI : MonoBehaviour
         elapsed = 0f;
         while (elapsed < duration * 0.7f)
         {
+            // 修正: アニメーション中の状態チェック
+            if (!gameObject.activeInHierarchy || !enabled || hpBarFillImage == null)
+            {
+                yield break;
+            }
+
             elapsed += Time.deltaTime;
             float progress = elapsed / (duration * 0.7f);
 
@@ -638,7 +711,7 @@ public class HPBarUI : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogError($"フラッシュアニメーション（色復元）エラー: {e.Message}");
+            LogError($"フラッシュアニメーション（色復旧）エラー: {e.Message}");
         }
     }
 
@@ -690,7 +763,9 @@ public class HPBarUI : MonoBehaviour
         Log($"アニメーション実行中: {isAnimating}");
         Log($"HPテキスト表示: {showHPText}");
         Log($"パーセンテージ表示: {showPercentage}");
-        Log($"アニメーション時間: {hpChangeAnimationDuration}秒");
+        Log($"アニメーション期間: {hpChangeAnimationDuration}秒");
+        Log($"GameObjectアクティブ: {gameObject.activeInHierarchy}");
+        Log($"コンポーネント有効: {enabled}");
         Log("========================");
     }
 
