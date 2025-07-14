@@ -79,6 +79,7 @@
     <Compile Include="Assets\Scripts\Manager\Battle\BattleTurnManager.cs" />
     <Compile Include="Assets\Scripts\UI\Quest\DropItemSlotUI.cs" />
     <Compile Include="Assets\Scripts\Data\Battle\BattleSkillData.cs" />
+    <Compile Include="Assets\Scripts\UI\Battle\StatusEffectUI.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark02.cs" />
     <Compile Include="Assets\Scripts\UI\Enhance\NoneSelectionSlotUI.cs" />
     <Compile Include="Assets\Scripts\SaveDataEditer\JsonSaveDataImporter.cs" />
@@ -86,16 +87,20 @@
     <Compile Include="Assets\Scripts\Data\Enhance\EnhancePreviewData.cs" />
     <Compile Include="Assets\Scripts\Manager\HomeManager.cs" />
     <Compile Include="Assets\Scripts\UI\Inventory\InventoryUI.cs" />
+    <Compile Include="Assets\Scripts\UI\Battle\BattleResultUI.cs" />
     <Compile Include="Assets\Scripts\UI\Skill\SkillSelectionPopup.cs" />
     <Compile Include="Assets\Scripts\Data\Quest\QuestReward.cs" />
+    <Compile Include="Assets\Scripts\UI\Battle\RewardUI.cs" />
     <Compile Include="Assets\Scripts\SceneChange\TransitionUIController.cs" />
     <Compile Include="Assets\Scripts\UI\Enhance\ItemSelectionSlotUI.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_ExampleScript_01.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMPro_InstructionOverlay.cs" />
+    <Compile Include="Assets\Scripts\UI\Battle\MonsterBattleUI.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\VertexShakeB.cs" />
     <Compile Include="Assets\Scripts\Test\BattleTestUI.cs" />
     <Compile Include="Assets\Scripts\Test\BattleTestUIPrefabCreator.cs" />
     <Compile Include="Assets\Scripts\Data\UserData\UserDataUtility.cs" />
+    <Compile Include="Assets\Scripts\UI\Battle\BattleInfoUI.cs" />
     <Compile Include="Assets\Scripts\Data\UserData\UserSkillData.cs" />
     <Compile Include="Assets\Scripts\Data\Battle\ActionData.cs" />
     <Compile Include="Assets\Scripts\Data\UserData\UserItemData.cs" />
@@ -103,6 +108,7 @@
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\VertexJitter.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_UiFrameRateCounter.cs" />
     <Compile Include="Assets\Scripts\Manager\Enhance\EquipmentEnhanceManager.cs" />
+    <Compile Include="Assets\Scripts\UI\Battle\PlayerBattleUI.cs" />
     <Compile Include="Assets\Scripts\Data\Battle\DamageData.cs" />
     <Compile Include="Assets\Scripts\Manager\Battle\BattleMonsterManager.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\VertexZoom.cs" />
@@ -119,6 +125,7 @@
     <Compile Include="Assets\Scripts\Data\UserData\UserEquipmentData.cs" />
     <Compile Include="Assets\Scripts\UI\Quest\MonsterSlotUI.cs" />
     <Compile Include="Assets\Scripts\Test\EquipmentEnhanceTestUI.cs" />
+    <Compile Include="Assets\Scripts\UI\Battle\BattleSpeedUI.cs" />
     <Compile Include="Assets\Scripts\Data\Quest\MonsterMasterData.cs" />
     <Compile Include="Assets\Scripts\UI\Home\HomeUI.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TMP_TextInfoDebugTool.cs" />
@@ -144,6 +151,7 @@
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark01.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\TextMeshSpawner.cs" />
     <Compile Include="Assets\Scripts\Data\Quest\BattleResult.cs" />
+    <Compile Include="Assets\Scripts\UI\Battle\DamageTextUI.cs" />
     <Compile Include="Assets\Scripts\Data\Quest\QuestDetailData.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\CameraController.cs" />
     <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark03.cs" />
@@ -152,6 +160,7 @@
     <Compile Include="Assets\Scripts\Manager\Battle\BattleManager.cs" />
     <Compile Include="Assets\Scripts\UI\Enhance\ItemSelectionWindowUI.cs" />
     <Compile Include="Assets\Scripts\Data\CharacterData\CharacterMasterData.cs" />
+    <Compile Include="Assets\Scripts\UI\Battle\HPBarUI.cs" />
     <Compile Include="Assets\Scripts\SaveDataEditer\CustomSaveDataCreator.cs" />
     <Compile Include="Assets\Scripts\UI\Skill\SkillSlotUI.cs" />
     <Compile Include="Assets\Scripts\Data\Quest\QuestDisplayData.cs" />
@@ -176,6 +185,7 @@
     <Compile Include="Assets\Scripts\Manager\Battle\BattleCalculationManager.cs" />
     <Compile Include="Assets\Scripts\UI\Enhance\EquipmentEnhanceUI.cs" />
     <Compile Include="Assets\Scripts\Manager\Quest\QuestDataManager.cs" />
+    <Compile Include="Assets\Scripts\UI\Battle\BattleUI.cs" />
     <Compile Include="Assets\Scripts\Data\SkillData\SkillMasterData.cs" />
     <Compile Include="Assets\Scripts\SceneChange\SceneTransitionButton.cs" />
   </ItemGroup>

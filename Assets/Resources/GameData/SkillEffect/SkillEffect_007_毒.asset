@@ -29,6 +29,6 @@ MonoBehaviour:
   preventAction: 0
   turnStartDamagePercent: 5
   turnStartHealPercent: 0
-  skillEffectIconId: 
+  skillEffectIconId: Icons/SkillEffect/Skill_Effect_7
   colorCode: '#4169e1'
   skillEffectPriority: 100
